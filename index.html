@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d0f12">
+<title>Chrono Canne</title>
+<style>
+  :root {
+    --bg: #0d0f12;
+    --panel: #171a1f;
+    --line: #2a2f37;
+    --text: #f2f4f7;
+    --muted: #8a93a0;
+    --round: #ffb020;
+    --rest: #33c38a;
+    --stop: #ff4d4f;
+    --accent: #4da3ff;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { display: flex; flex-direction: column; padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom); overscroll-behavior: none; }
+
+  header { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; gap: 8px; }
+  .mic { display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--line);
+    color: var(--text); border-radius: 999px; padding: 8px 14px; font-size: 15px; }
+  .mic .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+  .mic.on .dot { background: var(--stop); animation: pulse 1.2s infinite; }
+  @keyframes pulse { 50% { opacity: .3; } }
+  .icon-btn { background: var(--panel); border: 1px solid var(--line); color: var(--text);
+    border-radius: 12px; padding: 8px 12px; font-size: 15px; }
+
+  main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; min-height: 0; }
+  #roundLabel { font-size: clamp(22px, 6vw, 40px); font-weight: 700; letter-spacing: .04em; }
+  #phaseLabel { font-size: clamp(16px, 4.5vw, 26px); text-transform: uppercase; letter-spacing: .15em; color: var(--muted); }
+  #time { font-variant-numeric: tabular-nums; font-weight: 800; line-height: 1;
+    font-size: clamp(90px, 30vw, 260px); color: var(--text); }
+  #max { font-size: clamp(16px, 4.5vw, 24px); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .bar { width: 100%; max-width: 640px; height: 10px; background: var(--panel); border-radius: 999px; overflow: hidden; margin-top: 8px; }
+  .bar > div { height: 100%; width: 0; background: var(--muted); transition: width .2s linear; }
+
+  body.round #time, body.round #phaseLabel { color: var(--round); }
+  body.round .bar > div { background: var(--round); }
+  body.rest #time, body.rest #phaseLabel { color: var(--rest); }
+  body.rest .bar > div { background: var(--rest); }
+  body.paused #time { color: var(--stop); animation: pulse 1s infinite; }
+  body.paused #phaseLabel { color: var(--stop); }
+
+  #heard { min-height: 1.4em; font-size: 15px; color: var(--muted); max-width: 640px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px 0 16px; }
+  .controls button { border: 0; border-radius: 16px; font-size: 20px; font-weight: 700; padding: 18px 8px; color: #111; }
+  #mainBtn { grid-column: 1 / -1; font-size: 28px; padding: 26px 8px; background: var(--round); }
+  #mainBtn.stop { background: var(--stop); color: #fff; }
+  #mainBtn.rest { background: var(--rest); }
+  #mainBtn:disabled { background: var(--panel); color: var(--muted); }
+  .controls button.secondary:disabled { opacity: .35; }
+  #resetBtn.confirm { background: var(--stop) !important; color: #fff !important; border-color: var(--stop) !important; }
+  .controls .secondary { font-size: 15px !important; padding: 16px 4px !important; line-height: 1.2; }
+  .secondary { background: var(--panel) !important; color: var(--text) !important; border: 1px solid var(--line) !important; font-size: 17px !important; }
+
+  dialog { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 16px;
+    width: min(520px, calc(100vw - 32px)); padding: 20px; max-height: 90vh; }
+  dialog::backdrop { background: rgba(0,0,0,.6); }
+  dialog h2 { margin: 0 0 12px; font-size: 20px; }
+  .field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .field label { font-size: 16px; }
+  .field small { display: block; color: var(--muted); font-size: 13px; }
+  .field input, .field select { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px; font-size: 17px; width: 130px; text-align: center; }
+  #stops { font-size: clamp(15px, 4vw, 20px); color: var(--muted); min-height: 1.3em; font-variant-numeric: tabular-nums; }
+  body.paused #stops { color: var(--stop); font-weight: 700; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tile { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  .tile b { display: block; font-size: 24px; font-variant-numeric: tabular-nums; }
+  .tile span { color: var(--muted); font-size: 13px; }
+  #statsDlg h3 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin: 18px 0 6px; }
+  #statsDlg table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 15px; }
+  #statsDlg th, #statsDlg td { padding: 7px 4px; border-bottom: 1px solid var(--line); text-align: right; }
+  #statsDlg th:first-child, #statsDlg td:first-child { text-align: left; }
+  #statsDlg th { color: var(--muted); font-weight: 500; font-size: 13px; }
+  #statsDlg .empty { color: var(--muted); }
+  .learn h3 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin: 18px 0 4px; }
+  .learn p { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+  .learn-row { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  .learn-row span { flex: 1; font-size: 16px; }
+  .learn-row button { border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 8px; padding: 6px 8px; font-size: 13px; font-weight: 600; }
+  .sentence { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 14px 0 0; font-size: 16px; line-height: 1.4; }
+  .dlg-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  .dlg-actions button { flex: 1; border: 0; border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 600; background: var(--accent); color: #fff; }
+  .dlg-actions button.secondary { flex: 1; }
+  .warn { color: var(--round); font-size: 14px; margin-top: 10px; }
+</style>
+</head>
+<body class="ready">
+  <header>
+    <button id="micBtn" class="mic"><span class="dot"></span><span id="micText">Micro coupé</span></button>
+    <div style="display:flex; gap:8px">
+      <button id="statsBtn" class="icon-btn" title="Statistiques">📊</button>
+      <button id="announceBtn" class="icon-btn" title="Annoncer l'assaut">📣</button>
+      <button id="settingsBtn" class="icon-btn" title="Réglages">⚙︎</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="roundLabel">Round 1 / 3</div>
+    <div id="phaseLabel">Prêt</div>
+    <div id="time">1:30</div>
+    <div id="max">/ 1:30</div>
+    <div id="stops"></div>
+    <div class="bar"><div id="barFill"></div></div>
+    <div id="heard"></div>
+  </main>
+
+  <div class="controls">
+    <button id="mainBtn">ALLEZ</button>
+    <button id="undoBtn" class="secondary" disabled>↶ Annuler</button>
+    <button id="resetBtn" class="secondary">Réinitialiser</button>
+    <button id="skipBtn" class="secondary">Fin du round</button>
+  </div>
+
+  <dialog id="settings">
+    <h2>Réglages de l'assaut</h2>
+    <div class="field">
+      <label for="sRounds">Nombre de rounds</label>
+      <select id="sRounds"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+    </div>
+    <div class="field">
+      <label for="sRound">Durée d'un round<small>min:sec</small></label>
+      <input id="sRound" inputmode="numeric" placeholder="1:30">
+    </div>
+    <div class="field">
+      <label for="sRest">Durée de la pause<small>min:sec</small></label>
+      <input id="sRest" inputmode="numeric" placeholder="1:00">
+    </div>
+    <div class="field">
+      <label for="sCalls">Annonces pendant la pause<small>secondes restantes, séparées par des virgules</small></label>
+      <input id="sCalls" placeholder="15,10,5">
+    </div>
+    <div class="field">
+      <label for="sAutoRest">Pause automatique en fin de round<small>sinon : bouton ou « REPOS »</small></label>
+      <select id="sAutoRest"><option value="0">Non</option><option value="1">Oui</option></select>
+    </div>
+    <div class="learn">
+      <h3>Mots entendus non reconnus</h3>
+      <p>Mots courts entendus qui n'ont déclenché aucune commande. Touchez la commande voulue pour que l'app les reconnaisse ensuite.</p>
+      <div id="unheardList"></div>
+      <h3>Variantes apprises</h3>
+      <div id="learnedList"></div>
+    </div>
+    <p class="sentence" id="sentencePreview"></p>
+    <div class="dlg-actions">
+      <button id="saveBtn">Enregistrer</button>
+      <button id="closeBtn" class="secondary">Annuler</button>
+    </div>
+  </dialog>
+
+  <dialog id="statsDlg">
+    <h2 id="statsTitle">Statistiques</h2>
+    <div id="statsBody"></div>
+    <div class="dlg-actions">
+      <button id="shareStats">Partager</button>
+      <button id="closeStats" class="secondary">Fermer</button>
+    </div>
+  </dialog>
+
+<script>
+// ---------- Réglages ----------
+const DEFAULTS = { rounds: 3, roundSec: 90, restSec: 60, calls: [15, 10, 5], autoRest: false, learned: { STOP: [], ALLEZ: [], REPOS: [] } };
+function loadSettings() {
+  try { const c = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('chrono-canne') || '{}') }; c.learned = { ...DEFAULTS.learned, ...c.learned }; return c; }
+  catch { return { ...DEFAULTS }; }
+}
+function saveSettings() {
+  try { localStorage.setItem('chrono-canne', JSON.stringify(cfg)); } catch {}
+}
+let cfg = loadSettings();
+
+// ---------- Formatage ----------
+const fmt = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+function parseMmSs(str) {
+  const m = String(str).trim().match(/^(\d+)(?:[:'h.,\s]+(\d{1,2}))?$/);
+  if (!m) return null;
+  return m[2] !== undefined ? +m[1] * 60 + +m[2] : (+m[1] >= 10 ? +m[1] : +m[1] * 60); // "2" = 2 min, "90" = 90 s
+}
+
+const NUM_WORDS = ['zéro','une','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize'];
+const TENS = { 20: 'vingt', 30: 'trente', 40: 'quarante', 50: 'cinquante' };
+function numFr(n, fem = true) {
+  if (n === 1) return fem ? 'une' : 'un';
+  if (n < NUM_WORDS.length) return NUM_WORDS[n];
+  if (TENS[n]) return TENS[n];
+  const t = Math.floor(n / 10) * 10, u = n % 10;
+  if (TENS[t]) return TENS[t] + (u === 1 ? ' et un' : '-' + NUM_WORDS[u]);
+  return String(n);
+}
+function durationFr(sec) {
+  const m = Math.floor(sec / 60), s = sec % 60;
+  if (m === 0) return numFr(s, true) + (s > 1 ? ' secondes' : ' seconde');
+  let out = numFr(m) + (m > 1 ? ' minutes' : ' minute');
+  if (s === 30 && m === 1) return 'une minute trente';
+  if (s) out += ' ' + numFr(s);
+  return out;
+}
+const de = w => /^[aeiouyh]/i.test(w) ? "d'" + w : 'de ' + w;
+function buildSentence(c = cfg) {
+  const r = c.rounds === 1 ? 'un round' : numFr(c.rounds, false) + ' rounds';
+  let s = `Pour un assaut en ${r} ${de(durationFr(c.roundSec))}`;
+  if (c.rounds > 1) s += `, avec ${durationFr(c.restSec)} de pause`;
+  return s + '.';
+}
+
+// ---------- Analyse de la phrase de l'arbitre ----------
+function normalize(t) {
+  t = t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’'\-]/g, ' ');
+  const words = { 'quarante cinq': 45, 'trente cinq': 35, 'vingt cinq': 25, 'cinquante': 50, 'quarante': 40, 'trente': 30,
+    'vingt': 20, 'quinze': 15, 'dix': 10, 'neuf': 9, 'huit': 8, 'sept': 7, 'six': 6, 'cinq': 5, 'quatre': 4,
+    'trois': 3, 'deux': 2, 'une': 1, 'un': 1 };
+  for (const [w, n] of Object.entries(words)) t = t.replace(new RegExp('\\b' + w + '\\b', 'g'), n);
+  return t.replace(/\s+/g, ' ');
+}
+function parseReferee(raw) {
+  const t = normalize(raw);
+  const out = {};
+  const r = t.match(/(\d+)\s*(?:rounds?|reprises?|manches?)\b/);
+  if (r && +r[1] >= 1 && +r[1] <= 5) out.rounds = +r[1];
+
+  const durRe = /(\d+)\s*(?:minutes?|mins?|mn|'|:)(?:\s*(?:et\s+)?(demie?|\d{2})(?!\d))?(?:\s*(?:secondes?|sec|s)\b)?|(\d+)\s*(?:secondes?|sec|s)\b/g;
+  const durs = [];
+  let m;
+  while ((m = durRe.exec(t))) {
+    let sec;
+    if (m[3]) sec = +m[3];
+    else sec = +m[1] * 60 + (m[2] ? (m[2].startsWith('dem') ? 30 : +m[2]) : 0);
+    if (sec > 0 && sec <= 600) durs.push({ sec, pos: m.index, end: m.index + m[0].length });
+  }
+  const pm = t.match(/\b(pause|repos|recuperation|recup)\b/);
+  if (pm && durs.length) {
+    const p = pm.index, pEnd = p + pm[0].length;
+    // « pause de 1 minute » ou « 1 minute de pause », sinon la durée la plus proche du mot
+    const gapAfter = d => d.pos >= pEnd ? t.slice(pEnd, d.pos) : null;
+    const gapBefore = d => d.end <= p ? t.slice(d.end, p) : null;
+    let best = durs.find(d => /^\s*(de|d)?\s*$/.test(gapAfter(d) ?? 'x')) ||
+               durs.find(d => /^\s*(de|d)?\s*$/.test(gapBefore(d) ?? 'x'));
+    if (!best && durs.length > 1) {
+      const dist = d => Math.min(Math.abs(d.pos - pEnd), Math.abs(d.end - p));
+      best = durs.reduce((a, d) => dist(d) < dist(a) ? d : a);
+    }
+    if (best) { out.restSec = best.sec; durs.splice(durs.indexOf(best), 1); }
+  }
+  if (durs.length) out.roundSec = durs[0].sec;
+  return out;
+}
+
+// ---------- Voix ----------
+const synth = window.speechSynthesis;
+let frVoice = null;
+function pickVoice() {
+  const vs = synth ? synth.getVoices() : [];
+  frVoice = vs.find(v => v.lang === 'fr-FR' && v.localService) || vs.find(v => v.lang.startsWith('fr')) || null;
+}
+if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
+let speakingUntil = 0;
+const pending = new Set(); // garde une référence : Chrome perd les annonces dont l'objet est libéré par le ramasse-miettes
+function say(text) {
+  if (!synth) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'fr-FR'; u.rate = 1.05; if (frVoice) u.voice = frVoice;
+  speakingUntil = Date.now() + 600 + text.length * 90;
+  u.onend = u.onerror = () => { pending.delete(u); speakingUntil = Date.now() + 400; };
+  pending.add(u);
+  // cancel() suivi immédiatement de speak() fait perdre l'annonce sur Chrome : on attend un peu
+  const go = () => { synth.resume(); synth.speak(u); };
+  if (synth.speaking || synth.pending) { synth.cancel(); setTimeout(go, 120); } else go();
+}
+// iOS / Safari n'autorisent la synthèse vocale qu'après une première annonce déclenchée par un toucher
+let speechUnlocked = false;
+function unlockSpeech() {
+  if (speechUnlocked || !synth) return;
+  speechUnlocked = true;
+  const u = new SpeechSynthesisUtterance(' '); u.volume = 0; u.lang = 'fr-FR';
+  synth.speak(u);
+}
+
+// ---------- Sons ----------
+let actx = null;
+function audio() { unlockSpeech(); if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); return actx; }
+function beep(freq = 880, dur = 0.15, when = 0, vol = 0.5) {
+  const a = audio(), o = a.createOscillator(), g = a.createGain();
+  o.frequency.value = freq; o.type = 'square';
+  g.gain.setValueAtTime(vol, a.currentTime + when);
+  g.gain.exponentialRampToValueAtTime(0.001, a.currentTime + when + dur);
+  o.connect(g).connect(a.destination); o.start(a.currentTime + when); o.stop(a.currentTime + when + dur);
+}
+const gong = () => { beep(660, 0.6, 0, 0.6); beep(660, 0.6, 0.7, 0.6); beep(660, 1.2, 1.4, 0.6); };
+
+// ---------- Chrono ----------
+// phases : ready (avant un round), round, roundEnd (attente REPOS), rest, done
+const st = { phase: 'ready', round: 1, running: false, remaining: cfg.roundSec, deadline: 0, called: new Set() };
+// Journal de l'assaut : arrêts de l'arbitre pendant les rounds (les arrêts pendant la pause ne comptent pas)
+let bout = newBout();
+const undoStack = []; // états avant chaque commande, pour « Annuler »
+function newBout() { return { start: null, end: null, rounds: {}, stops: [], cfg: null }; }
+function openStop() {
+  bout.stops.push({ round: st.round, at: cfg.roundSec - st.remaining, t0: Date.now(), dur: null });
+}
+function closeStop() {
+  const s = bout.stops[bout.stops.length - 1];
+  if (s && s.dur === null) s.dur = (Date.now() - s.t0) / 1000;
+}
+function closeRound() {
+  closeStop();
+  const r = bout.rounds[st.round];
+  if (r && !r.end) r.end = Date.now();
+}
+let wakeLock = null;
+async function keepAwake() { try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.onrelease = () => wakeLock = null; } } catch {} }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepAwake(); });
+
+function startClock() { st.deadline = performance.now() + st.remaining * 1000; st.running = true; keepAwake(); }
+function pauseClock() { tick(); st.running = false; }
+
+function allez() {
+  if (st.phase === 'ready') {
+    if (st.round === 1) { bout = newBout(); bout.start = Date.now(); bout.cfg = { ...cfg }; }
+    bout.rounds[st.round] = { start: Date.now(), end: null };
+    st.phase = 'round'; st.remaining = cfg.roundSec; startClock(); beep(1200, 0.2);
+  }
+  else if ((st.phase === 'round' || st.phase === 'rest') && !st.running) {
+    if (st.phase === 'round') closeStop();
+    startClock(); beep(1200, 0.2);
+  }
+  else return false;
+  render(); return true;
+}
+function stop() {
+  if ((st.phase === 'round' || st.phase === 'rest') && st.running) {
+    pauseClock(); if (st.phase === 'round') openStop();
+    beep(400, 0.3); render(); return true;
+  }
+  return false;
+}
+function repos() {
+  if (st.phase !== 'round' && st.phase !== 'roundEnd') return false;
+  closeRound();
+  if (st.round >= cfg.rounds) { finishBout(); return true; }
+  st.phase = 'rest'; st.remaining = cfg.restSec; st.called = new Set(); startClock();
+  say('Repos. ' + durationFr(cfg.restSec));
+  render(); return true;
+}
+function endRound() {
+  closeRound();
+  st.running = false; st.remaining = 0; gong();
+  if (st.round >= cfg.rounds) { finishBout(); return; }
+  st.phase = 'roundEnd';
+  setTimeout(() => { if (st.phase === 'roundEnd') say('Fin du round ' + st.round); }, 2000);
+  if (cfg.autoRest) setTimeout(() => { if (st.phase === 'roundEnd') repos(); }, 4000);
+  render();
+}
+function finishBout() {
+  closeRound();
+  st.phase = 'done'; st.running = false; st.remaining = 0; bout.end = Date.now();
+  try { localStorage.setItem('chrono-canne-last', JSON.stringify(bout)); } catch {}
+  const k = computeStats(bout);
+  setTimeout(() => st.phase === 'done' && say("Fin de l'assaut. " + (k.n === 0 ? 'Aucun arrêt.'
+    : k.n + (k.n > 1 ? ' arrêts, ' : ' arrêt, ') + durationFr(Math.round(k.total)) + " d'arrêt au total.")), 2000);
+  setTimeout(() => { if (st.phase === 'done') showStats(); }, 2500);
+  render();
+}
+function endRest() {
+  st.running = false; st.round++; st.phase = 'ready'; st.remaining = cfg.roundSec;
+  beep(1000, 0.4); say('Round ' + st.round + '. En garde');
+  render();
+}
+function reset() {
+  Object.assign(st, { phase: 'ready', round: 1, running: false, remaining: cfg.roundSec, called: new Set() });
+  bout = newBout(); undoStack.length = 0;
+  render();
+}
+
+function tick() {
+  if (!st.running) return;
+  st.remaining = Math.max(0, (st.deadline - performance.now()) / 1000);
+  if (st.phase === 'rest') {
+    for (const c of cfg.calls) {
+      if (!st.called.has(c) && st.remaining <= c && c < cfg.restSec) {
+        st.called.add(c);
+        if (st.remaining > c - 1.5) {
+          say(durationFr(c));
+          for (let i = 0; i < (c <= 5 ? 3 : 2); i++) beep(1000, 0.08, i * 0.15, 0.4); // bip de secours si la voix ne sort pas
+          showHeard('🔊 ' + durationFr(c));
+        }
+      }
+    }
+  }
+  if (st.remaining <= 0) { st.phase === 'round' ? endRound() : endRest(); }
+}
+
+// ---------- Affichage ----------
+const $ = id => document.getElementById(id);
+function render() {
+  const max = st.phase === 'rest' ? cfg.restSec : cfg.roundSec;
+  $('roundLabel').textContent = `Round ${st.round} / ${cfg.rounds}`;
+  $('time').textContent = fmt(st.remaining);
+  $('max').textContent = '/ ' + fmt(max);
+  const rs = bout.stops.filter(x => x.round === st.round);
+  const open = rs.find(x => x.dur === null);
+  const rsTotal = rs.reduce((a, x) => a + (x.dur ?? (Date.now() - x.t0) / 1000), 0);
+  $('stops').textContent = open ? `Arrêt ${rs.length} · ${fmt(Math.floor((Date.now() - open.t0) / 1000))}`
+    : (st.phase === 'round' || st.phase === 'roundEnd') && rs.length ? `${rs.length} arrêt${rs.length > 1 ? 's' : ''} · ${fmt(rsTotal)}` : '';
+  $('barFill').style.width = (st.phase === 'done' ? 100 : 100 * (1 - st.remaining / max)) + '%';
+  const paused = (st.phase === 'round' || st.phase === 'rest') && !st.running;
+  document.body.className = (st.phase === 'rest' ? 'rest' : st.phase === 'round' ? 'round' : st.phase) + (paused ? ' paused' : '');
+  const labels = { ready: 'Prêt — en garde', round: 'Assaut', roundEnd: 'Fin du round', rest: 'Repos', done: "Fin de l'assaut" };
+  $('phaseLabel').textContent = paused ? 'Arrêt' : labels[st.phase];
+
+  const b = $('mainBtn'); b.disabled = false; b.className = '';
+  if (st.phase === 'ready' || paused) b.textContent = 'ALLEZ';
+  else if (st.phase === 'round' || st.phase === 'rest') { b.textContent = 'STOP'; b.className = 'stop'; }
+  else if (st.phase === 'roundEnd') { b.textContent = 'REPOS'; b.className = 'rest'; }
+  else { b.textContent = 'Terminé'; b.disabled = true; }
+  $('skipBtn').textContent = st.phase === 'rest' ? 'Fin de la pause' : 'Fin du round';
+  $('skipBtn').disabled = !(st.phase === 'round' || st.phase === 'rest');
+  const last = undoStack[undoStack.length - 1];
+  $('undoBtn').disabled = !last;
+  $('undoBtn').textContent = last ? '↶ Annuler ' + last.name : '↶ Annuler';
+}
+// Le temps avance avec setInterval : requestAnimationFrame s'arrête dès que la page n'est plus affichée
+let lastPausedRender = 0;
+setInterval(tick, 100);
+(function loop(t) {
+  if (st.running) render();
+  else if (st.phase === 'round' && t - lastPausedRender > 250) { lastPausedRender = t; render(); } // compteur d'arrêt en direct
+  requestAnimationFrame(loop);
+})(0);
+
+// ---------- Annulation ----------
+// Chaque commande (voix, bouton, télécommande) mémorise l'état d'avant. « Annuler » y revient,
+// comme si la commande n'avait jamais eu lieu : un STOP parasite annulé laisse le chrono avoir tourné
+// pendant ce temps (l'échéance est une heure absolue), un ALLEZ parasite annulé prolonge l'arrêt en cours.
+function command(name, fn) {
+  const snap = { name, st: structuredClone(st), bout: structuredClone(bout) };
+  const changed = fn() !== false;
+  if (changed) { undoStack.push(snap); if (undoStack.length > 20) undoStack.shift(); render(); }
+  return changed;
+}
+function undo() {
+  const snap = undoStack.pop();
+  if (!snap) return;
+  Object.assign(st, snap.st); bout = snap.bout;
+  if (synth) synth.cancel();
+  beep(300, 0.12); beep(300, 0.12, 0.18);
+  showHeard('↶ ' + snap.name + ' annulé');
+  render();
+}
+const cmdAllez = () => command('ALLEZ', allez);
+const cmdStop = () => command('STOP', stop);
+const cmdRepos = () => command('REPOS', repos);
+
+function mainAction() {
+  audio();
+  const paused = (st.phase === 'round' || st.phase === 'rest') && !st.running;
+  if (st.phase === 'ready' || paused) cmdAllez();
+  else if (st.phase === 'round' || st.phase === 'rest') cmdStop();
+  else if (st.phase === 'roundEnd') cmdRepos();
+}
+$('mainBtn').onclick = mainAction;
+$('undoBtn').onclick = undo;
+
+// Télécommande Bluetooth (télécommande de présentation, tourne-page) ou clavier :
+// touche « suivant » = bouton principal, touche « précédent » = annuler
+const NEXT_KEYS = [' ', 'Enter', 'PageDown', 'ArrowRight', 'ArrowDown', 'MediaPlayPause', 'MediaTrackNext'];
+const PREV_KEYS = ['PageUp', 'ArrowLeft', 'ArrowUp', 'Backspace', 'MediaTrackPrevious'];
+document.addEventListener('keydown', e => {
+  if (document.querySelector('dialog[open]') || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  if (e.repeat) { e.preventDefault(); return; }
+  if (NEXT_KEYS.includes(e.key)) { e.preventDefault(); mainAction(); showHeard('⌨︎ ' + e.key); }
+  else if (PREV_KEYS.includes(e.key)) { e.preventDefault(); undo(); }
+});
+// un bouton touché garde le focus : sans ça, Espace/Entrée le déclencherait une 2e fois
+document.addEventListener('click', e => { if (e.target.closest('.controls button')) e.target.closest('button').blur(); });
+// confirmation en deux appuis (confirm() est bloqué sur beaucoup de navigateurs mobiles)
+let resetArmed = null;
+$('resetBtn').onclick = () => {
+  const b = $('resetBtn');
+  const nothingToLose = st.phase === 'ready' && st.round === 1;
+  if (resetArmed || nothingToLose) {
+    clearTimeout(resetArmed); resetArmed = null; b.classList.remove('confirm'); b.textContent = 'Réinitialiser';
+    reset(); return;
+  }
+  b.classList.add('confirm'); b.textContent = 'Confirmer ?';
+  resetArmed = setTimeout(() => { resetArmed = null; b.classList.remove('confirm'); b.textContent = 'Réinitialiser'; }, 3000);
+};
+$('skipBtn').onclick = () => {
+  if (st.phase === 'round') command('Fin du round', endRound);
+  else if (st.phase === 'rest') command('Fin de la pause', endRest);
+};
+$('announceBtn').onclick = () => { audio(); say(buildSentence()); showHeard('📣 ' + buildSentence()); };
+
+// ---------- Statistiques ----------
+function computeStats(b) {
+  const now = Date.now();
+  const stops = b.stops.map(x => ({ ...x, d: x.dur ?? (now - x.t0) / 1000 }));
+  const total = stops.reduce((a, x) => a + x.d, 0);
+  const rounds = Object.entries(b.rounds).map(([n, r]) => {
+    const rs = stops.filter(x => x.round === +n);
+    return { n: +n, stops: rs.length, stopped: rs.reduce((a, x) => a + x.d, 0), real: ((r.end || now) - r.start) / 1000 };
+  });
+  return {
+    n: stops.length, total, stops, rounds,
+    avg: stops.length ? total / stops.length : 0,
+    max: stops.reduce((a, x) => Math.max(a, x.d), 0),
+    bout: b.start ? ((b.end || now) - b.start) / 1000 : 0,
+  };
+}
+const mmss = s => fmt(Math.round(s));
+function statsText(b, k) {
+  const d = new Date(b.start);
+  const lines = [`Assaut du ${d.toLocaleDateString('fr-FR')} à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`];
+  if (b.cfg) lines.push(buildSentence(b.cfg));
+  lines.push(`Arrêts : ${k.n} — temps d'arrêt total ${mmss(k.total)} (moyen ${mmss(k.avg)}, plus long ${mmss(k.max)})`);
+  lines.push(`Durée réelle de l'assaut : ${mmss(k.bout)}`);
+  for (const r of k.rounds) lines.push(`Round ${r.n} : ${r.stops} arrêt(s), ${mmss(r.stopped)} d'arrêt, durée réelle ${mmss(r.real)}`);
+  k.stops.forEach((x, i) => lines.push(`  #${i + 1} R${x.round} à ${mmss(x.at)} : ${mmss(x.d)}`));
+  return lines.join('\n');
+}
+let statsShown = null;
+function showStats() {
+  let b = bout, title = 'Assaut en cours';
+  if (!b.start) {
+    try { b = JSON.parse(localStorage.getItem('chrono-canne-last') || 'null'); } catch { b = null; }
+    title = 'Dernier assaut';
+  } else if (b.end) title = "Fin de l'assaut";
+  statsShown = b;
+  $('statsTitle').textContent = title;
+  if (!b || !b.start) {
+    $('statsBody').innerHTML = '<p class="empty">Aucun assaut enregistré pour l\'instant.</p>';
+    $('shareStats').hidden = true;
+  } else {
+    const k = computeStats(b);
+    $('shareStats').hidden = false;
+    $('statsBody').innerHTML = `
+      <div class="tiles">
+        <div class="tile"><b>${k.n}</b><span>arrêts</span></div>
+        <div class="tile"><b>${mmss(k.total)}</b><span>temps d'arrêt total</span></div>
+        <div class="tile"><b>${mmss(k.avg)}</b><span>arrêt moyen</span></div>
+        <div class="tile"><b>${mmss(k.max)}</b><span>arrêt le plus long</span></div>
+        <div class="tile" style="grid-column:1/-1"><b>${mmss(k.bout)}</b><span>durée réelle de l'assaut (arrêts et pauses compris)</span></div>
+      </div>
+      <h3>Par round</h3>
+      <table><tr><th>Round</th><th>Arrêts</th><th>Temps arrêté</th><th>Durée réelle</th></tr>
+        ${k.rounds.map(r => `<tr><td>${r.n}</td><td>${r.stops}</td><td>${mmss(r.stopped)}</td><td>${mmss(r.real)}</td></tr>`).join('')}
+      </table>
+      <h3>Détail des arrêts</h3>
+      ${k.n ? `<table><tr><th>#</th><th>Round</th><th>Chrono à</th><th>Durée</th></tr>
+        ${k.stops.map((x, i) => `<tr><td>${i + 1}</td><td>${x.round}</td><td>${mmss(x.at)}</td><td>${mmss(x.d)}${x.dur === null ? ' ⏸' : ''}</td></tr>`).join('')}
+      </table>` : '<p class="empty">Aucun arrêt.</p>'}`;
+  }
+  if (!$('statsDlg').open) $('statsDlg').showModal();
+}
+$('statsBtn').onclick = showStats;
+$('closeStats').onclick = () => $('statsDlg').close();
+$('shareStats').onclick = async () => {
+  const text = statsText(statsShown, computeStats(statsShown));
+  try {
+    if (navigator.share) await navigator.share({ title: 'Chrono Canne', text });
+    else { await navigator.clipboard.writeText(text); $('shareStats').textContent = 'Copié ✓'; setTimeout(() => $('shareStats').textContent = 'Partager', 2000); }
+  } catch {}
+};
+
+// ---------- Réglages UI ----------
+function fillSettings(c) {
+  $('sRounds').value = c.rounds; $('sRound').value = fmt(c.roundSec); $('sRest').value = fmt(c.restSec);
+  $('sCalls').value = c.calls.join(','); $('sAutoRest').value = c.autoRest ? '1' : '0';
+  updatePreview();
+}
+function readSettings() {
+  return {
+    rounds: +$('sRounds').value,
+    roundSec: parseMmSs($('sRound').value) || cfg.roundSec,
+    restSec: parseMmSs($('sRest').value) || cfg.restSec,
+    calls: $('sCalls').value.split(/[,;\s]+/).map(Number).filter(n => n > 0).sort((a, b) => b - a),
+    autoRest: $('sAutoRest').value === '1',
+  };
+}
+function updatePreview() { $('sentencePreview').textContent = '« ' + buildSentence(readSettings()) + ' »'; }
+['sRounds', 'sRound', 'sRest', 'sCalls'].forEach(id => $(id).addEventListener('input', updatePreview));
+$('settingsBtn').onclick = () => { fillSettings(cfg); renderLearn(); $('settings').showModal(); };
+$('closeBtn').onclick = () => $('settings').close();
+$('saveBtn').onclick = () => { applyConfig(readSettings()); $('settings').close(); };
+
+function applyConfig(c) {
+  cfg = { ...cfg, ...c }; saveSettings();
+  if (st.phase === 'ready' && !st.running) st.remaining = cfg.roundSec;
+  if (st.round > cfg.rounds) reset();
+  render();
+}
+
+// ---------- Reconnaissance vocale ----------
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, listening = false, firedFor = new Set(), heardTimer;
+function showHeard(t) { $('heard').textContent = t; clearTimeout(heardTimer); heardTimer = setTimeout(() => $('heard').textContent = '', 5000); }
+
+// Comparaison « phonétique » grossière : « allez », « aller », « allé », « hallez », « à les », « à l'est »… → « ale »
+function phon(text) {
+  const ws = normalize(text).replace(/[^a-z0-9 ]/g, ' ').trim().split(/\s+/).map(w => w
+    .replace(/h/g, '').replace(/(.)\1+/g, '$1')
+    .replace(/(ez|er|ais|ait|ai|est|es|et|ey|e)$/, 'e'));
+  return (ws.every(w => w === ws[0]) ? [ws[0]] : ws).join(''); // « allez allez » = « allez »
+}
+const COMMANDS = [
+  { re: /^e?s?tope?$|^stopez$/, fn: () => cmdStop(), name: 'STOP' },
+  { re: /^ale(y|i)?$|^ole$/, fn: () => cmdAllez(), name: 'ALLEZ' },
+  { re: /^re?po(s|t)?$/, fn: () => cmdRepos(), name: 'REPOS' },
+];
+function tryCommand(text) {
+  const t = normalize(text).trim();
+  if (!t || t.split(' ').length > 3) return false; // une commande est un mot court, pas une phrase
+  const p = phon(t);
+  for (const c of COMMANDS) {
+    if (c.re.test(p) || (cfg.learned[c.name] || []).includes(p)) { c.fn(); showHeard('🎙 ' + c.name + ' (« ' + text.trim() + ' »)'); return true; }
+  }
+  return false;
+}
+// Mots courts entendus mais non reconnus, pour les apprendre depuis les réglages
+let unheard = [];
+function noteUnheard(text) {
+  const t = text.trim();
+  if (!t || t.split(/\s+/).length > 3 || unheard.some(u => phon(u) === phon(t))) return;
+  unheard.unshift(t); unheard = unheard.slice(0, 8);
+}
+function renderLearn() {
+  const esc = t => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  $('unheardList').innerHTML = unheard.length ? unheard.map((u, i) => `<div class="learn-row"><span>« ${esc(u)} »</span>
+      ${COMMANDS.map(c => `<button data-learn="${i}" data-cmd="${c.name}">${c.name}</button>`).join('')}</div>`).join('')
+    : '<p>Rien pour l\'instant.</p>';
+  const rows = COMMANDS.flatMap(c => (cfg.learned[c.name] || []).map(w => `<div class="learn-row"><span>${esc(w)} → ${c.name}</span>
+      <button data-forget="${esc(w)}" data-cmd="${c.name}">✕</button></div>`));
+  $('learnedList').innerHTML = rows.length ? rows.join('') : '<p>Aucune.</p>';
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-learn],[data-forget]');
+  if (!b) return;
+  const cmd = b.dataset.cmd, learned = { ...cfg.learned };
+  if (b.dataset.learn !== undefined) {
+    const w = phon(unheard[+b.dataset.learn]);
+    learned[cmd] = [...new Set([...(learned[cmd] || []), w])];
+    unheard.splice(+b.dataset.learn, 1);
+  } else {
+    learned[cmd] = (learned[cmd] || []).filter(x => x !== b.dataset.forget);
+  }
+  cfg.learned = learned; saveSettings(); renderLearn();
+});
+function tryReferee(text) {
+  if (st.running) return false;
+  const p = parseReferee(text);
+  if (!p.rounds && !p.roundSec) return false;
+  applyConfig(p);
+  if (st.phase !== 'ready' || st.round !== 1) reset();
+  showHeard('✅ ' + buildSentence());
+  say('Compris. ' + buildSentence().replace(/^Pour un/, 'Un'));
+  return true;
+}
+
+function startListening() {
+  if (!SR) { alert("La reconnaissance vocale n'est pas disponible sur ce navigateur. Utilisez Chrome sur Android ou Safari sur iPhone."); return; }
+  rec = new SR();
+  rec.lang = 'fr-FR'; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 3;
+  rec.onresult = e => {
+    if (Date.now() < speakingUntil) return; // on ignore notre propre voix
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const res = e.results[i];
+      if (firedFor.has(i)) continue;
+      const alts = Array.from(res).map(a => a.transcript);
+      if (alts.some(tryCommand)) { firedFor.add(i); continue; }
+      if (res.isFinal) {
+        firedFor.add(i);
+        if (!tryReferee(alts[0])) { showHeard('… ' + alts[0]); noteUnheard(alts[0]); }
+      } else {
+        showHeard('… ' + alts[0]);
+      }
+    }
+  };
+  rec.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { listening = false; updateMic(); alert('Accès au micro refusé.'); } };
+  rec.onend = () => { firedFor = new Set(); if (listening) { try { rec.start(); } catch {} } };
+  listening = true; firedFor = new Set();
+  try { rec.start(); } catch {}
+  updateMic(); keepAwake();
+}
+function stopListening() { listening = false; try { rec && rec.stop(); } catch {} updateMic(); }
+function updateMic() {
+  $('micBtn').classList.toggle('on', listening);
+  $('micText').textContent = listening ? 'À l\'écoute' : 'Micro coupé';
+}
+$('micBtn').onclick = () => { audio(); listening ? stopListening() : startListening(); };
+
+render();
+</script>
+</body>
+</html>
