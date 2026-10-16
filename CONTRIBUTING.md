@@ -86,7 +86,12 @@ Ces chiffres sont **mesurés, pas estimés**, sauf le temps actif, qui est une a
 | `npm test` | Tests unitaires puis de bout en bout |
 | `npm run test:unit` / `npm run test:e2e` | L'un ou l'autre |
 | `npm run serve` | L'app sur http://localhost:4173 |
+| `npm run coverage` | Couverture fusionnée (unitaire + bout en bout sur Chromium) : rapport HTML dans `coverage/`, résumé dans `coverage/coverage-summary.md` |
+| `npm run mutation` | Tests de mutation (Stryker) sur les modules purs : rapport dans `reports/mutation/` |
+| `npm run avant-apres -- main` | Captures des écrans clés (iPhone et Android, portrait et paysage) sur `main` et sur la branche, et mesures de performance comparées : `screenshots/` |
+| `npm run pr-assets -- <PR> [écrans…]` | Publie ces captures dans la branche `pr-assets` et affiche le tableau à coller dans la PR |
+| `npm run ai-stats -- --since <date ISO>` | Statistiques IA de la période (journal de session de Claude Code), au format du modèle de PR |
 
-À mettre en place ([#13](https://github.com/doppelganger9/chrono-vocal/issues/13)) : couverture, tests de mutation, captures avant/après, statistiques IA, modèle de PR complété. C'est le premier sujet à traiter, pour que toutes les PR suivantes apportent ces preuves.
+Sur GitHub, chaque PR affiche aussi la couverture et le score de mutation dans le résumé de l'exécution (tâche `qualite`, non bloquante).
 
 Node 20 ou plus récent. Sur le Mac de David, le Node par défaut de nvm est trop ancien : `PATH=/opt/homebrew/bin:$PATH npm test`.

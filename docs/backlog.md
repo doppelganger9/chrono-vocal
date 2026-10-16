@@ -11,8 +11,9 @@ Ce fichier ne garde que l'**ordre de priorité**, que les issues ne portent pas.
 5. [#6 P3 · Écran titre et icône](https://github.com/doppelganger9/chrono-vocal/issues/6).
 6. [#15 P4 · Exporter / importer les réglages](https://github.com/doppelganger9/chrono-vocal/issues/15).
 7. [#3 T3 · Journal vocal et recette](https://github.com/doppelganger9/chrono-vocal/issues/3) : dès les premiers entraînements avec l'app.
-8. [#8 R2 · Rappels](https://github.com/doppelganger9/chrono-vocal/issues/8), [#9 R3 · Second exclu](https://github.com/doppelganger9/chrono-vocal/issues/9), [#10 R4 · Relais](https://github.com/doppelganger9/chrono-vocal/issues/10).
-9. [#11 R5 · Plusieurs aires](https://github.com/doppelganger9/chrono-vocal/issues/11), si le besoin se confirme.
+8. [#17 T5 · Montées de version des dépendances](https://github.com/doppelganger9/chrono-vocal/issues/17) et [#18 T6 · Autres bonnes pratiques](https://github.com/doppelganger9/chrono-vocal/issues/18) : les pratiques retenues dans #18 rejoignent les issues indiquées (par exemple l'accessibilité avec #5).
+9. [#8 R2 · Rappels](https://github.com/doppelganger9/chrono-vocal/issues/8), [#9 R3 · Second exclu](https://github.com/doppelganger9/chrono-vocal/issues/9), [#10 R4 · Relais](https://github.com/doppelganger9/chrono-vocal/issues/10).
+10. [#11 R5 · Plusieurs aires](https://github.com/doppelganger9/chrono-vocal/issues/11), si le besoin se confirme.
 
 À rediscuter : [#12 Idées : protocole guidé, feuille de marque](https://github.com/doppelganger9/chrono-vocal/issues/12).
 

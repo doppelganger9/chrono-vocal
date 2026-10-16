@@ -27,3 +27,32 @@ jobs:
           name: playwright-traces
           path: test-results/
           retention-days: 7
+
+  # Preuves de qualité (CONTRIBUTING.md § 3) : couverture et score de mutation dans le résumé de l'exécution.
+  # Sur les PR seulement, et sans bloquer la fusion tant que les seuils ne sont pas fixés.
+  qualite:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Couverture
+        run: npm run coverage && cat coverage/coverage-summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Tests de mutation
+        run: |
+          npm run mutation
+          node -e "const f=require('./reports/mutation/mutation.json').files; let k=0,t=0; for (const [n,x] of Object.entries(f)) { const m=x.mutants; const kk=m.filter(z=>['Killed','Timeout'].includes(z.status)).length; const tt=m.filter(z=>!['Ignored','CompileError','RuntimeError'].includes(z.status)).length; k+=kk; t+=tt; console.log('| '+n+' | '+(100*kk/tt).toFixed(1)+' % | '+kk+' / '+tt+' |'); } console.log('| **Total** | **'+(100*k/t).toFixed(1)+' %** | '+k+' / '+t+' |');" > mutation.md
+          { echo '### Score de mutation'; echo; echo '| Fichier | Score | Tués / total |'; echo '|---|---|---|'; cat mutation.md; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rapports-qualite
+          path: |
+            coverage/
+            reports/mutation/
+          retention-days: 14

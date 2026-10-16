@@ -3,7 +3,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const root = path.join(__dirname, '..');
+const root = path.resolve(process.env.ROOT || path.join(__dirname, '..')); // ROOT : servir une autre version (avant/après)
 const port = Number(process.env.PORT) || 4173;
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css' };
 

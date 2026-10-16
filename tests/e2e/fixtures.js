@@ -1,6 +1,12 @@
 // Banc d'essai : la page est chargée avec des doublures à la place de la voix du navigateur,
 // et une horloge simulée qu'on avance à la main (une reprise de 2 minutes se joue en quelques ms).
 const { test: base, expect } = require('@playwright/test');
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
+
+// npm run coverage : couverture JavaScript de la page (Chromium seulement, WebKit ne la fournit pas)
+const COVERAGE_DIR = process.env.COVERAGE_E2E_DIR;
 
 // Exécuté dans la page avant son chargement
 function installFakes() {
@@ -89,7 +95,9 @@ class App {
 const test = base.extend({
   // réglages déjà enregistrés sur le téléphone avant l'ouverture (facultatif)
   savedSettings: [null, { option: true }],
-  app: async ({ page, savedSettings }, use) => {
+  app: async ({ page, savedSettings, browserName }, use) => {
+    const coverage = COVERAGE_DIR && browserName === 'chromium';
+    if (coverage) await page.coverage.startJSCoverage({ resetOnNavigation: false });
     await page.addInitScript(installFakes);
     if (savedSettings) {
       await page.addInitScript(s => localStorage.setItem('chrono-canne', JSON.stringify(s)), savedSettings);
@@ -100,6 +108,10 @@ const test = base.extend({
     const app = new App(page);
     await app.micOn();
     await use(app);
+    if (coverage) {
+      fs.mkdirSync(COVERAGE_DIR, { recursive: true });
+      fs.writeFileSync(path.join(COVERAGE_DIR, crypto.randomUUID() + '.json'), JSON.stringify(await page.coverage.stopJSCoverage()));
+    }
   },
 });
 

@@ -130,7 +130,7 @@ function parseMotif(text, colors = []) {
   else if (/carton jaune/.test(t)) e = { type: 'carton-jaune', pts: 2 };
   else if (/avertissement refuse/.test(t)) e = { type: 'avert-refuse', pts: 0 };
   else if (/avertissement prononce/.test(t)) e = { type: 'avertissement', pts: 2 };
-  else if (/demande d? ?(avertissement|disqualification)/.test(t)) e = { type: 'demande-avert', pts: 0 };
+  else if (/\bdemande (de |d )?d?(avertissement|disqualification)\b/.test(t)) e = { type: 'demande-avert', pts: 0 }; // « demande d'avertissement », « demande de disqualification »
   else if (/\bdisqualification\b/.test(t)) e = { type: 'disqualification', pts: 0 };
   else if (/\bpenalite\b/.test(t)) e = { type: 'penalite', pts: 1,
     detail: /sortie d? ?aire/.test(t) ? "sortie d'aire" : /lache\w* (de )?(la )?canne/.test(t) ? 'lâcher de canne'
