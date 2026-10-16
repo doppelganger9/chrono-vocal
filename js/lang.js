@@ -1,17 +1,17 @@
 // Langue et phrases de l'arbitre : fonctions pures, sans DOM ni état.
-// Chargé par index.html (variables globales) et par les tests unitaires (module Node).
+// Module ES, importé par l'app et par les tests unitaires.
 
 // ---------- Formatage ----------
-const fmt = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
-function parseMmSs(str) {
+export const fmt = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+export function parseMmSs(str) {
   const m = String(str).trim().match(/^(\d+)(?:[:'h.,\s]+(\d{1,2}))?$/);
   if (!m) return null;
   return m[2] !== undefined ? +m[1] * 60 + +m[2] : (+m[1] >= 10 ? +m[1] : +m[1] * 60); // "2" = 2 min, "90" = 90 s
 }
 
-const NUM_WORDS = ['zéro','une','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize'];
-const TENS = { 20: 'vingt', 30: 'trente', 40: 'quarante', 50: 'cinquante' };
-function numFr(n, fem = true) {
+export const NUM_WORDS = ['zéro','une','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize'];
+export const TENS = { 20: 'vingt', 30: 'trente', 40: 'quarante', 50: 'cinquante' };
+export function numFr(n, fem = true) {
   if (n === 1) return fem ? 'une' : 'un';
   if (n < NUM_WORDS.length) return NUM_WORDS[n];
   if (TENS[n]) return TENS[n];
@@ -19,7 +19,7 @@ function numFr(n, fem = true) {
   if (TENS[t]) return TENS[t] + (u === 1 ? ' et un' : '-' + NUM_WORDS[u]);
   return String(n);
 }
-function durationFr(sec) {
+export function durationFr(sec) {
   const m = Math.floor(sec / 60), s = sec % 60;
   if (m === 0) return numFr(s, true) + (s > 1 ? ' secondes' : ' seconde');
   let out = numFr(m) + (m > 1 ? ' minutes' : ' minute');
@@ -27,8 +27,8 @@ function durationFr(sec) {
   if (s) out += ' ' + numFr(s);
   return out;
 }
-const de = w => /^[aeiouyh]/i.test(w) ? "d'" + w : 'de ' + w;
-function buildSentence(c) {
+export const de = w => /^[aeiouyh]/i.test(w) ? "d'" + w : 'de ' + w;
+export function buildSentence(c) {
   if (c.mode === 'relais') return `Pour un relais à ${numFr(c.relayCount, false)} équipiers, en reprise unique ${de(durationFr(c.roundSec))}.`;
   const r = c.rounds === 1 ? 'une reprise' : numFr(c.rounds) + ' reprises';
   let s = `Pour un assaut en ${r} ${de(durationFr(c.roundSec))}`;
@@ -37,7 +37,7 @@ function buildSentence(c) {
 }
 
 // ---------- Analyse de la phrase de l'arbitre ----------
-function normalize(t) {
+export function normalize(t) {
   t = t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’'\-]/g, ' ');
   const words = { 'quarante cinq': 45, 'trente cinq': 35, 'vingt cinq': 25, 'cinquante': 50, 'quarante': 40, 'trente': 30,
     'vingt': 20, 'quinze': 15, 'dix': 10, 'neuf': 9, 'huit': 8, 'sept': 7, 'six': 6, 'cinq': 5, 'quatre': 4,
@@ -45,7 +45,7 @@ function normalize(t) {
   for (const [w, n] of Object.entries(words)) t = t.replace(new RegExp('\\b' + w + '\\b', 'g'), n);
   return t.replace(/\s+/g, ' ');
 }
-function parseReferee(raw) {
+export function parseReferee(raw) {
   const t = normalize(raw);
   const out = {};
   const r = t.match(/(\d+)\s*(?:rounds?|reprises?|manches?)\b/);
@@ -81,29 +81,29 @@ function parseReferee(raw) {
 
 // ---------- Commandes vocales ----------
 // Comparaison « phonétique » grossière : « allez », « aller », « allé », « hallez », « à les », « à l'est »… → « ale »
-function phonWords(text) {
+export function phonWords(text) {
   return normalize(text).replace(/[^a-z0-9 ]/g, ' ').trim().split(/\s+/).filter(Boolean).map(w => w
     .replace(/h/g, '').replace(/(.)\1+/g, '$1')
     .replace(/(ez|er|ais|ait|ai|est|es|et|ey|e)$/, 'e'));
 }
-function phon(text) {
+export function phon(text) {
   const ws = phonWords(text);
   return (ws.every(w => w === ws[0]) ? [ws[0]] : ws).join(''); // « allez allez » = « allez »
 }
-const COMMAND_PATTERNS = [
+export const COMMAND_PATTERNS = [
   { name: 'STOP', re: /^e?s?tope?$|^stopez$/ },
   { name: 'ALLEZ', re: /^ale(y|i)?$|^ole$/ },
   { name: 'REPOS', re: /^re?po(s|t)?$/ },
 ];
-const EN_GARDE = /^[ae]ngu?ard?e$/; // « en garde », « an garde », « en gare »
+export const EN_GARDE = /^[ae]ngu?ard?e$/; // « en garde », « an garde », « en gare »
 // Découpe un commandement de l'arbitre : « en garde » éventuel, puis une commande courte, avec la fin
 // protocolaire « … fin de la reprise / fin de l'assaut » ignorée (I 3.2.2)
 // learned : variantes apprises par commande, ex. { ALLEZ: ['alo'] }
 // Mots de la fin protocolaire : « fin de la reprise », « fin de l'assaut », « … et de l'assaut » (après phonétique)
-const END_WORDS = new Set(['fin', 'de', 'd', 'la', 'l', 'reprise', 'asaut', 'e']);
+export const END_WORDS = new Set(['fin', 'de', 'd', 'la', 'l', 'reprise', 'asaut', 'e']);
 // Découpe un commandement de l'arbitre : « en garde » éventuel, puis une commande courte, puis la fin
 // protocolaire éventuelle. end vaut 'reprise' ou 'assaut' quand l'arbitre termine la reprise (I 3.2.2).
-function parseCommand(text, learned = {}) {
+export function parseCommand(text, learned = {}) {
   let ws = phonWords(text);
   let end = null;
   const f = ws.findIndex((w, i) => w === 'fin' && ws.slice(i).some(x => x === 'reprise' || x === 'asaut'));
@@ -121,9 +121,9 @@ function parseCommand(text, learned = {}) {
   return cmd ? { enGarde, cmd: cmd.name, end } : null;
 }
 // « Chrono, prêt ? » (contrôle des officiels avant chaque reprise)
-const isReadyCheck = text => /\bchrono\w*\b.*\bpret\b/.test(normalize(text).replace(/[^a-z0-9 ]/g, ' '));
+export const isReadyCheck = text => /\bchrono\w*\b.*\bpret\b/.test(normalize(text).replace(/[^a-z0-9 ]/g, ' '));
 // Motif d'un arrêt annoncé par l'arbitre (I 4.2.8 à 4.2.13), avec la couleur du tireur concerné
-function parseMotif(text, colors = []) {
+export function parseMotif(text, colors = []) {
   const t = normalize(text).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ');
   let e = null;
   if (/carton rouge/.test(t)) e = { type: 'carton-rouge', pts: 2 };
@@ -142,9 +142,4 @@ function parseMotif(text, colors = []) {
   const tc = t.replace(/carton (jaune|rouge)/g, ''); // « carton jaune » n'est pas le tireur jaune
   e.color = colors.find(c => c && new RegExp('\\b' + normalize(c) + '\\b').test(tc)) || null;
   return e;
-}
-
-if (typeof module !== 'undefined') {
-  module.exports = { fmt, parseMmSs, numFr, durationFr, de, buildSentence, normalize, parseReferee,
-    phonWords, phon, COMMAND_PATTERNS, EN_GARDE, parseCommand, isReadyCheck, parseMotif };
 }

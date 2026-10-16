@@ -14,8 +14,20 @@ Le **backlog** vit dans les Issues GitHub ; la **référence** (lexique, règlem
 
 ## Structure
 
-- `index.html` : l'app (interface, chrono, voix), sans compilation
-- `lang.js` : langue et phrases de l'arbitre, en fonctions pures (testées seules)
+Sans compilation : modules ES natifs, servis tels quels par GitHub Pages ([ADR 0004](docs/adr/0004-sans-framework-ni-compilation.md)).
+
+| Fichier | Rôle |
+|---|---|
+| `index.html`, `css/app.css` | La page et ses styles |
+| `js/main.js` | Assemblage : relie le chrono, la voix et l'interface, et traduit les événements du chrono en sons, annonces et affichage |
+| `js/chrono.js` | Machine à états du chrono (phases, arrêts, temps dépassé, prolongation, reprises supplémentaires, relais), **pure** : horloge fournie, effets signalés par événements |
+| `js/lang.js` | Langue et phrases de l'arbitre (commandes, sanctions, format de l'assaut), pures |
+| `js/stats.js`, `js/settings.js`, `js/annex.js` | Statistiques, réglages et migrations, chronomètre annexe : purs |
+| `js/voice.js` | Ce que l'arbitre dit → commandes, sanctions, réglages |
+| `js/audio.js`, `js/speech.js` | Adaptateurs du navigateur : sons, synthèse et reconnaissance vocales |
+| `js/ui/` | Affichage de l'écran et fenêtres (réglages, statistiques, chronomètre annexe) |
+
+Les modules ne se chargent pas depuis un fichier ouvert directement : `npm run serve` en local.
 
 ## Tests
 
@@ -27,7 +39,7 @@ npx playwright install chromium webkit
 npm test
 ```
 
-- `npm run test:unit` : tests unitaires de `lang.js` (`node --test`, sans dépendance)
+- `npm run test:unit` : tests unitaires des modules purs (`node --test`, sans dépendance) : toutes les règles du chrono, la langue, les statistiques, les réglages
 - `npm run test:e2e` : tests de bout en bout (Playwright) sur la vraie page, dans les moteurs de Chrome Android et de Safari iPhone. La reconnaissance vocale, la synthèse vocale et les sons sont remplacés par des doublures muettes (le test fait « parler » l'arbitre et vérifie ce que l'app dit et joue), et l'horloge est simulée.
 - `npm run serve` : sert l'app sur http://localhost:4173
 - `npm run coverage`, `npm run mutation`, `npm run avant-apres -- main`, `npm run ai-stats` : preuves de qualité pour les PR (voir [CONTRIBUTING.md](CONTRIBUTING.md) § 7)

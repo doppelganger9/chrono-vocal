@@ -1,7 +1,8 @@
 // Statistiques de développement IA lues dans le journal de session de Claude Code
-const { test } = require('node:test');
-const assert = require('node:assert/strict');
-const { computeStats, formatMarkdown } = require('../../scripts/ai-stats.js');
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+const { computeStats, formatMarkdown } = createRequire(import.meta.url)('../../scripts/ai-stats.js');
 
 const t = min => new Date(Date.UTC(2026, 9, 16, 19, 0) + min * 60_000).toISOString();
 const usage = (input, cw, cr, out, think) => ({
