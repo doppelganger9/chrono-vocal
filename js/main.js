@@ -11,8 +11,8 @@ import { render as renderScreen } from './ui/render.js';
 import { createStatsDialog, LAST_BOUT_KEY } from './ui/stats-dialog.js';
 import { createSettingsDialog } from './ui/settings-dialog.js';
 import { createAnnexDialog } from './ui/annex-dialog.js';
+import { $, $button } from './ui/dom.js';
 
-const $ = id => document.getElementById(id);
 const storage = (() => { try { return window.localStorage; } catch { return { getItem: () => null, setItem() {} }; } })();
 const clock = { now: () => performance.now(), wall: () => Date.now() };
 let cfg = load(storage);
@@ -22,16 +22,20 @@ const speech = createSpeech();
 /** Débloque le son et la voix ; à appeler depuis un toucher (exigence d'iOS) */
 const unlock = () => { speech.unlock(); audio.unlock(); };
 
+/** @type {WakeLockSentinel | null} */
 let wakeLock = null;
 async function keepAwake() { try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.onrelease = () => wakeLock = null; } } catch {} }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') keepAwake(); });
 
+/** @type {ReturnType<typeof setTimeout> | undefined} */
 let heardTimer;
+/** @param {string} t */
 function showHeard(t) { $('heard').textContent = t; clearTimeout(heardTimer); heardTimer = setTimeout(() => $('heard').textContent = '', 5000); }
 
 // ---------- Événements du chrono → sons, voix, affichage ----------
 // Fin de reprise ou de repos : gong, puis « Temps » pendant qu'il résonne
 const temps = () => { audio.gong(); setTimeout(() => speech.say('Temps'), 600); };
+/** @type {Record<string, (data: any) => void>} */
 const effects = {
   allez: () => { audio.beep(1200, 0.2); keepAwake(); },
   stop: () => audio.beep(400, 0.3),
@@ -66,7 +70,9 @@ const chrono = createChrono({ getCfg: () => cfg, clock, emit: (type, data) => ef
 // Chaque commande (voix, bouton, télécommande) mémorise l'état d'avant. « Annuler » y revient,
 // comme si la commande n'avait jamais eu lieu : un STOP parasite annulé laisse le chrono avoir tourné
 // pendant ce temps, un ALLEZ parasite annulé prolonge l'arrêt en cours.
+/** @type {{ name: string, st: import('./types.js').ChronoState, bout: import('./types.js').Bout }[]} */
 const undoStack = [];
+/** Exécute une action annulable @param {string} name @param {() => unknown} fn @returns {boolean} true si elle a eu un effet */
 function command(name, fn) {
   const snap = { name, ...chrono.snapshot() };
   const changed = fn() !== false;
@@ -86,6 +92,7 @@ const cmdAllez = () => command('ALLEZ', chrono.allez);
 const cmdStop = () => command('STOP', chrono.stop);
 const cmdRepos = () => command('REPOS', chrono.endReprise);
 
+/** @param {Partial<import('./types.js').Config>} c */
 function applyConfig(c) {
   cfg = normalizeConfig({ ...cfg, ...c });
   save(storage, cfg);
@@ -94,7 +101,7 @@ function applyConfig(c) {
 }
 
 // ---------- Interface ----------
-const stats = createStatsDialog({ $, getBout: () => chrono.bout, storage });
+const stats = createStatsDialog({ getBout: () => chrono.bout, storage });
 const voice = createVoice({
   getCfg: () => cfg, updateCfg: applyConfig, chrono, command,
   commands: { STOP: cmdStop, ALLEZ: cmdAllez, REPOS: cmdRepos }, endReprise: chrono.endReprise,
@@ -104,7 +111,7 @@ const voice = createVoice({
     if (chrono.state.phase !== 'ready' || chrono.state.round !== 1) { chrono.reset(); undoStack.length = 0; }
   },
 });
-createSettingsDialog({ $, getCfg: () => cfg, onSave: applyConfig, voice });
+createSettingsDialog({ getCfg: () => cfg, onSave: applyConfig, voice });
 
 const annex = createAnnex({
   clock,
@@ -113,10 +120,10 @@ const annex = createAnnex({
     speech.say(m === 3 ? 'Trois minutes. Disqualification' : `${numFr(m)} minute${m > 1 ? 's' : ''}. Pénalité`);
   },
 });
-const annexDialog = createAnnexDialog({ $, annex, onStart: () => { unlock(); keepAwake(); } });
+const annexDialog = createAnnexDialog({ annex, onStart: () => { unlock(); keepAwake(); } });
 
 function render() {
-  renderScreen({ $, chrono, cfg, lastEnGarde: voice.lastEnGarde, undoTop: undoStack[undoStack.length - 1] });
+  renderScreen({ chrono, cfg, lastEnGarde: voice.lastEnGarde, undoTop: undoStack[undoStack.length - 1] });
 }
 
 function mainAction() {
@@ -126,35 +133,36 @@ function mainAction() {
   else if (chrono.inPlay() || st.phase === 'rest') cmdStop();
   else if (st.phase === 'done') command('REPRISE SUPPL.', chrono.extraRound);
 }
-$('mainBtn').onclick = mainAction;
-$('undoBtn').onclick = undo;
+$button('mainBtn').onclick = mainAction;
+$button('undoBtn').onclick = undo;
 
 // Télécommande Bluetooth (télécommande de présentation, tourne-page) ou clavier :
 // touche « suivant » = bouton principal, touche « précédent » = annuler
 const NEXT_KEYS = [' ', 'Enter', 'PageDown', 'ArrowRight', 'ArrowDown', 'MediaPlayPause', 'MediaTrackNext'];
 const PREV_KEYS = ['PageUp', 'ArrowLeft', 'ArrowUp', 'Backspace', 'MediaTrackPrevious'];
 document.addEventListener('keydown', e => {
-  if (document.querySelector('dialog[open]') || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  if (document.querySelector('dialog[open]') || /INPUT|SELECT|TEXTAREA/.test(/** @type {HTMLElement} */ (e.target).tagName)) return;
   if (e.repeat) { e.preventDefault(); return; }
   if (NEXT_KEYS.includes(e.key)) { e.preventDefault(); mainAction(); showHeard('⌨︎ ' + e.key); }
   else if (PREV_KEYS.includes(e.key)) { e.preventDefault(); undo(); }
 });
 // un bouton touché garde le focus : sans ça, Espace/Entrée le déclencherait une 2e fois
-document.addEventListener('click', e => { if (e.target.closest('.controls button')) e.target.closest('button').blur(); });
+document.addEventListener('click', e => { /** @type {HTMLElement} */ (e.target).closest('.controls button')?.closest('button')?.blur(); });
 // confirmation en deux appuis (confirm() est bloqué sur beaucoup de navigateurs mobiles)
+/** @type {ReturnType<typeof setTimeout> | null} */
 let resetArmed = null;
 $('resetBtn').onclick = () => {
   const b = $('resetBtn');
   const nothingToLose = chrono.state.phase === 'ready' && chrono.state.round === 1;
   if (resetArmed || nothingToLose) {
-    clearTimeout(resetArmed); resetArmed = null; b.classList.remove('confirm'); b.textContent = 'Réinitialiser';
+    if (resetArmed) clearTimeout(resetArmed); resetArmed = null; b.classList.remove('confirm'); b.textContent = 'Réinitialiser';
     chrono.reset(); undoStack.length = 0; render(); return;
   }
   b.classList.add('confirm'); b.textContent = 'Confirmer ?';
   resetArmed = setTimeout(() => { resetArmed = null; b.classList.remove('confirm'); b.textContent = 'Réinitialiser'; }, 3000);
 };
-$('prolongBtn').onclick = () => command('PROLONGATION', chrono.prolong);
-$('skipBtn').onclick = () => {
+$button('prolongBtn').onclick = () => command('PROLONGATION', chrono.prolong);
+$button('skipBtn').onclick = () => {
   if (chrono.inPlay()) command('Fin de reprise', chrono.endReprise);
   else if (chrono.state.phase === 'rest') command('Fin du repos', chrono.endRest);
 };

@@ -83,7 +83,8 @@ Ces chiffres sont **mesurés, pas estimés**, sauf le temps actif, qui est une a
 
 | Commande | Rôle |
 |---|---|
-| `npm test` | Tests unitaires puis de bout en bout |
+| `npm test` | Typage, tests unitaires, puis de bout en bout |
+| `npm run typecheck` | Types JSDoc vérifiés par TypeScript en mode strict, sans compilation (`jsconfig.json`) |
 | `npm run test:unit` / `npm run test:e2e` | L'un ou l'autre |
 | `npm run serve` | L'app sur http://localhost:4173 |
 | `npm run coverage` | Couverture fusionnée (unitaire + bout en bout sur Chromium) : rapport HTML dans `coverage/`, résumé dans `coverage/coverage-summary.md` |

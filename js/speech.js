@@ -2,11 +2,32 @@
 //
 // window.__chronoEnv.echoGuardMs : délai pendant lequel l'app ignore le micro après avoir parlé (400 ms par défaut,
 // pour ne pas s'entendre elle-même). Les tests le mettent à 0.
+/**
+ * Reconnaissance vocale : API non standard (absente des types du DOM), réduite ici à ce que l'app utilise.
+ * @typedef {{ transcript: string }} Alternative
+ * @typedef {ArrayLike<Alternative> & { isFinal: boolean }} RecognitionResult
+ * @typedef {{ resultIndex: number, results: ArrayLike<RecognitionResult> }} RecognitionEvent
+ * @typedef {object} Recognition
+ * @property {string} lang
+ * @property {boolean} continuous
+ * @property {boolean} interimResults
+ * @property {number} maxAlternatives
+ * @property {((e: RecognitionEvent) => void) | null} onresult
+ * @property {((e: { error: string }) => void) | null} onerror
+ * @property {(() => void) | null} onend
+ * @property {() => void} start
+ * @property {() => void} stop
+ * @typedef {Window & typeof globalThis & { SpeechRecognition?: new () => Recognition, webkitSpeechRecognition?: new () => Recognition, __chronoEnv?: { echoGuardMs?: number } }} SpeechWindow
+ */
+
+/** @param {SpeechWindow} [win] */
 export function createSpeech(win = window) {
   const synth = win.speechSynthesis;
   const SR = win.SpeechRecognition || win.webkitSpeechRecognition;
   const echoGuardMs = win.__chronoEnv?.echoGuardMs ?? 400;
-  let frVoice = null, speakingUntil = 0, unlocked = false;
+  /** @type {SpeechSynthesisVoice | null} */
+  let frVoice = null;
+  let speakingUntil = 0, unlocked = false;
   const pending = new Set(); // garde une référence : Chrome perd les annonces dont l'objet est libéré par le ramasse-miettes
 
   function pickVoice() {
@@ -15,6 +36,7 @@ export function createSpeech(win = window) {
   }
   if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
 
+  /** @param {string} text */
   function say(text) {
     if (!synth) return;
     const u = new win.SpeechSynthesisUtterance(text);
@@ -35,21 +57,31 @@ export function createSpeech(win = window) {
   }
 
   // Reconnaissance continue, relancée quand le navigateur l'arrête (Safari coupe après un silence)
-  let rec = null, listening = false;
+  /** @type {Recognition | null} */
+  let rec = null;
+  let listening = false;
   /** onResult(alternatives[], isFinal, index) ; onRestart() quand l'écoute repart à zéro ; onDenied() si le micro est refusé */
+  /**
+   * @param {object} handlers
+   * @param {(alternatives: string[], isFinal: boolean, index: number) => void} handlers.onResult
+   * @param {() => void} [handlers.onRestart]
+   * @param {() => void} handlers.onDenied
+   */
   function listen({ onResult, onRestart = () => {}, onDenied }) {
-    rec = new SR();
-    rec.lang = 'fr-FR'; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 3;
-    rec.onresult = e => {
+    if (!SR) return;
+    const r = new SR();
+    rec = r;
+    r.lang = 'fr-FR'; r.continuous = true; r.interimResults = true; r.maxAlternatives = 3;
+    r.onresult = e => {
       if (Date.now() < speakingUntil) return; // on ignore notre propre voix
       for (let i = e.resultIndex; i < e.results.length; i++) {
         onResult(Array.from(e.results[i]).map(a => a.transcript), e.results[i].isFinal, i);
       }
     };
-    rec.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { listening = false; onDenied(); } };
-    rec.onend = () => { onRestart(); if (listening) { try { rec.start(); } catch {} } };
+    r.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { listening = false; onDenied(); } };
+    r.onend = () => { onRestart(); if (listening) { try { r.start(); } catch {} } };
     listening = true;
-    try { rec.start(); } catch {}
+    try { r.start(); } catch {}
   }
   function stopListening() { listening = false; try { rec && rec.stop(); } catch {} }
 

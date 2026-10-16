@@ -2,17 +2,30 @@
 import { parseCommand, parseMotif, parseReferee, isReadyCheck, phon, buildSentence } from './lang.js';
 import { EVENT_LABELS, eventLabel } from './stats.js';
 
+/** @typedef {import('./types.js').Config} Config @typedef {import('./types.js').CommandName} CommandName */
+
 /**
- * @param commands  { STOP, ALLEZ, REPOS } : fonctions qui exécutent la commande (avec annulation) et renvoient true si elle a eu un effet
- * @param command   (nom, fn) : exécute une action annulable
- * @param ui        { showHeard(texte), phaseText(), render() }
- * @param onReferee (réglages lus dans la phrase de l'arbitre) => void
- * @param updateCfg (réglages partiels) => void
+ * @param {object} deps
+ * @param {() => Config} deps.getCfg
+ * @param {(c: Partial<Config>) => void} deps.updateCfg  enregistre des réglages partiels
+ * @param {ReturnType<typeof import('./chrono.js').createChrono>} deps.chrono
+ * @param {(name: string, fn: () => unknown) => boolean} deps.command  exécute une action annulable
+ * @param {Record<CommandName, () => boolean>} deps.commands  exécutent la commande, true si elle a eu un effet
+ * @param {() => boolean} deps.endReprise
+ * @param {{ say: (text: string) => void }} deps.speech
+ * @param {{ showHeard: (t: string) => void, phaseText: () => string, render: () => void }} deps.ui
+ * @param {(p: ReturnType<typeof parseReferee>) => void} deps.onReferee  réglages lus dans la phrase de l'arbitre
+ * @param {() => number} [deps.now]
  */
 export function createVoice({ getCfg, updateCfg, chrono, command, commands, endReprise, speech, ui, onReferee, now = () => Date.now() }) {
-  let lastEnGarde = 0, firedFor = new Set(), unheard = [];
+  let lastEnGarde = 0;
+  /** @type {Set<number>} */
+  let firedFor = new Set();
+  /** @type {string[]} */
+  let unheard = [];
 
   // Renvoie true si une commande a été traitée, 'engarde' si seul « en garde » a été entendu
+  /** @param {string} text @returns {boolean | 'engarde'} */
   function tryCommand(text) {
     const r = parseCommand(text, getCfg().learned);
     if (!r) return false;
@@ -35,16 +48,18 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
     return true;
   }
 
+  /** @param {string} text */
   function tryMotif(text) {
     if (!chrono.bout.start) return false;
     const e = parseMotif(text, getCfg().colors);
     if (!e) return false;
-    let ev;
-    command(EVENT_LABELS[e.type].toUpperCase(), () => { ev = chrono.addEvent(e); });
-    ui.showHeard('📝 ' + eventLabel(ev));
+    let label = '';
+    command(EVENT_LABELS[e.type].toUpperCase(), () => { label = eventLabel(chrono.addEvent(e)); });
+    ui.showHeard('📝 ' + label);
     return true;
   }
 
+  /** @param {string} text */
   function tryReferee(text) {
     if (chrono.state.running) return false;
     const p = parseReferee(text);
@@ -57,13 +72,14 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
   }
 
   // Mots courts entendus mais non reconnus, pour les apprendre depuis les réglages
+  /** @param {string} text */
   function noteUnheard(text) {
     const t = text.trim();
     if (!t || t.split(/\s+/).length > 3 || unheard.some(u => phon(u) === phon(t))) return;
     unheard.unshift(t); unheard = unheard.slice(0, 8);
   }
 
-  /** Un résultat de la reconnaissance (index : sa position dans la session d'écoute) */
+  /** Un résultat de la reconnaissance @param {string[]} alts @param {boolean} isFinal @param {number} index sa position dans la session d'écoute */
   function onResult(alts, isFinal, index) {
     if (firedFor.has(index)) return;
     if (alts.some(isReadyCheck)) {
@@ -72,6 +88,7 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
       return;
     }
     // « en garde » seul ne consomme pas le résultat : la suite (« … allez ») peut arriver dans le même résultat
+    /** @type {boolean | 'engarde'} */
     let heard = false;
     for (const a of alts) {
       const r = tryCommand(a);
@@ -93,12 +110,14 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
     onRestart() { firedFor = new Set(); },
     get lastEnGarde() { return lastEnGarde; },
     get unheard() { return unheard; },
+    /** @param {number} i @param {CommandName} cmd */
     learn(i, cmd) {
       const learned = { ...getCfg().learned };
       learned[cmd] = [...new Set([...(learned[cmd] || []), phon(unheard[i])])];
       unheard.splice(i, 1);
       updateCfg({ learned });
     },
+    /** @param {string} word @param {CommandName} cmd */
     forget(word, cmd) {
       const learned = { ...getCfg().learned };
       learned[cmd] = (learned[cmd] || []).filter(x => x !== word);

@@ -1,16 +1,22 @@
 // Statistiques de l'assaut : arrêts, reprises, sanctions par tireur.
 import { fmt, buildSentence } from './lang.js';
 
+/** @typedef {import('./types.js').Bout} Bout @typedef {import('./types.js').Motif} Motif @typedef {import('./types.js').SanctionType} SanctionType */
+
+/** @type {Record<SanctionType, string>} */
 export const EVENT_LABELS = {
   observation: 'Observation', penalite: 'Pénalité', 'demande-avert': "Demande d'avertissement",
   avertissement: 'Avertissement', 'avert-refuse': 'Avertissement refusé', 'carton-jaune': 'Carton jaune',
   'carton-rouge': 'Carton rouge', disqualification: 'Disqualification', abandon: 'Abandon', forfait: 'Forfait',
 };
+/** @param {Motif} e */
 export const eventLabel = e => EVENT_LABELS[e.type] + (e.detail ? ' (' + e.detail + ')' : '') + (e.color ? ' ' + e.color : '');
+/** @param {number} s */
 export const mmss = s => fmt(Math.round(s));
-export const roundName = (n, b) => n > (b.cfg?.rounds ?? Infinity) ? 'S' + (n - b.cfg.rounds) : String(n);
+/** @param {number} n @param {{ cfg: { rounds: number } | null }} b */
+export const roundName = (n, b) => { const r = b.cfg?.rounds; return r !== undefined && n > r ? 'S' + (n - r) : String(n); };
 
-/** @param now heure actuelle (ms), pour un arrêt ou une reprise en cours */
+/** @param {Bout} b @param {number} [now] heure actuelle (ms), pour un arrêt ou une reprise en cours */
 export function computeStats(b, now = Date.now()) {
   const stops = b.stops.map(x => ({ ...x, d: x.dur ?? (now - x.t0) / 1000 }));
   const total = stops.reduce((a, x) => a + x.d, 0);
@@ -20,10 +26,10 @@ export function computeStats(b, now = Date.now()) {
   });
   const events = b.events || [];
   // sanctions par tireur ; les points vont à l'adversaire (pénalité 1, avertissement et carton 2)
-  const colors = [...new Set([...(b.cfg?.colors || []), ...events.map(e => e.color)])].filter(Boolean);
-  const byColor = [...colors, null].map(c => {
+  const colors = [...new Set([...(b.cfg?.colors || []), ...events.map(e => e.color)])].filter(/** @returns {c is string} */ c => !!c);
+  const byColor = [...colors, null].map((/** @type {string | null} */ c) => {
     const es = events.filter(e => (e.color || null) === c);
-    const n = type => es.filter(e => e.type === type).length;
+    const n = (/** @type {SanctionType} */ type) => es.filter(e => e.type === type).length;
     return { color: c, observation: n('observation'), penalite: n('penalite'), avertissement: n('avertissement'),
       cartons: n('carton-jaune') + n('carton-rouge'), pts: es.reduce((a, e) => a + (e.pts || 0), 0), any: es.length };
   }).filter(r => r.color || r.any);
@@ -37,8 +43,9 @@ export function computeStats(b, now = Date.now()) {
 }
 
 /** Résumé texte, pour le partage */
+/** @param {Bout} b @param {ReturnType<typeof computeStats>} k */
 export function statsText(b, k) {
-  const d = new Date(b.start);
+  const d = new Date(b.start ?? 0);
   const lines = [`Assaut du ${d.toLocaleDateString('fr-FR')} à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`];
   if (b.cfg) lines.push(buildSentence(b.cfg));
   lines.push(`Arrêts : ${k.n} — temps d'arrêt total ${mmss(k.total)} (moyen ${mmss(k.avg)}, plus long ${mmss(k.max)})`);

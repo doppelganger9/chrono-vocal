@@ -11,14 +11,19 @@
 // Événements émis : allez {resume}, stop, temps, time-up, overtime-call {over}, rest-call {sec}, relay,
 //   reprise-end, finish, extra, prolongation-offer, prolongation, change.
 
+/** @typedef {import('./types.js').Config} Config @typedef {import('./types.js').ChronoState} ChronoState @typedef {import('./types.js').Bout} Bout @typedef {import('./types.js').Stop} Stop @typedef {import('./types.js').Motif} Motif @typedef {import('./types.js').SanctionEvent} SanctionEvent @typedef {import('./types.js').Clock} Clock @typedef {import('./types.js').Emit} Emit */
+
+/** @returns {Bout} */
 const newBout = () => ({ start: null, end: null, rounds: {}, stops: [], events: [], cfg: null });
+/** @param {number} remaining @returns {ChronoState} */
 const initialState = remaining => ({ phase: 'ready', round: 1, running: false, halt: false, remaining, deadline: 0,
   called: new Set(), extra: 0, bonus: 0, prolonged: false, prolongOffer: 0, relayUntil: null });
 
 /**
- * @param getCfg () => réglages courants
- * @param clock  { now(): ms monotones (performance.now), wall(): ms d'horloge (Date.now) }
- * @param emit   (type, données) => void
+ * @param {object} deps
+ * @param {() => Config} deps.getCfg  réglages courants
+ * @param {Clock} deps.clock
+ * @param {Emit} [deps.emit]  effets à produire (sons, voix, affichage)
  */
 export function createChrono({ getCfg, clock, emit = () => {} }) {
   const cfg = () => getCfg();
@@ -37,6 +42,7 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
   function openStop() {
     bout.stops.push({ round: st.round, at: elapsed(), t0: clock.wall(), dur: null });
   }
+  /** @returns {Stop | null} */
   function closeStop() {
     const s = bout.stops[bout.stops.length - 1];
     if (s && s.dur === null) { s.dur = (clock.wall() - s.t0) / 1000; return s; }
@@ -68,9 +74,10 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
 
   // Un arrêt de plus de 30 s prolonge la reprise de 30 s, une fois par reprise (I 2.2). Seulement quand les arrêts
   // ne sont pas décomptés : s'ils le sont, le chrono était déjà figé pendant l'arrêt. Proposée par défaut : l'arbitre décide.
+  /** @param {Stop | null} s l'arrêt qui vient de se terminer */
   function checkProlongation(s) {
     const c = cfg();
-    if (!s || c.countStops || c.prolong === 'off' || c.mode === 'relais' || st.prolonged || s.dur <= 30) return;
+    if (!s || c.countStops || c.prolong === 'off' || c.mode === 'relais' || st.prolonged || (s.dur ?? 0) <= 30) return;
     if (c.prolong === 'auto') prolong();
     else { st.prolongOffer = clock.wall() + 15000; emit('prolongation-offer'); }
   }
@@ -176,6 +183,7 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
   }
 
   /** Sanction annoncée, rattachée à l'arrêt en cours de la reprise s'il y en a un */
+  /** @param {Motif} e @returns {SanctionEvent} */
   function addEvent(e) {
     const i = bout.stops.length - 1;
     const ev = { ...e, round: st.round, t: clock.wall(), stop: i >= 0 && bout.stops[i].round === st.round ? i : null };
@@ -196,6 +204,7 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
     allez, stop, endReprise, endRest, extraRound, prolong, reset, tick, addEvent, configChanged,
     // Annulation : l'échéance étant une heure absolue, un STOP annulé laisse le chrono avoir tourné entre-temps
     snapshot: () => structuredClone({ st, bout }),
+    /** @param {{ st: ChronoState, bout: Bout }} snap */
     restore(snap) { st = structuredClone(snap.st); bout = structuredClone(snap.bout); emit('change'); },
   };
 }
