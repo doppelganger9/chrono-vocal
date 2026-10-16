@@ -12,7 +12,7 @@ Chrono vocal pour la canne de combat : une page web pilotée par la voix de l'ar
 
 ## Règles
 
-- **Une branche et une PR par issue.** Ne jamais pousser une fonctionnalité directement sur `main` : GitHub Pages la mettrait en ligne aussitôt. Ne fusionner que si David l'a demandé explicitement.
+- **Une branche et une PR par issue.** Ne jamais pousser directement sur `main` : GitHub Pages met en ligne aussitôt. Fusionner soi-même les PR **sans changement visible** quand les tests passent ; laisser David fusionner celles **qui se voient** (et empiler la suite dessus en attendant).
 - **Tests d'abord**, à partir des critères d'acceptation de l'issue, puis le code. Chaque PR donne la couverture, le score de mutation et les statistiques IA (CONTRIBUTING § 3 à 5).
 - **L'arbitre décide, le chrono suit** ([ADR 0006](docs/adr/0006-l-arbitre-decide.md)) : aucune transition imposée, aucun commandement ignoré sans le signaler.
 - **Tests silencieux** : la voix et les sons sont toujours remplacés par les doublures de `tests/e2e/fixtures.js`. Pour essayer l'app dans le navigateur intégré, utiliser `npm run serve` (une page ouverte directement depuis le disque ne charge pas les scripts voisins), et neutraliser `say`, `beep` et `gong`.
