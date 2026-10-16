@@ -30,5 +30,6 @@ npm test
 - `npm run test:unit` : tests unitaires de `lang.js` (`node --test`, sans dépendance)
 - `npm run test:e2e` : tests de bout en bout (Playwright) sur la vraie page, dans les moteurs de Chrome Android et de Safari iPhone. La reconnaissance vocale, la synthèse vocale et les sons sont remplacés par des doublures muettes (le test fait « parler » l'arbitre et vérifie ce que l'app dit et joue), et l'horloge est simulée.
 - `npm run serve` : sert l'app sur http://localhost:4173
+- `npm run coverage`, `npm run mutation`, `npm run avant-apres -- main`, `npm run ai-stats` : preuves de qualité pour les PR (voir [CONTRIBUTING.md](CONTRIBUTING.md) § 7)
 
 Les tests tournent aussi sur GitHub à chaque envoi (onglet Actions).

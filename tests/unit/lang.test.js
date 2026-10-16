@@ -129,3 +129,100 @@ test("parseMotif : « carton rouge » ne désigne pas le tireur rouge", () => {
   assert.equal(L.parseMotif('carton rouge au tireur bleu', ['rouge', 'bleu']).color, 'bleu');
   assert.equal(L.parseMotif('carton rouge', ['rouge', 'bleu']).color, null);
 });
+
+// ---------- Cas limites, ajoutés d'après les tests de mutation (npm run mutation) ----------
+
+test('parseMmSs : bornes et formats tolérés', () => {
+  assert.equal(L.parseMmSs(90), 90);              // un nombre, pas seulement du texte
+  assert.equal(L.parseMmSs(' 1:30 '), 90);
+  assert.equal(L.parseMmSs('1 : 30'), 90);
+  assert.equal(L.parseMmSs('10'), 10);            // à partir de 10, ce sont des secondes
+  assert.equal(L.parseMmSs('9'), 540);            // en dessous, des minutes
+  assert.equal(L.parseMmSs('x1:30'), null);
+  assert.equal(L.parseMmSs('1:30x'), null);
+  assert.equal(L.parseMmSs('1:300'), null);
+});
+
+test('numFr : tous les nombres dits par l\'app', () => {
+  const expected = ['zéro', 'une', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix',
+    'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize'];
+  expected.forEach((w, n) => assert.equal(L.numFr(n), w, String(n)));
+  assert.equal(L.numFr(1, false), 'un');
+  assert.equal(L.numFr(20), 'vingt');
+  assert.equal(L.numFr(30), 'trente');
+  assert.equal(L.numFr(40), 'quarante');
+  assert.equal(L.numFr(50), 'cinquante');
+  assert.equal(L.numFr(21), 'vingt et un');
+  assert.equal(L.numFr(35), 'trente-cinq');
+  assert.equal(L.numFr(17), '17');                // pas de mot prévu : le chiffre
+  assert.equal(L.numFr(60), '60');
+});
+
+test('durationFr : minutes et secondes mêlées', () => {
+  assert.equal(L.durationFr(150), 'deux minutes trente');
+  assert.equal(L.durationFr(125), 'deux minutes cinq');
+  assert.equal(L.durationFr(61), 'une minute une');
+  assert.equal(L.durationFr(0), 'zéro seconde');
+});
+
+test('normalize : espaces et nombres en lettres seulement s\'ils sont des mots entiers', () => {
+  assert.equal(L.normalize('a   b'), 'a b');
+  assert.equal(L.normalize('aucun'), 'aucun');
+  assert.equal(L.normalize('Trois Reprises'), '3 reprises');
+});
+
+test('parseReferee : nombre de reprises, cas limites', () => {
+  assert.deepEqual(L.parseReferee('12 reprises'), { tooMany: 12 });
+  assert.deepEqual(L.parseReferee('1 round'), { rounds: 1 });
+  assert.deepEqual(L.parseReferee('3reprises'), { rounds: 3 });
+  assert.deepEqual(L.parseReferee('2 manches'), { rounds: 2 });
+  assert.deepEqual(L.parseReferee('1 manche'), { rounds: 1 });
+  assert.deepEqual(L.parseReferee('0 reprise'), {});
+});
+
+test('parseReferee : durées, cas limites', () => {
+  assert.deepEqual(L.parseReferee('3 reprises de 10 minutes'), { rounds: 3, roundSec: 600 });
+  assert.deepEqual(L.parseReferee('3 reprises de 11 minutes'), { rounds: 3 });   // plus de 10 min : ignoré
+  assert.deepEqual(L.parseReferee('3 reprises de 0 minute'), { rounds: 3 });
+  assert.deepEqual(L.parseReferee('repos de 45 secondes, 3 reprises de 2 minutes'), { rounds: 3, restSec: 45, roundSec: 120 });
+  // ni « repos de … » ni « … de repos » : la durée la plus proche du mot « repos »
+  assert.deepEqual(L.parseReferee('3 reprises de 2 minutes, et entre chaque reprise un repos de presque 1 minute'),
+    { rounds: 3, restSec: 60, roundSec: 120 });
+});
+
+test('parseCommand : variantes et faux amis', () => {
+  assert.equal(L.parseCommand('alllez')?.cmd, 'ALLEZ');      // lettre répétée
+  assert.equal(L.parseCommand('estop')?.cmd, 'STOP');
+  assert.equal(L.parseCommand('repo')?.cmd, 'REPOS');
+  for (const v of ['allez stop', 'stoppeur', 'aller simple', 'reposer', 'stop stop stop stop', 'stop fin']) {
+    assert.equal(L.parseCommand(v), null, v);
+  }
+  assert.deepEqual(L.parseCommand('engarde'), { enGarde: true, cmd: null, end: null });
+});
+
+test('isReadyCheck tolère la ponctuation collée', () => {
+  assert.equal(L.isReadyCheck('Chrono,prêt?'), true);
+});
+
+test('parseMotif : variantes de transcription et cas limites', () => {
+  const c = ['rouge', 'bleu'];
+  assert.deepEqual(L.parseMotif('carton rouge', c), { type: 'carton-rouge', pts: 2, color: null });
+  assert.equal(L.parseMotif('Pénalité, tireur bleu').color, null);            // sans couleurs connues
+  assert.deepEqual(L.parseMotif('demande davertissement tireur rouge', c), { type: 'demande-avert', pts: 0, color: 'rouge' });
+  assert.equal(L.parseMotif("pénalité pour sortie daire, tireur bleu", c).detail, "sortie d'aire");
+  assert.equal(L.parseMotif('pénalité sortie aire bleu', c).detail, "sortie d'aire");
+  assert.equal(L.parseMotif('pénalité pour lâché la canne, tireur rouge', c).detail, 'lâcher de canne');
+  assert.equal(L.parseMotif('pénalité pour lâcher canne', c).detail, 'lâcher de canne');
+  assert.equal(L.parseMotif('pénalité pour équipement incomplet, tireur bleu', c).detail, 'équipement');
+  assert.equal(L.parseMotif('pénalité pour retard, tireur rouge', c).detail, 'retard');
+  assert.equal(L.parseMotif('pénalité', c).detail, null);
+  assert.deepEqual(L.parseMotif('forfait du tireur bleu', c), { type: 'forfait', pts: 0, color: 'bleu' });
+  assert.equal(L.parseMotif('observation, tireur rougeaud', c).color, null);  // mot entier seulement
+});
+
+test("parseMotif : « demande de disqualification » est une demande, pas une disqualification", () => {
+  assert.deepEqual(L.parseMotif('demande de disqualification au tireur rouge', ['rouge', 'bleu']),
+    { type: 'demande-avert', pts: 0, color: 'rouge' });
+  assert.deepEqual(L.parseMotif("demande d'avertissement ou disqualification au tireur bleu pour antijeu", ['rouge', 'bleu']),
+    { type: 'demande-avert', pts: 0, color: 'bleu' });
+});
