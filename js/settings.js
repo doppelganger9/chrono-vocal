@@ -5,11 +5,12 @@ export const STORAGE_KEY = 'chrono-canne';
 
 /** @type {Config} */
 export const DEFAULTS = {
-  v: 4, mode: 'assaut', preset: 'custom', rounds: 3, roundSec: 90, restSec: 60, extraMax: 1, extraSec: 90,
+  v: 5, mode: 'assaut', preset: 'custom', rounds: 3, roundSec: 90, restSec: 60, extraMax: 1, extraSec: 90,
   relayBase: 90, relayCount: 3,
   countStops: true, prolong: 'propose', requireEnGarde: false, autoRest: false, calls: [30, 15, 5],
   colors: ['rouge', 'bleu'], answerReady: true,
   learned: { STOP: [], ALLEZ: [], REPOS: [] },
+  theme: 'auto', palette: {},
 };
 
 // Préréglages : maximums des compétitions nationales (J 4.3), repos d'une minute
@@ -38,7 +39,7 @@ export function normalizeConfig(c) {
 /** Réglages enregistrés (de n'importe quelle version) → réglages complets et à jour */
 /** @param {Partial<Config> & Record<string, any>} [saved] @returns {Config} */
 export function migrate(saved = {}) {
-  const c = { ...DEFAULTS, ...saved, learned: { ...DEFAULTS.learned, ...(saved.learned || {}) } };
+  const c = { ...DEFAULTS, ...saved, learned: { ...DEFAULTS.learned, ...(saved.learned || {}) }, palette: { ...(saved.palette || {}) } };
   if (!saved.v || saved.v < 2) { // d'avant l'alignement sur le protocole officiel (annonces 30/15/5)
     if (JSON.stringify(saved.calls) === '[15,10,5]') c.calls = [30, 15, 5];
   }

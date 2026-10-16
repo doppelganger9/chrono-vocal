@@ -69,11 +69,12 @@ test('préréglages : maximums des compétitions nationales', () => {
 
 test('valeurs par défaut exactes (ce que voit un nouveau téléphone)', () => {
   assert.deepEqual(DEFAULTS, {
-    v: 4, mode: 'assaut', preset: 'custom', rounds: 3, roundSec: 90, restSec: 60, extraMax: 1, extraSec: 90,
+    v: 5, mode: 'assaut', preset: 'custom', rounds: 3, roundSec: 90, restSec: 60, extraMax: 1, extraSec: 90,
     relayBase: 90, relayCount: 3,
     countStops: true, prolong: 'propose', requireEnGarde: false, autoRest: false, calls: [30, 15, 5],
     colors: ['rouge', 'bleu'], answerReady: true,
     learned: { STOP: [], ALLEZ: [], REPOS: [] },
+    theme: 'auto', palette: {},
   });
 });
 
@@ -103,4 +104,11 @@ test('préréglages : la liste complète affichée dans les réglages', () => {
     ['vet', 'Vétérans, phases 1 et 2 — 3 × 1\'30"', 3, 90, 1],
     ['vetf', 'Vétérans, finales — 4 × 1\'30"', 4, 90, 1],
   ]);
+});
+
+test('apparence : thème automatique et palette d\'origine par défaut ; palette personnalisée conservée', () => {
+  const c = migrate({ v: 4, rounds: 2 });
+  assert.equal(c.theme, 'auto');
+  assert.deepEqual(c.palette, {});
+  assert.deepEqual(migrate({ theme: 'jour', palette: { round: '#123456' } }).palette, { round: '#123456' });
 });

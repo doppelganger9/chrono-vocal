@@ -2,6 +2,8 @@
 import { $, $field, $dialog } from './dom.js';
 import { fmt, parseMmSs, buildSentence, COMMAND_PATTERNS } from '../lang.js';
 import { PRESETS } from '../settings.js';
+import { PALETTE_KEYS, PALETTE_LABELS, THEMES, resolveTheme, contrastWarnings } from '../colors.js';
+import { prefersLight } from './theme.js';
 
 /** @typedef {import('../types.js').Config} Config */
 
@@ -34,7 +36,9 @@ export function createSettingsDialog({ getCfg, onSave, voice }) {
     $field('sEnGarde').value = c.requireEnGarde ? '1' : '0'; $field('sAutoRest').value = c.autoRest ? '1' : '0';
     $field('sCalls').value = c.calls.join(','); $field('sColor1').value = c.colors[0] || ''; $field('sColor2').value = c.colors[1] || '';
     $field('sReady').value = c.answerReady ? '1' : '0';
-    showModeFields(); updatePreview();
+    $field('sTheme').value = c.theme;
+    for (const k of PALETTE_KEYS) { if (c.palette[k]) { colorInput(k).value = /** @type {string} */ (c.palette[k]); colorInput(k).dataset.custom = '1'; } else delete colorInput(k).dataset.custom; }
+    showModeFields(); updatePreview(); showPalette();
   }
   /** @returns {Partial<Config> & Pick<Config, 'mode' | 'rounds' | 'roundSec' | 'restSec' | 'relayCount'>} */
   function read() {
@@ -48,6 +52,8 @@ export function createSettingsDialog({ getCfg, onSave, voice }) {
       calls: $field('sCalls').value.split(/[,;\s]+/).map(Number).filter(n => n > 0).sort((a, b) => b - a),
       colors: [$field('sColor1').value.trim().toLowerCase(), $field('sColor2').value.trim().toLowerCase()],
       answerReady: yes('sReady'),
+      theme: /** @type {'auto' | 'jour' | 'nuit'} */ ($field('sTheme').value),
+      palette: customPalette(),
     };
     if (mode === 'relais') { // reprise unique (I 2.3.2) ; reprise supplémentaire = base × 2
       return { ...c, rounds: 1, roundSec: c.relayBase * c.relayCount * 2, extraSec: c.relayBase * 2, extraMax: Math.min(1, c.extraMax) };
@@ -55,6 +61,30 @@ export function createSettingsDialog({ getCfg, onSave, voice }) {
     const roundSec = parseMmSs($field('sRound').value) || cfg.roundSec;
     return { ...c, rounds: +$field('sRounds').value, roundSec, extraSec: roundSec };
   }
+  // ---------- Apparence : thème et palette ----------
+  /** @typedef {import('../colors.js').PaletteKey} PaletteKey */
+  const colorInput = (/** @type {PaletteKey} */ k) => /** @type {HTMLInputElement} */ ($field('sColor-' + k));
+  const dialogTheme = () => resolveTheme(/** @type {'auto' | 'jour' | 'nuit'} */ ($field('sTheme').value), prefersLight());
+  /** Couleurs modifiées dans la fenêtre (les autres suivent le thème) */
+  function customPalette() {
+    /** @type {Partial<Record<PaletteKey, string>>} */
+    const p = {};
+    for (const k of PALETTE_KEYS) if (colorInput(k).dataset.custom) p[k] = colorInput(k).value;
+    return p;
+  }
+  function showPalette() {
+    const t = dialogTheme();
+    for (const k of PALETTE_KEYS) if (!colorInput(k).dataset.custom) colorInput(k).value = THEMES[t][k];
+    const w = contrastWarnings(t, customPalette());
+    $('contrastWarn').hidden = !w.length;
+    $('contrastWarn').textContent = w.length
+      ? 'Peu lisible sur le fond : ' + w.map(x => `${PALETTE_LABELS[x.key]} (contraste ${String(x.ratio).replace('.', ',')}:1)`).join(', ')
+      : '';
+  }
+  for (const k of PALETTE_KEYS) colorInput(k).addEventListener('input', () => { colorInput(k).dataset.custom = '1'; showPalette(); });
+  $field('sTheme').addEventListener('change', showPalette);
+  $('paletteReset').onclick = () => { for (const k of PALETTE_KEYS) delete colorInput(k).dataset.custom; showPalette(); };
+
   function updatePreview() { $('sentencePreview').textContent = '« ' + buildSentence(read()) + ' »'; }
   ['sRounds', 'sRound', 'sRest', 'sCalls', 'sRelayBase', 'sRelayCount'].forEach(id => $field(id).addEventListener('input', updatePreview));
 

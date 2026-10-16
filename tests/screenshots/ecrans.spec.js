@@ -4,8 +4,13 @@ const path = require('node:path');
 const { test } = require('../e2e/fixtures');
 
 const dir = process.env.SHOT_DIR || 'screenshots/apres';
+// SHOT_SCHEME=light|dark : réglage jour / nuit simulé du téléphone ; SHOT_CSS : styles ajoutés (variantes de palette)
+test.beforeEach(async ({ page }) => { if (process.env.SHOT_SCHEME) await page.emulateMedia({ colorScheme: /** @type {'light' | 'dark'} */ (process.env.SHOT_SCHEME) }); });
 // animations figées (clignotements, transitions) : deux versions identiques donnent des captures identiques
-const shot = (app, name, testInfo) => app.page.screenshot({ path: path.join(dir, `${testInfo.project.name}--${name}.png`), animations: 'disabled' });
+const shot = async (app, name, testInfo) => {
+  if (process.env.SHOT_CSS) await app.page.addStyleTag({ content: process.env.SHOT_CSS });
+  return app.page.screenshot({ path: path.join(dir, `${testInfo.project.name}--${name}.png`), animations: 'disabled' });
+};
 
 test('prêt', async ({ app }, t) => { await shot(app, '1-pret', t); });
 

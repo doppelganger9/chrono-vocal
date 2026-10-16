@@ -26,6 +26,8 @@
  * @property {string[]} colors  couleurs des tireurs
  * @property {boolean} answerReady
  * @property {Learned} learned
+ * @property {'auto' | 'jour' | 'nuit'} theme  « auto » : selon le réglage du téléphone
+ * @property {Partial<Record<'round' | 'rest' | 'stop' | 'over', string>>} palette  couleurs personnalisées (#rrggbb)
  */
 
 /**

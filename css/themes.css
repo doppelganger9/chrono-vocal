@@ -1,0 +1,31 @@
+/* Thèmes de l'app (#5). Le thème est choisi par js/ui/theme.js (« automatique » : selon le téléphone).
+   Les mêmes couleurs sont dans js/colors.js : un test vérifie qu'elles concordent. */
+:root[data-theme="nuit"], :root:not([data-theme]) {
+  --bg: #0d0f12;
+  --panel: #171a1f;
+  --line: #2a2f37;
+  --text: #f2f4f7;
+  --muted: #8a93a0;
+  --round: #ffb020;
+  --rest: #33c38a;
+  --stop: #ff4d4f;
+  --over: #c084fc;
+  --accent: #4da3ff;
+  --on-color: #111111;
+  color-scheme: dark;
+}
+/* Jour : fort contraste, pour un gymnase éclairé ou le plein air */
+:root[data-theme="jour"] {
+  --bg: #ffffff;
+  --panel: #f2f4f7;
+  --line: #d0d5dd;
+  --text: #0b0d10;
+  --muted: #475467;
+  --round: #b54708;
+  --rest: #067647;
+  --stop: #d92d20;
+  --over: #6941c6;
+  --accent: #175cd3;
+  --on-color: #ffffff;
+  color-scheme: light;
+}
