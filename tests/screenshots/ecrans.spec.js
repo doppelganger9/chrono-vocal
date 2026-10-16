@@ -69,3 +69,8 @@ test('mode tableau', async ({ app }, t) => {
   await app.wait(12_000);
   await shot(app, '8-tableau', t);
 });
+
+test.describe('écran titre', () => {
+  test.use({ introSeen: false });
+  test('premier lancement', async ({ app }, t) => { await shot(app, '0-ecran-titre', t); });
+});

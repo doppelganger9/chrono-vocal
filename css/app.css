@@ -114,3 +114,10 @@ body.paused #stops { color: var(--stop); font-weight: 700; }
   #settings h2, #settings .dlg-actions:last-child { column-span: all; }
   #settings .field, #settings .learn-row, #settings h3 { break-inside: avoid; }
 }
+
+/* Écran titre (#6) */
+.intro { text-align: center; }
+.intro img { display: block; margin: 4px auto 8px; border-radius: 26px; }
+.intro h1 { margin: 0 0 4px; font-size: 26px; }
+.intro ul { text-align: left; padding-left: 20px; line-height: 1.5; }
+.intro h3 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin: 12px 0 0; text-align: left; }

@@ -13,6 +13,7 @@ import { createSettingsDialog } from './ui/settings-dialog.js';
 import { createAnnexDialog } from './ui/annex-dialog.js';
 import { $, $button } from './ui/dom.js';
 import { applyTheme, watchSystemTheme } from './ui/theme.js';
+import { createIntro } from './ui/intro-dialog.js';
 
 const storage = (() => { try { return window.localStorage; } catch { return { getItem: () => null, setItem() {} }; } })();
 const clock = { now: () => performance.now(), wall: () => Date.now() };
@@ -175,9 +176,7 @@ function updateMic() {
   $('micBtn').classList.toggle('on', speech.listening);
   $('micText').textContent = speech.listening ? 'À l\'écoute' : 'Micro coupé';
 }
-$('micBtn').onclick = () => {
-  unlock();
-  if (speech.listening) { speech.stopListening(); updateMic(); return; }
+function startMic() {
   if (!speech.canListen) { alert("La reconnaissance vocale n'est pas disponible sur ce navigateur. Utilisez Chrome sur Android ou Safari sur iPhone."); return; }
   speech.listen({
     onResult: voice.onResult,
@@ -185,7 +184,14 @@ $('micBtn').onclick = () => {
     onDenied: () => { updateMic(); alert('Accès au micro refusé.'); },
   });
   updateMic(); keepAwake();
+}
+$('micBtn').onclick = () => {
+  unlock();
+  if (speech.listening) { speech.stopListening(); updateMic(); return; }
+  startMic();
 };
+// Écran titre : au premier lancement, puis une fois par nouveauté importante (#6)
+createIntro({ storage, onStart: () => { unlock(); startMic(); } });
 
 // ---------- Boucles ----------
 // Le temps avance avec setInterval : requestAnimationFrame s'arrête dès que la page n'est plus affichée

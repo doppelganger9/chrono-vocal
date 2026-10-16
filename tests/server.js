@@ -5,7 +5,8 @@ const path = require('node:path');
 
 const root = path.resolve(process.env.ROOT || path.join(__dirname, '..')); // ROOT : servir une autre version (avant/après)
 const port = Number(process.env.PORT) || 4173;
-const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css' };
+const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css',
+  '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.json': 'application/json' };
 
 http.createServer((req, res) => {
   const url = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);

@@ -1,0 +1,16 @@
+{
+  "name": "Chrono Canne",
+  "short_name": "Chrono Canne",
+  "description": "Chronomètre de canne de combat piloté par la voix de l'arbitre",
+  "lang": "fr",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d0f12",
+  "theme_color": "#0d0f12",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/logo.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
