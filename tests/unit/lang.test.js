@@ -76,11 +76,25 @@ test('parseCommand reconnaît STOP / ALLEZ / REPOS et leurs variantes', () => {
 });
 
 test('parseCommand suit le protocole : « en garde », « … fin de la reprise »', () => {
-  assert.deepEqual(L.parseCommand('En garde, allez'), { enGarde: true, cmd: 'ALLEZ' });
-  assert.deepEqual(L.parseCommand('en garde'), { enGarde: true, cmd: null });
-  assert.deepEqual(L.parseCommand('en gare'), { enGarde: true, cmd: null });
-  assert.deepEqual(L.parseCommand('Stop, fin de la reprise'), { enGarde: false, cmd: 'STOP' });
-  assert.deepEqual(L.parseCommand("Stop, fin de l'assaut"), { enGarde: false, cmd: 'STOP' });
+  assert.deepEqual(L.parseCommand('En garde, allez'), { enGarde: true, cmd: 'ALLEZ', end: null });
+  assert.deepEqual(L.parseCommand('en garde'), { enGarde: true, cmd: null, end: null });
+  assert.deepEqual(L.parseCommand('en gare'), { enGarde: true, cmd: null, end: null });
+  assert.deepEqual(L.parseCommand('Stop'), { enGarde: false, cmd: 'STOP', end: null });
+});
+
+test("parseCommand repère la fin de reprise ou d'assaut décidée par l'arbitre", () => {
+  const cases = {
+    'Stop, fin de la reprise': 'reprise',
+    'stop fin de reprise': 'reprise',
+    "Stop, fin de l'assaut": 'assaut',
+    "Stop, fin de la reprise, fin de l'assaut": 'assaut',
+    "stop fin de la reprise et de l'assaut": 'assaut',
+    'fin de la reprise': 'reprise',
+  };
+  for (const [phrase, end] of Object.entries(cases)) {
+    assert.deepEqual(L.parseCommand(phrase), { enGarde: false, cmd: 'STOP', end }, phrase);
+  }
+  assert.equal(L.parseCommand('la fin de la reprise approche, restez concentrés'), null);
 });
 
 test('parseCommand utilise les variantes apprises', () => {

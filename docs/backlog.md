@@ -127,13 +127,35 @@ assets/             icône et illustration (SVG)
 
 Points restés ouverts après la réalisation des pistes du [corpus fonctionnel](corpus-fonctionnel.md) (§ 5). Les références C… renvoient aux règles du corpus.
 
-### R1. « Stop » au moment du « temps » (C4)
+### R1. L'arbitre décide, le chrono suit — ✅ fait
 
-**Constat.** « Stop » prime sur « temps ». Si l'arbitre arrête juste avant la fin, il reste quelques dixièmes de seconde au chrono. Il termine alors sa procédure, puis fait « en garde, allez, stop, fin de la reprise » (I 3.2.2). Ce dernier « stop » risque d'arriver **avant** que les dixièmes restants soient écoulés : l'app le prend pour un nouvel arrêt, et la reprise ne se termine pas.
+**Décisions.** « Temps » est répété toutes les 5 s pendant le temps dépassé, pour que l'arbitre ne puisse pas le manquer (sauf pendant un arrêt). Un « stop » seul est un arrêt ordinaire ; la reprise se termine sur « Stop, fin de la reprise » ou « … fin de l'assaut » (les deux sont acceptés), le bouton « Fin de la reprise » ou « REPOS ». Pas de limite au temps dépassé.
 
-**Proposition.** Si un « stop » arrive alors qu'il reste moins d'une seconde, ou si la phrase contient « fin de la reprise » ou « fin de l'assaut », la reprise est terminée : « Temps », puis minute de repos.
+**Principe.** C'est l'arbitre qui dirige l'assaut (I 1.1.2), pas le chronomètre. Le chronométreur mesure et annonce : « temps » est une **information** donnée à l'arbitre, pas une décision. L'app ne doit jamais imposer une transition, ni ignorer un commandement de l'arbitre.
 
-**À décider** : le seuil d'une seconde convient-il ?
+**Constat (avant R1) : le code ne le permettait pas.**
+- **Après « temps », l'app bloque.** Elle passe en « attente du stop », ignore « allez », et le premier « stop » lance la minute de repos. Si l'arbitre fait continuer la reprise après « temps » (pour finir une action, ou parce que « temps » est tombé pendant sa procédure), le chrono reste figé à 0:00. Ce temps n'est ni mesuré ni enregistré.
+- **« Stop » juste avant « temps » (C4).** « Stop » prime sur « temps ». S'il reste quelques dixièmes au chrono, l'arbitre termine sa procédure, puis fait « en garde, allez, stop, fin de la reprise ». Ce dernier « stop » peut arriver avant que les dixièmes soient écoulés : l'app le prend pour un nouvel arrêt et la reprise ne se termine pas.
+- **D'autres commandements sont ignorés sans le dire** selon la phase (par exemple « stop » avant le premier « allez »).
+- **Des transitions automatiques** décident à la place de l'arbitre : le repos automatique après « temps » (option), la prolongation de 30 s appliquée d'office.
+
+**Proposition.**
+1. **Après « temps », « allez » fait continuer la reprise.** Le chrono passe en **temps dépassé** et compte à rebours inversé (« +0:04 », dans une couleur distincte). Ce temps est enregistré dans les statistiques de la reprise.
+2. **La fin de la reprise vient de l'arbitre** : « Stop, fin de la reprise » ou « … fin de l'assaut », le bouton, la télécommande, ou « REPOS ». Pendant le temps dépassé, un « stop » seul est un arrêt ordinaire.
+3. **« Fin de la reprise » dit par l'arbitre termine toujours la reprise**, quel que soit le temps restant. Ça règle le cas C4 sans seuil arbitraire.
+4. **Aucun commandement ignoré sans trace** : si un commandement n'a pas d'effet dans la phase en cours, l'app l'affiche (« STOP entendu, sans effet avant le premier ALLEZ ») et le garde dans le journal vocal (T3).
+5. **Les automatismes proposent, l'arbitre dispose.**
+   - La prolongation de 30 s est **proposée** (« Prolonger de 30 s ? », un toucher pour valider), sauf si l'option « prolongation automatique » est activée.
+   - Le repos automatique ne se déclenche jamais si l'arbitre a dit « allez » après « temps ».
+
+**À décider**
+- Pendant le temps dépassé, un « stop » seul : arrêt ordinaire (ma proposition, l'arbitre dira « fin de la reprise »), ou fin de la reprise ?
+- Faut-il borner le temps dépassé, par exemple une alerte au-delà de 10 s ?
+
+**Critères d'acceptation**
+- Après « temps », « allez » relance un temps dépassé visible et compté. La reprise ne se termine que sur décision de l'arbitre.
+- « Stop, fin de la reprise » termine la reprise à tout moment, y compris avec quelques dixièmes restants.
+- Tests de bout en bout pour chacun de ces cas.
 
 ### R2. Retard à l'appel de la reprise (C15)
 
@@ -168,11 +190,11 @@ Points restés ouverts après la réalisation des pistes du [corpus fonctionnel]
 
 ## Ordre proposé
 
-1. **T1 Architecture + T2 Typage**, ensemble : c'est la base des suivants. Le comportement ne change pas, et les tests existants le garantissent.
-2. **P2 Jour / nuit + palette** : profite tout de suite des variables CSS de T1.
-3. **P1 Portrait / paysage**.
-4. **P3 Écran titre et icône**.
-5. **T3 Journal vocal + checklist de recette** : à lancer dès qu'il y a des entraînements avec l'app, pour nourrir le corpus.
-6. **R1 « Stop » au moment du « temps »** : petit, et ça peut bloquer une fin de reprise en vraie compétition. À faire dès la décision sur le seuil, éventuellement avant P2.
+1. ~~**R1 L'arbitre décide, le chrono suit**~~ ✅ fait.
+2. **T1 Architecture + T2 Typage**, ensemble : c'est la base des suivants. Le comportement ne change pas, et les tests existants le garantissent.
+3. **P2 Jour / nuit + palette** : profite tout de suite des variables CSS de T1.
+4. **P1 Portrait / paysage**.
+5. **P3 Écran titre et icône**.
+6. **T3 Journal vocal + checklist de recette** : à lancer dès qu'il y a des entraînements avec l'app, pour nourrir le corpus.
 7. **R2 Rappels, R3 Second exclu, R4 Relais**.
 8. **R5 Plusieurs aires**, si le besoin se confirme.

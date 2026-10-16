@@ -20,7 +20,7 @@ test('arrêts décomptés : le chrono est figé, et chaque arrêt est compté', 
   await expect(app.stops).toHaveText('2 arrêts · 0:07');
 
   // fin de l'assaut : résumé vocal et statistiques
-  await app.wait(15_700);
+  await app.wait(15_000);
   await app.hear("Stop, fin de l'assaut");
   await app.wait(1600);
   await app.expectSpoken("Fin de l'assaut. 2 arrêts, sept secondes d'arrêt au total.");
@@ -30,8 +30,8 @@ test('arrêts décomptés : le chrono est figé, et chaque arrêt est compté', 
   await expect(tiles.nth(3)).toHaveText('0:05');   // arrêt le plus long
 });
 
-test('arrêts non décomptés : le chrono continue, prolongation de 30 s après un arrêt long', async ({ app }) => {
-  await app.configure({ sRounds: 1, sRound: '1:00', sCount: '0', sProlong: '1' });
+test('arrêts non décomptés : le chrono continue, prolongation automatique de 30 s après un arrêt long', async ({ app }) => {
+  await app.configure({ sRounds: 1, sRound: '1:00', sCount: '0', sProlong: 'auto' });
   await app.hear('Allez');
   await app.wait(2000);
   await app.hear('Stop');
@@ -105,4 +105,31 @@ test('motifs des arrêts : sanctions reconnues à la voix, par tireur', async ({
   await expect(rows.nth(2)).toContainText('bleu');
   await expect(rows.nth(2).locator('td').last()).toHaveText('3');   // pénalité 1 + carton 2
   await expect(app.$('#statsBody')).toContainText("Pénalité (sortie d'aire) bleu");
+});
+
+test('prolongation proposée (par défaut) : l\'arbitre décide d\'un toucher', async ({ app }) => {
+  await app.configure({ sRounds: 1, sRound: '1:00', sCount: '0' });
+  await app.hear('Allez');
+  await app.hear('Stop');
+  await app.wait(31_000);
+  await app.hear('Allez');
+  const offer = app.$('#prolongBtn');
+  await expect(offer).toBeVisible();
+  await expect(app.max).toHaveText('/ 1:00');              // rien n'est appliqué d'office
+  await offer.click();
+  await app.expectSpoken('Prolongation de trente secondes');
+  await expect(app.max).toHaveText('/ 1:30');
+  await expect(offer).toBeHidden();
+});
+
+test('prolongation proposée puis ignorée : la proposition disparaît après 15 s', async ({ app }) => {
+  await app.configure({ sRounds: 1, sRound: '1:00', sCount: '0' });
+  await app.hear('Allez');
+  await app.hear('Stop');
+  await app.wait(31_000);
+  await app.hear('Allez');
+  await expect(app.$('#prolongBtn')).toBeVisible();
+  await app.wait(15_500);
+  await expect(app.$('#prolongBtn')).toBeHidden();
+  await expect(app.max).toHaveText('/ 1:00');
 });

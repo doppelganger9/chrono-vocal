@@ -8,6 +8,8 @@ Le vocabulaire est défini dans [GLOSSARY.md](../GLOSSARY.md).
 
 ## 1. Règles du chronométrage
 
+> **Principe directeur : l'arbitre dirige, le chronomètre suit.** Le chronométreur mesure et annonce, l'arbitre décide (I 1.1.2). « Temps » informe l'arbitre, il ne termine pas la reprise : seul l'arbitre le fait (« Stop, fin de la reprise »). Voir [backlog](backlog.md) R1.
+
 | # | Règle | Réf. |
 |---|---|---|
 | C1 | Il y a **un chronométreur par aire**. Il mesure les reprises, les arrêts commandés par l'arbitre, les minutes de repos et les retards. Ce rôle peut aussi être tenu par l'arbitre, le juge 1 ou le D.O. | I 1.1.4 |
@@ -126,8 +128,8 @@ Tous les écarts relevés ont été corrigés.
 | Sujet | Avant | Maintenant | Réf. |
 |---|---|---|---|
 | Vocabulaire | « Round », « Pause » | *Reprise*, *minute de repos* | glossaire |
-| Fin de reprise | Bips + « Fin du round N » | Gong puis « Temps », puis attente du « stop » de l'arbitre | C5 |
-| Départ du repos | Bouton ou « REPOS » seulement | Le **« stop »** qui suit « temps » démarre la minute de repos. « REPOS » et le bouton restent possibles. | C6 |
+| Fin de reprise | Bips + « Fin du round N » | Gong puis « Temps ». La reprise continue en **temps dépassé** (compté, « Temps » répété toutes les 5 s) jusqu'à la décision de l'arbitre | C5, R1 |
+| Départ du repos | Bouton ou « REPOS » seulement | **« Stop, fin de la reprise »** ou **« … fin de l'assaut »** termine la reprise et démarre la minute de repos, à tout moment. Un « stop » seul reste un arrêt. « REPOS » et le bouton restent possibles. | C4, C6, R1 |
 | Annonces de repos | 15, 10 et 5 s | **30, 15 et 5 s** par défaut, puis gong + « Temps » | C7 |
 | Fin du repos | « Round N. En garde » | Gong + « Temps », puis attente du « allez » | C7, C8 |
 | Arrêts | Toujours décomptés | Réglage **arrêts décomptés : oui / non** | C10 |
@@ -142,7 +144,7 @@ Tous les écarts relevés ont été corrigés.
 | 1 | Coller au protocole officiel (C5-C8) | ✅ Fait |
 | 2 | « En garde » obligatoire avant « allez » (C9) : un « allez » à la voix n'est accepté que dans les 10 s qui suivent « en garde ». Les boutons et la télécommande ne sont pas filtrés. Désactivé par défaut. | ✅ Fait |
 | 3 | Arrêts décomptés oui / non (C10). Si non, le chrono continue pendant l'arrêt, qui reste compté dans les statistiques, et l'écran affiche « non décompté ». | ✅ Fait |
-| 4 | Prolongation de 30 s (C11), voir les hypothèses ci-dessous | ✅ Fait |
+| 4 | Prolongation de 30 s (C11) : **proposée** à l'arbitre par défaut (un toucher), ou automatique ; voir les hypothèses ci-dessous | ✅ Fait |
 | 5 | Préréglages par catégorie et phase (§ 2), et bouton **REPRISE SUPPL.** en fin d'assaut, dans la limite du réglage (0 à 2) | ✅ Fait |
 | 6 | Réponse « Prêt » à « Chrono, prêt ? » | ✅ Fait |
 | 7 | Motif des arrêts reconnu à la voix (observation, pénalité et son motif, demande, prononcé ou refus d'avertissement, cartons, disqualification, abandon, forfait), avec la couleur du tireur. Statistiques et points à l'adversaire par tireur. | ✅ Fait |

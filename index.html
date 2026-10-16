@@ -17,6 +17,7 @@
     --round: #ffb020;
     --rest: #33c38a;
     --stop: #ff4d4f;
+    --over: #c084fc;
     --accent: #4da3ff;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -46,7 +47,11 @@
   body.round .bar > div { background: var(--round); }
   body.rest #time, body.rest #phaseLabel { color: var(--rest); }
   body.rest .bar > div { background: var(--rest); }
+  body.over #time, body.over #phaseLabel { color: var(--over); }
+  body.over .bar > div { background: var(--over); }
   body.paused #time { color: var(--stop); animation: pulse 1s infinite; }
+  #prolongBtn { margin-top: 6px; border: 1px solid var(--over); background: transparent; color: var(--over);
+    border-radius: 999px; padding: 8px 16px; font-size: 16px; font-weight: 600; }
   body.paused #phaseLabel { color: var(--stop); }
 
   #heard { min-height: 1.4em; font-size: 15px; color: var(--muted); max-width: 640px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -118,6 +123,7 @@
     <div id="time">1:30</div>
     <div id="max">/ 1:30</div>
     <div id="stops"></div>
+    <button id="prolongBtn" hidden>Prolonger la reprise de 30 s</button>
     <div class="bar"><div id="barFill"></div></div>
     <div id="heard"></div>
   </main>
@@ -171,14 +177,14 @@
     </div>
     <div class="field">
       <label for="sProlong">Prolongation de 30 s<small>après un arrêt de plus de 30 s, une fois par reprise (arrêts non décomptés)</small></label>
-      <select id="sProlong"><option value="1">Oui</option><option value="0">Non</option></select>
+      <select id="sProlong"><option value="propose">Proposée</option><option value="auto">Automatique</option><option value="off">Non</option></select>
     </div>
     <div class="field">
       <label for="sEnGarde">« En garde » obligatoire<small>un « allez » à la voix n'est accepté que juste après « en garde »</small></label>
       <select id="sEnGarde"><option value="0">Non</option><option value="1">Oui</option></select>
     </div>
     <div class="field">
-      <label for="sAutoRest">Repos automatique après « temps »<small>sinon : « stop » de l'arbitre, bouton ou « REPOS »</small></label>
+      <label for="sAutoRest">Fin de reprise automatique au « temps »<small>entraînement sans arbitre ; sinon c'est l'arbitre qui termine la reprise</small></label>
       <select id="sAutoRest"><option value="0">Non</option><option value="1">Oui</option></select>
     </div>
     <div class="field">
@@ -232,9 +238,9 @@
 <script>
 // ---------- Réglages ----------
 const DEFAULTS = {
-  v: 3, mode: 'assaut', preset: 'custom', rounds: 3, roundSec: 90, restSec: 60, extraMax: 1, extraSec: 90,
+  v: 4, mode: 'assaut', preset: 'custom', rounds: 3, roundSec: 90, restSec: 60, extraMax: 1, extraSec: 90,
   relayBase: 90, relayCount: 3,
-  countStops: true, prolong: true, requireEnGarde: false, autoRest: false, calls: [30, 15, 5],
+  countStops: true, prolong: 'propose', requireEnGarde: false, autoRest: false, calls: [30, 15, 5],
   colors: ['rouge', 'bleu'], answerReady: true,
   learned: { STOP: [], ALLEZ: [], REPOS: [] },
 };
@@ -248,7 +254,8 @@ function loadSettings() {
   if (!saved.v || saved.v < 3) { // couleurs officielles : rouge et bleu
     if (JSON.stringify(saved.colors) === '["jaune","bleu"]') c.colors = ['rouge', 'bleu'];
   }
-  c.v = 3;
+  if (typeof saved.prolong === 'boolean') c.prolong = saved.prolong ? 'propose' : 'off'; // l'arbitre décide
+  c.v = 4;
   c.rounds = Math.min(4, Math.max(1, c.rounds));
   if (c.mode !== 'relais') c.extraSec = c.roundSec;
   return c;
@@ -315,11 +322,12 @@ function temps() { gong(); setTimeout(() => say('Temps'), 600); }
 
 // ---------- Chrono ----------
 // Protocole du chronométreur (cahier n°10, I 3.2.1) — voir docs/corpus-fonctionnel.md
-// phases : ready (avant une reprise), round (reprise), roundEnd (« temps » annoncé, attente du « stop »),
-//          rest (minute de repos), done (fin de l'assaut)
+// Principe : l'arbitre dirige, le chrono suit. « Temps » informe l'arbitre ; seul l'arbitre termine la reprise.
+// phases : ready (avant une reprise), round (reprise), overtime (temps écoulé : la reprise continue, le dépassement
+//          est compté, jusqu'à « stop, fin de la reprise »), rest (minute de repos), done (fin de l'assaut)
 // halt : arrêt de l'arbitre en cours, du « stop » au « allez ». Si les arrêts sont décomptés, le chrono est figé.
 const st = { phase: 'ready', round: 1, running: false, halt: false, remaining: cfg.roundSec, deadline: 0,
-  called: new Set(), extra: 0, bonus: 0, prolonged: false, relayUntil: null };
+  called: new Set(), extra: 0, bonus: 0, prolonged: false, prolongOffer: 0, relayUntil: null };
 // Journal de l'assaut : arrêts pendant les reprises (ceux du repos ne comptent pas) et sanctions annoncées
 let bout = newBout();
 const undoStack = []; // états avant chaque commande, pour « Annuler »
@@ -330,6 +338,8 @@ const isExtra = (n = st.round) => n > cfg.rounds;
 const roundDur = (n = st.round) => isExtra(n) ? cfg.extraSec : cfg.roundSec;
 const curMax = () => st.phase === 'rest' ? cfg.restSec : roundDur() + st.bonus;
 const elapsed = () => curMax() - st.remaining;
+const inPlay = () => st.phase === 'round' || st.phase === 'overtime';
+const overtime = () => st.phase === 'overtime' ? Math.max(0, -st.remaining) : 0;
 function openStop() {
   bout.stops.push({ round: st.round, at: elapsed(), t0: Date.now(), dur: null });
 }
@@ -353,11 +363,11 @@ function pauseClock() { tick(); st.running = false; }
 function allez() {
   if (st.phase === 'ready') {
     if (st.round === 1) { bout = newBout(); bout.start = Date.now(); bout.cfg = { ...cfg }; }
-    bout.rounds[st.round] = { start: Date.now(), end: null, prolonged: false };
-    Object.assign(st, { phase: 'round', halt: false, bonus: 0, prolonged: false, called: new Set(), relayUntil: null });
+    bout.rounds[st.round] = { start: Date.now(), end: null, prolonged: false, over: 0 };
+    Object.assign(st, { phase: 'round', halt: false, bonus: 0, prolonged: false, prolongOffer: 0, called: new Set(), relayUntil: null });
     st.remaining = roundDur(); startClock(); beep(1200, 0.2);
-  } else if ((st.phase === 'round' || st.phase === 'rest') && st.halt) {
-    if (st.phase === 'round') checkProlongation(closeStop());
+  } else if ((inPlay() || st.phase === 'rest') && st.halt) {
+    if (inPlay()) checkProlongation(closeStop());
     st.halt = false;
     if (!st.running) startClock();
     beep(1200, 0.2);
@@ -365,39 +375,53 @@ function allez() {
   render(); return true;
 }
 // Un arrêt de plus de 30 s prolonge la reprise de 30 s, une fois par reprise (I 2.2). Seulement quand les arrêts
-// ne sont pas décomptés : s'ils le sont, le chrono était déjà figé pendant l'arrêt.
+// ne sont pas décomptés : s'ils le sont, le chrono était déjà figé pendant l'arrêt. Proposée par défaut : l'arbitre décide.
 function checkProlongation(s) {
-  if (!s || cfg.countStops || !cfg.prolong || cfg.mode === 'relais' || st.prolonged || s.dur <= 30) return;
-  st.prolonged = true; st.bonus = 30; st.deadline += 30000; st.remaining += 30;
-  bout.rounds[st.round].prolonged = true; s.prolongation = true;
+  if (!s || cfg.countStops || cfg.prolong === 'off' || cfg.mode === 'relais' || st.prolonged || s.dur <= 30) return;
+  if (cfg.prolong === 'auto') prolong();
+  else { st.prolongOffer = Date.now() + 15000; showHeard('⏱ Arrêt de plus de 30 s : prolonger la reprise ?'); }
+}
+function prolong() {
+  if (!inPlay() || st.prolonged) return false;
+  if (st.running) tick();
+  st.prolonged = true; st.prolongOffer = 0; st.bonus = 30; st.deadline += 30000; st.remaining += 30;
+  if (st.phase === 'overtime' && st.remaining > 0) st.phase = 'round';
+  bout.rounds[st.round].prolonged = true;
+  const s = bout.stops[bout.stops.length - 1];
+  if (s) s.prolongation = true;
   say('Prolongation de trente secondes'); showHeard('⏱ Prolongation +30 s');
+  render(); return true;
 }
 function stop() {
-  if (st.phase === 'roundEnd') return repos(); // le « stop » qui suit « temps » lance la minute de repos (I 3.2.1)
-  if ((st.phase === 'round' || st.phase === 'rest') && !st.halt) {
+  if ((inPlay() || st.phase === 'rest') && !st.halt) {
     st.halt = true;
     if (st.phase === 'rest' || cfg.countStops) pauseClock();
-    if (st.phase === 'round') openStop();
+    if (inPlay()) openStop();
     beep(400, 0.3); render(); return true;
   }
   return false;
 }
-function repos() {
-  if (st.phase !== 'round' && st.phase !== 'roundEnd') return false;
-  closeRound();
+// Fin de la reprise, décidée par l'arbitre : « Stop, fin de la reprise », bouton, ou « REPOS ».
+// Possible à tout moment de la reprise, y compris s'il reste quelques dixièmes (« stop » prime sur « temps », I 3.2.1).
+function endReprise() {
+  if (!inPlay()) return false;
+  if (st.running) tick();
+  const r = bout.rounds[st.round];
+  if (r) r.over = overtime();
+  st.running = false; closeRound();
   if (st.round >= totalRounds()) { finishBout(); return true; }
   startRest(); beep(700, 0.15);
   return true;
 }
 function startRest() {
-  Object.assign(st, { phase: 'rest', running: false, halt: false, called: new Set() });
+  Object.assign(st, { phase: 'rest', running: false, halt: false, prolongOffer: 0, called: new Set() });
   st.remaining = cfg.restSec; startClock(); render();
 }
-// Fin du temps de reprise : gong + « temps », puis on attend le « stop » de l'arbitre (« Stop, fin de la reprise »)
-function endRound() {
-  closeRound();
-  st.running = false; st.remaining = 0; st.phase = 'roundEnd'; temps();
-  if (cfg.autoRest) setTimeout(() => { if (st.phase === 'roundEnd') command('REPOS', repos); }, 4000);
+// Fin du temps de reprise : gong + « temps ». La reprise continue (temps dépassé, compté) jusqu'à la décision
+// de l'arbitre ; « Temps » est répété toutes les 5 s pour qu'il ne puisse pas le manquer.
+function timeUp() {
+  st.phase = 'overtime'; temps();
+  if (cfg.autoRest) setTimeout(() => { if (st.phase === 'overtime') command('Fin de reprise', endReprise); }, 4000);
   render();
 }
 function finishBout() {
@@ -425,7 +449,7 @@ function endRest() {
 }
 function reset() {
   Object.assign(st, { phase: 'ready', round: 1, running: false, halt: false, called: new Set(),
-    extra: 0, bonus: 0, prolonged: false, relayUntil: null });
+    extra: 0, bonus: 0, prolonged: false, prolongOffer: 0, relayUntil: null });
   st.remaining = roundDur();
   bout = newBout(); undoStack.length = 0;
   render();
@@ -433,10 +457,21 @@ function reset() {
 
 function tick() {
   if (!st.running) return;
-  st.remaining = Math.max(0, (st.deadline - performance.now()) / 1000);
+  st.remaining = (st.deadline - performance.now()) / 1000;
+  if (st.phase !== 'overtime') st.remaining = Math.max(0, st.remaining); // en temps dépassé, le compte devient négatif
   if (st.phase === 'rest') restCalls();
   if (st.phase === 'round' && cfg.mode === 'relais') relayCalls();
-  if (st.remaining <= 0) { st.phase === 'round' ? endRound() : endRest(); }
+  if (st.phase === 'overtime') overtimeCalls();
+  if (st.remaining <= 0 && st.phase === 'round') timeUp();
+  else if (st.remaining <= 0 && st.phase === 'rest') endRest();
+}
+// Temps dépassé : « Temps » répété toutes les 5 s, sauf pendant un arrêt
+function overtimeCalls() {
+  const k = Math.floor(overtime() / 5);
+  if (k >= 1 && !st.halt && !st.called.has('temps' + k)) {
+    st.called.add('temps' + k); beep(660, 0.25); say('Temps');
+    showHeard('🔊 Temps (+' + fmt(Math.floor(overtime())) + ')');
+  }
 }
 function restCalls() {
   for (const c of cfg.calls) {
@@ -466,35 +501,35 @@ function render() {
   $('roundLabel').textContent = cfg.mode === 'relais'
     ? (isExtra() ? 'Relais — reprise supplémentaire' : 'Relais — reprise unique')
     : isExtra() ? `Reprise supplémentaire ${st.round - cfg.rounds}` : `Reprise ${st.round} / ${cfg.rounds}`;
-  $('time').textContent = fmt(st.remaining);
+  $('time').textContent = st.phase === 'overtime' ? '+' + fmt(Math.floor(overtime())) : fmt(st.remaining);
   $('max').textContent = '/ ' + fmt(max);
   const rs = bout.stops.filter(x => x.round === st.round);
-  const open = st.halt && st.phase === 'round' ? rs[rs.length - 1] : null;
+  const open = st.halt && inPlay() ? rs[rs.length - 1] : null;
   let line = '';
   if (open) line = `Arrêt ${rs.length} · ${fmt(Math.floor((Date.now() - open.t0) / 1000))}` + (cfg.countStops ? '' : ' (non décompté)');
   else if (st.phase === 'round' && st.relayUntil && elapsed() < st.relayUntil) line = `🔁 Relais · ${fmt(st.relayUntil - elapsed())}`;
-  else if ((st.phase === 'round' || st.phase === 'roundEnd') && rs.length) {
+  else if (inPlay() && rs.length) {
     const tot = rs.reduce((a, x) => a + (x.dur ?? 0), 0);
     line = `${rs.length} arrêt${rs.length > 1 ? 's' : ''} · ${fmt(tot)}`;
   }
-  if (st.prolonged && (st.phase === 'round' || st.phase === 'roundEnd')) line += (line ? ' · ' : '') + 'prolongation +30 s';
+  if (st.prolonged && inPlay()) line += (line ? ' · ' : '') + 'prolongation +30 s';
   $('stops').textContent = line;
-  $('barFill').style.width = (st.phase === 'done' ? 100 : 100 * (1 - st.remaining / max)) + '%';
+  $('prolongBtn').hidden = !(st.prolongOffer > Date.now() && !st.prolonged && inPlay());
+  $('barFill').style.width = (st.phase === 'done' || st.phase === 'overtime' ? 100 : 100 * (1 - st.remaining / max)) + '%';
   const paused = st.halt;
-  document.body.className = (st.phase === 'rest' ? 'rest' : st.phase === 'round' ? 'round' : st.phase) + (paused ? ' paused' : '');
-  const labels = { ready: 'Prêt — en garde', round: 'Assaut', roundEnd: 'Temps — attente du stop', rest: 'Minute de repos', done: "Fin de l'assaut" };
+  document.body.className = ({ rest: 'rest', round: 'round', overtime: 'over' }[st.phase] || st.phase) + (paused ? ' paused' : '');
+  const labels = { ready: 'Prêt — en garde', round: 'Assaut', overtime: 'Temps dépassé', rest: 'Minute de repos', done: "Fin de l'assaut" };
   let label = paused ? (st.phase === 'rest' ? 'Repos arrêté' : 'Arrêt') : labels[st.phase];
   if (st.phase === 'ready' && Date.now() - lastEnGarde < 10000) label = 'En garde';
   $('phaseLabel').textContent = label;
 
   const b = $('mainBtn'); b.disabled = false; b.className = '';
   if (st.phase === 'ready' || paused) b.textContent = 'ALLEZ';
-  else if (st.phase === 'round' || st.phase === 'rest') { b.textContent = 'STOP'; b.className = 'stop'; }
-  else if (st.phase === 'roundEnd') { b.textContent = st.round >= totalRounds() ? 'STOP · FIN' : 'STOP · REPOS'; b.className = 'rest'; }
+  else if (inPlay() || st.phase === 'rest') { b.textContent = 'STOP'; b.className = 'stop'; }
   else if (st.extra < cfg.extraMax) b.textContent = 'REPRISE SUPPL.';
   else { b.textContent = 'Terminé'; b.disabled = true; }
-  $('skipBtn').textContent = st.phase === 'rest' ? 'Fin du repos' : 'Fin de la reprise';
-  $('skipBtn').disabled = !(st.phase === 'round' || st.phase === 'rest');
+  $('skipBtn').textContent = st.phase === 'rest' ? 'Fin du repos' : st.round >= totalRounds() ? "Fin de l'assaut" : 'Fin de la reprise';
+  $('skipBtn').disabled = !(inPlay() || st.phase === 'rest');
   const last = undoStack[undoStack.length - 1];
   $('undoBtn').disabled = !last;
   $('undoBtn').textContent = last ? '↶ Annuler ' + last.name : '↶ Annuler';
@@ -504,7 +539,7 @@ let lastSlowRender = 0;
 setInterval(tick, 100);
 (function loop(t) {
   if (st.running) render();
-  else if (t - lastSlowRender > 250 && (st.halt || st.phase === 'ready')) { lastSlowRender = t; render(); } // compteur d'arrêt, « en garde »
+  else if (t - lastSlowRender > 250 && (st.halt || st.phase === 'ready' || st.prolongOffer)) { lastSlowRender = t; render(); } // compteur d'arrêt, « en garde »
   requestAnimationFrame(loop);
 })(0);
 
@@ -529,12 +564,12 @@ function undo() {
 }
 const cmdAllez = () => command('ALLEZ', allez);
 const cmdStop = () => command('STOP', stop);
-const cmdRepos = () => command('REPOS', repos);
+const cmdRepos = () => command('REPOS', endReprise);
 
 function mainAction() {
   audio();
   if (st.phase === 'ready' || st.halt) cmdAllez();
-  else if (st.phase === 'round' || st.phase === 'rest' || st.phase === 'roundEnd') cmdStop();
+  else if (inPlay() || st.phase === 'rest') cmdStop();
   else if (st.phase === 'done') command('REPRISE SUPPL.', extraRound);
 }
 $('mainBtn').onclick = mainAction;
@@ -564,8 +599,9 @@ $('resetBtn').onclick = () => {
   b.classList.add('confirm'); b.textContent = 'Confirmer ?';
   resetArmed = setTimeout(() => { resetArmed = null; b.classList.remove('confirm'); b.textContent = 'Réinitialiser'; }, 3000);
 };
+$('prolongBtn').onclick = () => command('PROLONGATION', prolong);
 $('skipBtn').onclick = () => {
-  if (st.phase === 'round') command('Fin de reprise', endRound);
+  if (inPlay()) command('Fin de reprise', endReprise);
   else if (st.phase === 'rest') command('Fin du repos', endRest);
 };
 $('announceBtn').onclick = () => { audio(); say(buildSentence(cfg)); showHeard('📣 ' + buildSentence(cfg)); };
@@ -614,7 +650,7 @@ function computeStats(b) {
   const total = stops.reduce((a, x) => a + x.d, 0);
   const rounds = Object.entries(b.rounds).map(([n, r]) => {
     const rs = stops.filter(x => x.round === +n);
-    return { n: +n, stops: rs.length, stopped: rs.reduce((a, x) => a + x.d, 0), real: ((r.end || now) - r.start) / 1000, prolonged: r.prolonged };
+    return { n: +n, stops: rs.length, stopped: rs.reduce((a, x) => a + x.d, 0), real: ((r.end || now) - r.start) / 1000, prolonged: r.prolonged, over: r.over || 0 };
   });
   const events = b.events || [];
   // sanctions par tireur ; les points vont à l'adversaire (pénalité 1, avertissement et carton 2)
@@ -642,7 +678,7 @@ function statsText(b, k) {
   lines.push(`Arrêts : ${k.n} — temps d'arrêt total ${mmss(k.total)} (moyen ${mmss(k.avg)}, plus long ${mmss(k.max)})`);
   if (k.prolongations) lines.push(`Prolongations de 30 s : ${k.prolongations}`);
   lines.push(`Durée réelle de l'assaut : ${mmss(k.bout)}`);
-  for (const r of k.rounds) lines.push(`Reprise ${roundName(r.n, b)} : ${r.stops} arrêt(s), ${mmss(r.stopped)} d'arrêt, durée réelle ${mmss(r.real)}`);
+  for (const r of k.rounds) lines.push(`Reprise ${roundName(r.n, b)} : ${r.stops} arrêt(s), ${mmss(r.stopped)} d'arrêt, durée réelle ${mmss(r.real)}${r.over >= 1 ? `, temps dépassé ${mmss(r.over)}` : ''}`);
   k.stops.forEach((x, i) => {
     const motifs = k.events.filter(e => e.stop === i).map(eventLabel).join(', ');
     lines.push(`  #${i + 1} reprise ${roundName(x.round, b)} à ${mmss(x.at)} : ${mmss(x.d)}${motifs ? ' — ' + motifs : ''}`);
@@ -675,7 +711,7 @@ function showStats() {
       </div>
       <h3>Par reprise</h3>
       <table><tr><th>Reprise</th><th>Arrêts</th><th>Temps arrêté</th><th>Durée réelle</th></tr>
-        ${k.rounds.map(r => `<tr><td>${roundName(r.n, b)}${r.prolonged ? ' +30 s' : ''}</td><td>${r.stops}</td><td>${mmss(r.stopped)}</td><td>${mmss(r.real)}</td></tr>`).join('')}
+        ${k.rounds.map(r => `<tr><td>${roundName(r.n, b)}${r.prolonged ? ' +30 s' : ''}${r.over >= 1 ? ` <small>(dépassé +${mmss(r.over)})</small>` : ''}</td><td>${r.stops}</td><td>${mmss(r.stopped)}</td><td>${mmss(r.real)}</td></tr>`).join('')}
       </table>
       <h3>Détail des arrêts</h3>
       ${k.n ? `<table><tr><th>#</th><th>Reprise</th><th>Chrono à</th><th>Durée</th><th>Motif</th></tr>
@@ -729,7 +765,7 @@ function fillSettings(c) {
   $('sMode').value = c.mode; $('sPreset').value = c.preset || 'custom';
   $('sRounds').value = c.rounds; $('sRound').value = fmt(c.mode === 'relais' ? 90 : c.roundSec); $('sRest').value = fmt(c.restSec);
   $('sExtra').value = c.extraMax; $('sRelayBase').value = c.relayBase; $('sRelayCount').value = c.relayCount;
-  $('sCount').value = c.countStops ? '1' : '0'; $('sProlong').value = c.prolong ? '1' : '0';
+  $('sCount').value = c.countStops ? '1' : '0'; $('sProlong').value = c.prolong;
   $('sEnGarde').value = c.requireEnGarde ? '1' : '0'; $('sAutoRest').value = c.autoRest ? '1' : '0';
   $('sCalls').value = c.calls.join(','); $('sColor1').value = c.colors[0] || ''; $('sColor2').value = c.colors[1] || '';
   $('sReady').value = c.answerReady ? '1' : '0';
@@ -742,7 +778,7 @@ function readSettings() {
     restSec: parseMmSs($('sRest').value) || cfg.restSec,
     extraMax: +$('sExtra').value,
     relayBase: +$('sRelayBase').value, relayCount: +$('sRelayCount').value,
-    countStops: yes('sCount'), prolong: yes('sProlong'), requireEnGarde: yes('sEnGarde'), autoRest: yes('sAutoRest'),
+    countStops: yes('sCount'), prolong: $('sProlong').value, requireEnGarde: yes('sEnGarde'), autoRest: yes('sAutoRest'),
     calls: $('sCalls').value.split(/[,;\s]+/).map(Number).filter(n => n > 0).sort((a, b) => b - a),
     colors: [$('sColor1').value.trim().toLowerCase(), $('sColor2').value.trim().toLowerCase()],
     answerReady: yes('sReady'),
@@ -782,12 +818,21 @@ function tryCommand(text) {
   if (!r) return false;
   if (r.enGarde) lastEnGarde = Date.now();
   if (!r.cmd) { showHeard('🎙 EN GARDE'); render(); return 'engarde'; }
+  // « Stop, fin de la reprise / de l'assaut » : l'arbitre termine la reprise
+  if (r.end) {
+    const name = r.end === 'assaut' ? "FIN DE L'ASSAUT" : 'FIN DE REPRISE';
+    if (command(name, endReprise)) showHeard('🎙 ' + name + ' (« ' + text.trim() + ' »)');
+    else showHeard(`🎙 ${name} entendu — sans effet : ${$('phaseLabel').textContent}`);
+    return true;
+  }
   const cmd = COMMANDS.find(c => c.name === r.cmd);
   // « allez » est toujours précédé de « en garde » (I 4.2.6.1) : filtre contre le public et les aires voisines
   if (cmd.name === 'ALLEZ' && cfg.requireEnGarde && Date.now() - lastEnGarde > 10000) {
     showHeard('🎙 ALLEZ ignoré : pas de « en garde » juste avant'); return true;
   }
-  cmd.fn(); showHeard('🎙 ' + cmd.name + ' (« ' + text.trim() + ' »)');
+  // aucun commandement ignoré sans le dire
+  if (cmd.fn()) showHeard('🎙 ' + cmd.name + ' (« ' + text.trim() + ' »)');
+  else showHeard(`🎙 ${cmd.name} entendu — sans effet : ${$('phaseLabel').textContent}`);
   return true;
 }
 function tryMotif(text) {

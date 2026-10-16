@@ -29,9 +29,9 @@ test('« Fin de la reprise » et « Fin du repos » passent à l\'étape suivant
   const skip = app.$('#skipBtn');
   await expect(skip).toBeDisabled();
   await app.main.click();
-  await skip.click();
-  await expect(app.phase).toHaveText('Temps — attente du stop');
-  await app.main.click();                                  // STOP · REPOS
+  await expect(skip).toHaveText('Fin de la reprise');
+  await skip.click();                                      // décision de l'arbitre, à tout moment
+  await expect(app.phase).toHaveText('Minute de repos');
   await expect(skip).toHaveText('Fin du repos');
   await skip.click();
   await expect(app.round).toHaveText('Reprise 2 / 3');

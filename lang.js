@@ -99,20 +99,27 @@ const EN_GARDE = /^[ae]ngu?ard?e$/; // « en garde », « an garde », « en gar
 // Découpe un commandement de l'arbitre : « en garde » éventuel, puis une commande courte, avec la fin
 // protocolaire « … fin de la reprise / fin de l'assaut » ignorée (I 3.2.2)
 // learned : variantes apprises par commande, ex. { ALLEZ: ['alo'] }
+// Mots de la fin protocolaire : « fin de la reprise », « fin de l'assaut », « … et de l'assaut » (après phonétique)
+const END_WORDS = new Set(['fin', 'de', 'd', 'la', 'l', 'reprise', 'asaut', 'e']);
+// Découpe un commandement de l'arbitre : « en garde » éventuel, puis une commande courte, puis la fin
+// protocolaire éventuelle. end vaut 'reprise' ou 'assaut' quand l'arbitre termine la reprise (I 3.2.2).
 function parseCommand(text, learned = {}) {
   let ws = phonWords(text);
-  const tail = ws.join(' ').match(/\s*\bfin d?e?( la| l)? ?(reprise|asaut)$/);
-  if (tail) ws = ws.join(' ').slice(0, tail.index).split(' ').filter(Boolean);
+  let end = null;
+  const f = ws.findIndex((w, i) => w === 'fin' && ws.slice(i).some(x => x === 'reprise' || x === 'asaut'));
+  if (f >= 0 && ws.slice(f).every(w => END_WORDS.has(w))) {
+    end = ws.slice(f).includes('asaut') ? 'assaut' : 'reprise';
+    ws = ws.slice(0, f);
+  }
   let enGarde = false;
   if (ws.length >= 2 && EN_GARDE.test(ws[0] + ws[1])) { enGarde = true; ws = ws.slice(2); }
   else if (ws.length >= 1 && EN_GARDE.test(ws[0])) { enGarde = true; ws = ws.slice(1); }
-  if (!ws.length) return enGarde ? { enGarde, cmd: null } : null;
+  if (!ws.length) return end ? { enGarde, cmd: 'STOP', end } : enGarde ? { enGarde, cmd: null, end } : null;
   if (ws.length > 3) return null; // une commande est un mot court, pas une phrase
   const p = (ws.every(w => w === ws[0]) ? [ws[0]] : ws).join('');
   const cmd = COMMAND_PATTERNS.find(c => c.re.test(p) || (learned[c.name] || []).includes(p));
-  return cmd ? { enGarde, cmd: cmd.name } : null;
+  return cmd ? { enGarde, cmd: cmd.name, end } : null;
 }
-// Renvoie true si une commande a été traitée, 'engarde' si seul « en garde » a été entendu
 // « Chrono, prêt ? » (contrôle des officiels avant chaque reprise)
 const isReadyCheck = text => /\bchrono\w*\b.*\bpret\b/.test(normalize(text).replace(/[^a-z0-9 ]/g, ' '));
 // Motif d'un arrêt annoncé par l'arbitre (I 4.2.8 à 4.2.13), avec la couleur du tireur concerné
