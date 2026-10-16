@@ -1,7 +1,7 @@
 // Tests unitaires de lang.js : node --test
-const { test } = require('node:test');
-const assert = require('node:assert/strict');
-const L = require('../../lang.js');
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import * as L from '../../js/lang.js';
 
 test('fmt affiche minutes:secondes, arrondi à la seconde supérieure', () => {
   assert.equal(L.fmt(90), '1:30');

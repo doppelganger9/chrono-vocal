@@ -4,11 +4,21 @@ const path = require('node:path');
 const zlib = require('node:zlib');
 const { chromium } = require('@playwright/test');
 
-/** Fichiers servis par l'app : la page, et les scripts et styles qu'elle référence */
+/** Fichiers servis par l'app : la page, les scripts et styles qu'elle référence, et les modules qu'ils importent */
 function servedFiles(dir) {
   const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
-  const refs = [...html.matchAll(/<(?:script[^>]*src|link[^>]*href)="([^"]+\.(?:js|css))"/g)].map(m => m[1]);
-  return ['index.html', ...refs].filter(f => fs.existsSync(path.join(dir, f)));
+  const queue = [...html.matchAll(/<(?:script[^>]*src|link[^>]*href)="([^"]+\.(?:js|css))"/g)].map(m => m[1]);
+  const seen = new Set();
+  while (queue.length) {
+    const f = path.normalize(queue.shift());
+    if (seen.has(f) || !fs.existsSync(path.join(dir, f))) continue;
+    seen.add(f);
+    if (f.endsWith('.js')) {
+      const src = fs.readFileSync(path.join(dir, f), 'utf8');
+      for (const m of src.matchAll(/\bfrom\s+['"](\.{1,2}\/[^'"]+)['"]/g)) queue.push(path.join(path.dirname(f), m[1]));
+    }
+  }
+  return ['index.html', ...seen];
 }
 
 async function measure(dir, url, runs = 5) {

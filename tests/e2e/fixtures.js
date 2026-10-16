@@ -10,7 +10,9 @@ const COVERAGE_DIR = process.env.COVERAGE_E2E_DIR;
 
 // Exécuté dans la page avant son chargement
 function installFakes() {
-  // Synthèse vocale : on enregistre ce que l'app dit
+  // l'arbitre parle juste après les annonces : pas de délai anti-écho (js/speech.js)
+  window.__chronoEnv = { echoGuardMs: 0 };
+  // Synthèse vocale : on enregistre ce que l'app dit, et l'annonce se termine aussitôt
   window.__spoken = [];
   window.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
   Object.defineProperty(window, 'speechSynthesis', {
@@ -18,7 +20,7 @@ function installFakes() {
     value: {
       speaking: false, pending: false, onvoiceschanged: null,
       getVoices: () => [], cancel() {}, resume() {},
-      speak(u) { window.__spoken.push(u.text); setTimeout(() => u.onend && u.onend(), 0); },
+      speak(u) { window.__spoken.push(u.text); u.onend?.(); },
     },
   });
   // Sons (bips, gong) : moteur audio muet, on enregistre la fréquence de chaque son joué
@@ -70,8 +72,7 @@ class App {
   /** L'arbitre parle (résultat final de la reconnaissance ; plusieurs alternatives possibles) */
   async hear(text, { final = true } = {}) {
     const alts = Array.isArray(text) ? text : [text];
-    // l'app ignore le micro pendant ses propres annonces : ici l'arbitre parle après
-    await this.page.evaluate(([a, f]) => { speakingUntil = 0; window.__hear(a, f); }, [alts, final]);
+    await this.page.evaluate(([a, f]) => window.__hear(a, f), [alts, final]);
   }
   async spoken() { return this.page.evaluate(() => window.__spoken.slice()); }
   async clearSpoken() { await this.page.evaluate(() => { window.__spoken.length = 0; }); }

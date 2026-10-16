@@ -1,0 +1,59 @@
+// Écrans clés photographiés pour les PR. Le même scénario est joué sur la version « avant » et sur la branche :
+// une étape absente de l'ancienne version échoue simplement, et sa capture manque.
+const path = require('node:path');
+const { test } = require('../e2e/fixtures');
+
+const dir = process.env.SHOT_DIR || 'screenshots/apres';
+// animations figées (clignotements, transitions) : deux versions identiques donnent des captures identiques
+const shot = (app, name, testInfo) => app.page.screenshot({ path: path.join(dir, `${testInfo.project.name}--${name}.png`), animations: 'disabled' });
+
+test('prêt', async ({ app }, t) => { await shot(app, '1-pret', t); });
+
+test('assaut', async ({ app }, t) => {
+  await app.hear('Allez');
+  await app.wait(12_000);
+  await shot(app, '2-assaut', t);
+});
+
+test('arrêt', async ({ app }, t) => {
+  await app.hear('Allez');
+  await app.wait(8000);
+  await app.hear('Stop');
+  await app.wait(4000);
+  await shot(app, '3-arret', t);
+});
+
+test('fin du temps de reprise', async ({ app }, t) => {
+  await app.configure({ sRound: '0:05' });
+  await app.hear('Allez');
+  await app.wait(9000);
+  await shot(app, '4-fin-du-temps', t);
+});
+
+test('minute de repos', async ({ app }, t) => {
+  await app.configure({ sRound: '0:05' });
+  await app.hear('Allez');
+  await app.wait(5500);
+  await app.$('#skipBtn').click();
+  await app.wait(1500);
+  if (await app.phase.textContent() !== 'Minute de repos') await app.main.click(); // anciennes versions : STOP · REPOS
+  await app.wait(22_000);
+  await shot(app, '5-repos', t);
+});
+
+test('statistiques', async ({ app }, t) => {
+  await app.configure({ sRounds: '1', sRound: '0:20' });
+  await app.hear('Allez');
+  await app.wait(5000);
+  await app.hear('Stop');
+  await app.hear("Pénalité pour sortie d'aire, tireur bleu");
+  await app.wait(6000);
+  await app.hear('Allez');
+  await app.$('#statsBtn').click();
+  await shot(app, '6-statistiques', t);
+});
+
+test('réglages', async ({ app }, t) => {
+  await app.$('#settingsBtn').click();
+  await shot(app, '7-reglages', t);
+});

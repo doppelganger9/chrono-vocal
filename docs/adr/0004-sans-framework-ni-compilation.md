@@ -9,6 +9,6 @@ L'app est écrite en **HTML, CSS et JavaScript natifs**, sans framework (React, 
 ## Conséquences
 
 - **Pas d'étape de build** : on modifie un fichier, on recharge la page. Les seules dépendances sont celles des tests (Playwright).
-- Le code a commencé dans un seul `index.html`. La logique pure est sortie dans `lang.js` pour être testée seule. Le découpage complet en fichiers (CSS à part, modules ES natifs, chrono testable seul) est prévu dans [#1](https://github.com/doppelganger9/chrono-vocal/issues/1). Il reste dans ce cadre sans compilation.
+- Le code a commencé dans un seul `index.html`. Il est maintenant découpé en **modules ES natifs** (`js/`) et une feuille de style (`css/`), toujours sans compilation ([#1](https://github.com/doppelganger9/chrono-vocal/issues/1)). La logique (chrono, langue, statistiques, réglages) est pure et testée seule.
 - **Le typage passe par JSDoc**, vérifié par TypeScript sans rien compiler ([#2](https://github.com/doppelganger9/chrono-vocal/issues/2)), plutôt que par du TypeScript qu'il faudrait transpiler.
 - À reconsidérer si l'interface devient vraiment complexe (plusieurs écrans riches, état partagé entre appareils).

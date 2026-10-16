@@ -1,9 +1,9 @@
 .DS_Store
-node_modules/
-test-results/
-playwright-report/
+/node_modules/
+/test-results/
+/playwright-report/
 .claude/launch.json
-reports/
-coverage/
-.stryker-tmp/
-screenshots/
+/reports/
+/coverage/
+/.stryker-tmp/
+/screenshots/

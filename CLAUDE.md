@@ -15,7 +15,8 @@ Chrono vocal pour la canne de combat : une page web pilotée par la voix de l'ar
 - **Une branche et une PR par issue.** Ne jamais pousser directement sur `main` : GitHub Pages met en ligne aussitôt. Fusionner soi-même les PR **sans changement visible** quand les tests passent ; laisser David fusionner celles **qui se voient** (et empiler la suite dessus en attendant).
 - **Tests d'abord**, à partir des critères d'acceptation de l'issue, puis le code. Chaque PR donne la couverture, le score de mutation et les statistiques IA (CONTRIBUTING § 3 à 5).
 - **L'arbitre décide, le chrono suit** ([ADR 0006](docs/adr/0006-l-arbitre-decide.md)) : aucune transition imposée, aucun commandement ignoré sans le signaler.
-- **Tests silencieux** : la voix et les sons sont toujours remplacés par les doublures de `tests/e2e/fixtures.js`. Pour essayer l'app dans le navigateur intégré, utiliser `npm run serve` (une page ouverte directement depuis le disque ne charge pas les scripts voisins), et neutraliser `say`, `beep` et `gong`.
+- **Architecture** : la logique va dans les modules purs de `js/` (testés en unitaire, avec mutation) ; `js/main.js` ne fait qu'assembler et traduire les événements du chrono. Pas de variable globale : les tests de bout en bout passent par les API du navigateur simulées et par `window.__chronoEnv`.
+- **Tests silencieux** : la voix et les sons sont toujours remplacés par les doublures de `tests/e2e/fixtures.js`. Pour essayer l'app dans le navigateur intégré, utiliser `npm run serve` (les modules ne se chargent pas depuis un fichier ouvert directement), et couper le son de l'onglet.
 - **Rien de personnel dans le dépôt**, qui est public : adresse GitHub masquée pour les commits, pas de chemin local ni d'e-mail.
 
 ## Commandes
