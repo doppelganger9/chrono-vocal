@@ -73,6 +73,7 @@ Ces chiffres sont **mesurés, pas estimés**, sauf le temps actif, qui est une a
 ## 6. Conventions
 
 - **Branches** : `issue-<numéro>-<sujet-court>`, par exemple `issue-4-portrait-paysage`.
+- **`main` est protégée** : on n'y pousse pas directement, et une PR ne peut être fusionnée que si les tests (`tests` sur GitHub Actions) passent, y compris pour l'administrateur. Les PR sans changement visible sont marquées pour une **fusion automatique** dès que les tests passent. La branche est supprimée après la fusion.
 - **Commits** en français, terminés par la ligne `Co-Authored-By` de Claude. Adresse GitHub masquée (`…@users.noreply.github.com`) : rien de personnel dans le dépôt, qui est public.
 - **Vocabulaire** du [GLOSSARY.md](GLOSSARY.md) dans le code, l'interface et la documentation : *reprise*, *minute de repos*, *arrêt*…
 - **Règles métier** : le [corpus fonctionnel](docs/corpus-fonctionnel.md) fait foi, et **l'arbitre décide, le chrono suit** ([ADR 0006](docs/adr/0006-l-arbitre-decide.md)).
