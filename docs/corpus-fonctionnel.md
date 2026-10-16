@@ -8,7 +8,7 @@ Le vocabulaire est défini dans [GLOSSARY.md](../GLOSSARY.md).
 
 ## 1. Règles du chronométrage
 
-> **Principe directeur : l'arbitre dirige, le chronomètre suit.** Le chronométreur mesure et annonce, l'arbitre décide (I 1.1.2). « Temps » informe l'arbitre, il ne termine pas la reprise : seul l'arbitre le fait (« Stop, fin de la reprise »). Voir [backlog](backlog.md) R1.
+> **Principe directeur : l'arbitre dirige, le chronomètre suit.** Le chronométreur mesure et annonce, l'arbitre décide (I 1.1.2). « Temps » informe l'arbitre, il ne termine pas la reprise : seul l'arbitre le fait (« Stop, fin de la reprise »). Voir l'[ADR 0006](adr/0006-l-arbitre-decide.md).
 
 | # | Règle | Réf. |
 |---|---|---|
@@ -149,8 +149,8 @@ Tous les écarts relevés ont été corrigés.
 | 6 | Réponse « Prêt » à « Chrono, prêt ? » | ✅ Fait |
 | 7 | Motif des arrêts reconnu à la voix (observation, pénalité et son motif, demande, prononcé ou refus d'avertissement, cartons, disqualification, abandon, forfait), avec la couleur du tireur. Statistiques et points à l'adversaire par tireur. | ✅ Fait |
 | 8 | Chronomètre annexe pour les retards (C14) : annonces à 1, 2 et 3 minutes | ✅ Fait |
-| 9 | Mode relais (C13) : reprise unique = base × équipiers × 2, annonce « Relais » à chaque minute et fenêtre de 10 s | ✅ Fait, sauf la limite de 2 minutes par tireur ([backlog](backlog.md) R4) |
-| 10 | Plusieurs aires, chronomètre central (C12) | Plus tard : [backlog](backlog.md) R5 |
+| 9 | Mode relais (C13) : reprise unique = base × équipiers × 2, annonce « Relais » à chaque minute et fenêtre de 10 s | ✅ Fait, sauf la limite de 2 minutes par tireur ([#10](https://github.com/doppelganger9/chrono-vocal/issues/10)) |
+| 10 | Plusieurs aires, chronomètre central (C12) | Plus tard : [#11](https://github.com/doppelganger9/chrono-vocal/issues/11) |
 
 ### Hypothèses prises
 
