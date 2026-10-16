@@ -26,12 +26,12 @@
 
   header { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; gap: 8px; }
   .mic { display: flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--line);
-    color: var(--text); border-radius: 999px; padding: 8px 14px; font-size: 15px; }
+    color: var(--text); border-radius: 999px; padding: 8px 12px; font-size: 14px; white-space: nowrap; }
   .mic .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
   .mic.on .dot { background: var(--stop); animation: pulse 1.2s infinite; }
   @keyframes pulse { 50% { opacity: .3; } }
   .icon-btn { background: var(--panel); border: 1px solid var(--line); color: var(--text);
-    border-radius: 12px; padding: 8px 12px; font-size: 15px; }
+    border-radius: 12px; padding: 8px 9px; font-size: 15px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
   main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; min-height: 0; }
   #roundLabel { font-size: clamp(22px, 6vw, 40px); font-weight: 700; letter-spacing: .04em; }
@@ -64,6 +64,12 @@
 
   dialog { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 16px;
     width: min(520px, calc(100vw - 32px)); padding: 20px; max-height: 90vh; }
+  dialog { overflow: auto; }
+  #settings h3, #annexDlg h3 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin: 18px 0 4px; }
+  .field[hidden] { display: none; }
+  .note { color: var(--muted); font-size: 14px; line-height: 1.4; margin: 0 0 10px; }
+  .annex-time { font-size: 84px; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; margin: 10px 0; }
+  .annex-time.alert { color: var(--stop); }
   dialog::backdrop { background: rgba(0,0,0,.6); }
   dialog h2 { margin: 0 0 12px; font-size: 20px; }
   .field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
@@ -98,7 +104,8 @@
 <body class="ready">
   <header>
     <button id="micBtn" class="mic"><span class="dot"></span><span id="micText">Micro coupé</span></button>
-    <div style="display:flex; gap:8px">
+    <div style="display:flex; gap:6px">
+      <button id="annexBtn" class="icon-btn" title="Chronomètre annexe">⏱</button>
       <button id="statsBtn" class="icon-btn" title="Statistiques">📊</button>
       <button id="announceBtn" class="icon-btn" title="Annoncer l'assaut">📣</button>
       <button id="settingsBtn" class="icon-btn" title="Réglages">⚙︎</button>
@@ -106,7 +113,7 @@
   </header>
 
   <main>
-    <div id="roundLabel">Round 1 / 3</div>
+    <div id="roundLabel">Reprise 1 / 3</div>
     <div id="phaseLabel">Prêt</div>
     <div id="time">1:30</div>
     <div id="max">/ 1:30</div>
@@ -119,30 +126,73 @@
     <button id="mainBtn">ALLEZ</button>
     <button id="undoBtn" class="secondary" disabled>↶ Annuler</button>
     <button id="resetBtn" class="secondary">Réinitialiser</button>
-    <button id="skipBtn" class="secondary">Fin du round</button>
+    <button id="skipBtn" class="secondary">Fin de la reprise</button>
   </div>
 
   <dialog id="settings">
     <h2>Réglages de l'assaut</h2>
+    <h3>Format</h3>
     <div class="field">
-      <label for="sRounds">Nombre de rounds</label>
-      <select id="sRounds"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+      <label for="sMode">Forme</label>
+      <select id="sMode"><option value="assaut">Assaut</option><option value="relais">Relais par équipes</option></select>
     </div>
-    <div class="field">
-      <label for="sRound">Durée d'un round<small>min:sec</small></label>
+    <div class="field" data-mode="assaut">
+      <label for="sPreset">Préréglage<small>maximums des compétitions nationales</small></label>
+      <select id="sPreset"></select>
+    </div>
+    <div class="field" data-mode="assaut">
+      <label for="sRounds">Nombre de reprises</label>
+      <select id="sRounds"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+    </div>
+    <div class="field" data-mode="assaut">
+      <label for="sRound">Durée d'une reprise<small>min:sec</small></label>
       <input id="sRound" inputmode="numeric" placeholder="1:30">
     </div>
+    <div class="field" data-mode="relais">
+      <label for="sRelayBase">Durée de base<small>reprise unique = base × équipiers × 2</small></label>
+      <select id="sRelayBase"><option value="60">1:00</option><option value="90">1:30</option><option value="120">2:00</option></select>
+    </div>
+    <div class="field" data-mode="relais">
+      <label for="sRelayCount">Équipiers par équipe</label>
+      <select id="sRelayCount"><option>2</option><option>3</option><option>4</option><option>5</option></select>
+    </div>
     <div class="field">
-      <label for="sRest">Durée de la pause<small>min:sec</small></label>
+      <label for="sRest">Durée du repos<small>min:sec — 1:00 en compétition</small></label>
       <input id="sRest" inputmode="numeric" placeholder="1:00">
     </div>
     <div class="field">
-      <label for="sCalls">Annonces pendant la pause<small>secondes restantes, séparées par des virgules</small></label>
-      <input id="sCalls" placeholder="15,10,5">
+      <label for="sExtra">Reprises supplémentaires<small>en cas d'égalité, après une minute de repos</small></label>
+      <select id="sExtra"><option>0</option><option>1</option><option>2</option></select>
+    </div>
+    <h3>Règles</h3>
+    <div class="field">
+      <label for="sCount">Arrêts décomptés<small>oui : le chrono s'arrête à chaque « stop »</small></label>
+      <select id="sCount"><option value="1">Oui</option><option value="0">Non</option></select>
     </div>
     <div class="field">
-      <label for="sAutoRest">Pause automatique en fin de round<small>sinon : bouton ou « REPOS »</small></label>
+      <label for="sProlong">Prolongation de 30 s<small>après un arrêt de plus de 30 s, une fois par reprise (arrêts non décomptés)</small></label>
+      <select id="sProlong"><option value="1">Oui</option><option value="0">Non</option></select>
+    </div>
+    <div class="field">
+      <label for="sEnGarde">« En garde » obligatoire<small>un « allez » à la voix n'est accepté que juste après « en garde »</small></label>
+      <select id="sEnGarde"><option value="0">Non</option><option value="1">Oui</option></select>
+    </div>
+    <div class="field">
+      <label for="sAutoRest">Repos automatique après « temps »<small>sinon : « stop » de l'arbitre, bouton ou « REPOS »</small></label>
       <select id="sAutoRest"><option value="0">Non</option><option value="1">Oui</option></select>
+    </div>
+    <div class="field">
+      <label for="sCalls">Annonces pendant le repos<small>secondes restantes, séparées par des virgules</small></label>
+      <input id="sCalls" placeholder="30,15,5">
+    </div>
+    <h3>Tireurs et voix</h3>
+    <div class="field">
+      <label for="sColor1">Couleurs des tireurs<small>pour reconnaître le tireur sanctionné</small></label>
+      <span><input id="sColor1" style="width:62px" placeholder="rouge"> <input id="sColor2" style="width:62px" placeholder="bleu"></span>
+    </div>
+    <div class="field">
+      <label for="sReady">Répondre « Prêt »<small>à « Chrono, prêt ? »</small></label>
+      <select id="sReady"><option value="1">Oui</option><option value="0">Non</option></select>
     </div>
     <div class="learn">
       <h3>Mots entendus non reconnus</h3>
@@ -158,6 +208,17 @@
     </div>
   </dialog>
 
+  <dialog id="annexDlg">
+    <h2>Chronomètre annexe</h2>
+    <p class="note">Retard d'un tireur ou d'un second à l'appel de l'assaut : 1 pénalité dès le constat, puis 1 par minute de retard ; disqualification à la fin de la 3ème minute.</p>
+    <div id="annexTime" class="annex-time">0:00</div>
+    <div class="dlg-actions">
+      <button id="annexStart">Démarrer</button>
+      <button id="annexReset" class="secondary">Remettre à zéro</button>
+    </div>
+    <div class="dlg-actions"><button id="annexClose" class="secondary">Fermer</button></div>
+  </dialog>
+
   <dialog id="statsDlg">
     <h2 id="statsTitle">Statistiques</h2>
     <div id="statsBody"></div>
@@ -167,93 +228,35 @@
     </div>
   </dialog>
 
+<script src="lang.js"></script>
 <script>
 // ---------- Réglages ----------
-const DEFAULTS = { rounds: 3, roundSec: 90, restSec: 60, calls: [15, 10, 5], autoRest: false, learned: { STOP: [], ALLEZ: [], REPOS: [] } };
+const DEFAULTS = {
+  v: 3, mode: 'assaut', preset: 'custom', rounds: 3, roundSec: 90, restSec: 60, extraMax: 1, extraSec: 90,
+  relayBase: 90, relayCount: 3,
+  countStops: true, prolong: true, requireEnGarde: false, autoRest: false, calls: [30, 15, 5],
+  colors: ['rouge', 'bleu'], answerReady: true,
+  learned: { STOP: [], ALLEZ: [], REPOS: [] },
+};
 function loadSettings() {
-  try { const c = { ...DEFAULTS, ...JSON.parse(localStorage.getItem('chrono-canne') || '{}') }; c.learned = { ...DEFAULTS.learned, ...c.learned }; return c; }
-  catch { return { ...DEFAULTS }; }
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem('chrono-canne') || '{}') || {}; } catch {}
+  const c = { ...DEFAULTS, ...saved, learned: { ...DEFAULTS.learned, ...(saved.learned || {}) } };
+  if (!saved.v || saved.v < 2) { // réglages d'avant l'alignement sur le protocole officiel (annonces 30/15/5)
+    if (JSON.stringify(saved.calls) === '[15,10,5]') c.calls = [30, 15, 5];
+  }
+  if (!saved.v || saved.v < 3) { // couleurs officielles : rouge et bleu
+    if (JSON.stringify(saved.colors) === '["jaune","bleu"]') c.colors = ['rouge', 'bleu'];
+  }
+  c.v = 3;
+  c.rounds = Math.min(4, Math.max(1, c.rounds));
+  if (c.mode !== 'relais') c.extraSec = c.roundSec;
+  return c;
 }
 function saveSettings() {
   try { localStorage.setItem('chrono-canne', JSON.stringify(cfg)); } catch {}
 }
 let cfg = loadSettings();
-
-// ---------- Formatage ----------
-const fmt = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
-function parseMmSs(str) {
-  const m = String(str).trim().match(/^(\d+)(?:[:'h.,\s]+(\d{1,2}))?$/);
-  if (!m) return null;
-  return m[2] !== undefined ? +m[1] * 60 + +m[2] : (+m[1] >= 10 ? +m[1] : +m[1] * 60); // "2" = 2 min, "90" = 90 s
-}
-
-const NUM_WORDS = ['zéro','une','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize'];
-const TENS = { 20: 'vingt', 30: 'trente', 40: 'quarante', 50: 'cinquante' };
-function numFr(n, fem = true) {
-  if (n === 1) return fem ? 'une' : 'un';
-  if (n < NUM_WORDS.length) return NUM_WORDS[n];
-  if (TENS[n]) return TENS[n];
-  const t = Math.floor(n / 10) * 10, u = n % 10;
-  if (TENS[t]) return TENS[t] + (u === 1 ? ' et un' : '-' + NUM_WORDS[u]);
-  return String(n);
-}
-function durationFr(sec) {
-  const m = Math.floor(sec / 60), s = sec % 60;
-  if (m === 0) return numFr(s, true) + (s > 1 ? ' secondes' : ' seconde');
-  let out = numFr(m) + (m > 1 ? ' minutes' : ' minute');
-  if (s === 30 && m === 1) return 'une minute trente';
-  if (s) out += ' ' + numFr(s);
-  return out;
-}
-const de = w => /^[aeiouyh]/i.test(w) ? "d'" + w : 'de ' + w;
-function buildSentence(c = cfg) {
-  const r = c.rounds === 1 ? 'un round' : numFr(c.rounds, false) + ' rounds';
-  let s = `Pour un assaut en ${r} ${de(durationFr(c.roundSec))}`;
-  if (c.rounds > 1) s += `, avec ${durationFr(c.restSec)} de pause`;
-  return s + '.';
-}
-
-// ---------- Analyse de la phrase de l'arbitre ----------
-function normalize(t) {
-  t = t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’'\-]/g, ' ');
-  const words = { 'quarante cinq': 45, 'trente cinq': 35, 'vingt cinq': 25, 'cinquante': 50, 'quarante': 40, 'trente': 30,
-    'vingt': 20, 'quinze': 15, 'dix': 10, 'neuf': 9, 'huit': 8, 'sept': 7, 'six': 6, 'cinq': 5, 'quatre': 4,
-    'trois': 3, 'deux': 2, 'une': 1, 'un': 1 };
-  for (const [w, n] of Object.entries(words)) t = t.replace(new RegExp('\\b' + w + '\\b', 'g'), n);
-  return t.replace(/\s+/g, ' ');
-}
-function parseReferee(raw) {
-  const t = normalize(raw);
-  const out = {};
-  const r = t.match(/(\d+)\s*(?:rounds?|reprises?|manches?)\b/);
-  if (r && +r[1] >= 1 && +r[1] <= 5) out.rounds = +r[1];
-
-  const durRe = /(\d+)\s*(?:minutes?|mins?|mn|'|:)(?:\s*(?:et\s+)?(demie?|\d{2})(?!\d))?(?:\s*(?:secondes?|sec|s)\b)?|(\d+)\s*(?:secondes?|sec|s)\b/g;
-  const durs = [];
-  let m;
-  while ((m = durRe.exec(t))) {
-    let sec;
-    if (m[3]) sec = +m[3];
-    else sec = +m[1] * 60 + (m[2] ? (m[2].startsWith('dem') ? 30 : +m[2]) : 0);
-    if (sec > 0 && sec <= 600) durs.push({ sec, pos: m.index, end: m.index + m[0].length });
-  }
-  const pm = t.match(/\b(pause|repos|recuperation|recup)\b/);
-  if (pm && durs.length) {
-    const p = pm.index, pEnd = p + pm[0].length;
-    // « pause de 1 minute » ou « 1 minute de pause », sinon la durée la plus proche du mot
-    const gapAfter = d => d.pos >= pEnd ? t.slice(pEnd, d.pos) : null;
-    const gapBefore = d => d.end <= p ? t.slice(d.end, p) : null;
-    let best = durs.find(d => /^\s*(de|d)?\s*$/.test(gapAfter(d) ?? 'x')) ||
-               durs.find(d => /^\s*(de|d)?\s*$/.test(gapBefore(d) ?? 'x'));
-    if (!best && durs.length > 1) {
-      const dist = d => Math.min(Math.abs(d.pos - pEnd), Math.abs(d.end - p));
-      best = durs.reduce((a, d) => dist(d) < dist(a) ? d : a);
-    }
-    if (best) { out.restSec = best.sec; durs.splice(durs.indexOf(best), 1); }
-  }
-  if (durs.length) out.roundSec = durs[0].sec;
-  return out;
-}
 
 // ---------- Voix ----------
 const synth = window.speechSynthesis;
@@ -295,24 +298,48 @@ function beep(freq = 880, dur = 0.15, when = 0, vol = 0.5) {
   g.gain.exponentialRampToValueAtTime(0.001, a.currentTime + when + dur);
   o.connect(g).connect(a.destination); o.start(a.currentTime + when); o.stop(a.currentTime + when + dur);
 }
-const gong = () => { beep(660, 0.6, 0, 0.6); beep(660, 0.6, 0.7, 0.6); beep(660, 1.2, 1.4, 0.6); };
+// Gong : un coup de cloche (fondamentale + partiels inharmoniques, longue décroissance)
+function gong() {
+  const a = audio(), t = a.currentTime;
+  [[1, 0.6, 3], [2.76, 0.25, 1.8], [5.4, 0.12, 1], [8.93, 0.06, 0.6]].forEach(([ratio, vol, decay]) => {
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = 'sine'; o.frequency.value = 200 * ratio;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+    o.connect(g).connect(a.destination); o.start(t); o.stop(t + decay);
+  });
+}
+// Fin de reprise ou de repos : gong, puis « Temps » pendant qu'il résonne
+function temps() { gong(); setTimeout(() => say('Temps'), 600); }
 
 // ---------- Chrono ----------
-// phases : ready (avant un round), round, roundEnd (attente REPOS), rest, done
-const st = { phase: 'ready', round: 1, running: false, remaining: cfg.roundSec, deadline: 0, called: new Set() };
-// Journal de l'assaut : arrêts de l'arbitre pendant les rounds (les arrêts pendant la pause ne comptent pas)
+// Protocole du chronométreur (cahier n°10, I 3.2.1) — voir docs/corpus-fonctionnel.md
+// phases : ready (avant une reprise), round (reprise), roundEnd (« temps » annoncé, attente du « stop »),
+//          rest (minute de repos), done (fin de l'assaut)
+// halt : arrêt de l'arbitre en cours, du « stop » au « allez ». Si les arrêts sont décomptés, le chrono est figé.
+const st = { phase: 'ready', round: 1, running: false, halt: false, remaining: cfg.roundSec, deadline: 0,
+  called: new Set(), extra: 0, bonus: 0, prolonged: false, relayUntil: null };
+// Journal de l'assaut : arrêts pendant les reprises (ceux du repos ne comptent pas) et sanctions annoncées
 let bout = newBout();
 const undoStack = []; // états avant chaque commande, pour « Annuler »
-function newBout() { return { start: null, end: null, rounds: {}, stops: [], cfg: null }; }
+let lastEnGarde = 0;
+function newBout() { return { start: null, end: null, rounds: {}, stops: [], events: [], cfg: null }; }
+const totalRounds = () => cfg.rounds + st.extra;
+const isExtra = (n = st.round) => n > cfg.rounds;
+const roundDur = (n = st.round) => isExtra(n) ? cfg.extraSec : cfg.roundSec;
+const curMax = () => st.phase === 'rest' ? cfg.restSec : roundDur() + st.bonus;
+const elapsed = () => curMax() - st.remaining;
 function openStop() {
-  bout.stops.push({ round: st.round, at: cfg.roundSec - st.remaining, t0: Date.now(), dur: null });
+  bout.stops.push({ round: st.round, at: elapsed(), t0: Date.now(), dur: null });
 }
 function closeStop() {
   const s = bout.stops[bout.stops.length - 1];
-  if (s && s.dur === null) s.dur = (Date.now() - s.t0) / 1000;
+  if (s && s.dur === null) { s.dur = (Date.now() - s.t0) / 1000; return s; }
+  return null;
 }
 function closeRound() {
-  closeStop();
+  closeStop(); st.halt = false;
   const r = bout.rounds[st.round];
   if (r && !r.end) r.end = Date.now();
 }
@@ -326,19 +353,31 @@ function pauseClock() { tick(); st.running = false; }
 function allez() {
   if (st.phase === 'ready') {
     if (st.round === 1) { bout = newBout(); bout.start = Date.now(); bout.cfg = { ...cfg }; }
-    bout.rounds[st.round] = { start: Date.now(), end: null };
-    st.phase = 'round'; st.remaining = cfg.roundSec; startClock(); beep(1200, 0.2);
-  }
-  else if ((st.phase === 'round' || st.phase === 'rest') && !st.running) {
-    if (st.phase === 'round') closeStop();
-    startClock(); beep(1200, 0.2);
-  }
-  else return false;
+    bout.rounds[st.round] = { start: Date.now(), end: null, prolonged: false };
+    Object.assign(st, { phase: 'round', halt: false, bonus: 0, prolonged: false, called: new Set(), relayUntil: null });
+    st.remaining = roundDur(); startClock(); beep(1200, 0.2);
+  } else if ((st.phase === 'round' || st.phase === 'rest') && st.halt) {
+    if (st.phase === 'round') checkProlongation(closeStop());
+    st.halt = false;
+    if (!st.running) startClock();
+    beep(1200, 0.2);
+  } else return false;
   render(); return true;
 }
+// Un arrêt de plus de 30 s prolonge la reprise de 30 s, une fois par reprise (I 2.2). Seulement quand les arrêts
+// ne sont pas décomptés : s'ils le sont, le chrono était déjà figé pendant l'arrêt.
+function checkProlongation(s) {
+  if (!s || cfg.countStops || !cfg.prolong || cfg.mode === 'relais' || st.prolonged || s.dur <= 30) return;
+  st.prolonged = true; st.bonus = 30; st.deadline += 30000; st.remaining += 30;
+  bout.rounds[st.round].prolonged = true; s.prolongation = true;
+  say('Prolongation de trente secondes'); showHeard('⏱ Prolongation +30 s');
+}
 function stop() {
-  if ((st.phase === 'round' || st.phase === 'rest') && st.running) {
-    pauseClock(); if (st.phase === 'round') openStop();
+  if (st.phase === 'roundEnd') return repos(); // le « stop » qui suit « temps » lance la minute de repos (I 3.2.1)
+  if ((st.phase === 'round' || st.phase === 'rest') && !st.halt) {
+    st.halt = true;
+    if (st.phase === 'rest' || cfg.countStops) pauseClock();
+    if (st.phase === 'round') openStop();
     beep(400, 0.3); render(); return true;
   }
   return false;
@@ -346,18 +385,19 @@ function stop() {
 function repos() {
   if (st.phase !== 'round' && st.phase !== 'roundEnd') return false;
   closeRound();
-  if (st.round >= cfg.rounds) { finishBout(); return true; }
-  st.phase = 'rest'; st.remaining = cfg.restSec; st.called = new Set(); startClock();
-  say('Repos. ' + durationFr(cfg.restSec));
-  render(); return true;
+  if (st.round >= totalRounds()) { finishBout(); return true; }
+  startRest(); beep(700, 0.15);
+  return true;
 }
+function startRest() {
+  Object.assign(st, { phase: 'rest', running: false, halt: false, called: new Set() });
+  st.remaining = cfg.restSec; startClock(); render();
+}
+// Fin du temps de reprise : gong + « temps », puis on attend le « stop » de l'arbitre (« Stop, fin de la reprise »)
 function endRound() {
   closeRound();
-  st.running = false; st.remaining = 0; gong();
-  if (st.round >= cfg.rounds) { finishBout(); return; }
-  st.phase = 'roundEnd';
-  setTimeout(() => { if (st.phase === 'roundEnd') say('Fin du round ' + st.round); }, 2000);
-  if (cfg.autoRest) setTimeout(() => { if (st.phase === 'roundEnd') repos(); }, 4000);
+  st.running = false; st.remaining = 0; st.phase = 'roundEnd'; temps();
+  if (cfg.autoRest) setTimeout(() => { if (st.phase === 'roundEnd') command('REPOS', repos); }, 4000);
   render();
 }
 function finishBout() {
@@ -366,17 +406,27 @@ function finishBout() {
   try { localStorage.setItem('chrono-canne-last', JSON.stringify(bout)); } catch {}
   const k = computeStats(bout);
   setTimeout(() => st.phase === 'done' && say("Fin de l'assaut. " + (k.n === 0 ? 'Aucun arrêt.'
-    : k.n + (k.n > 1 ? ' arrêts, ' : ' arrêt, ') + durationFr(Math.round(k.total)) + " d'arrêt au total.")), 2000);
-  setTimeout(() => { if (st.phase === 'done') showStats(); }, 2500);
+    : k.n + (k.n > 1 ? ' arrêts, ' : ' arrêt, ') + durationFr(Math.round(k.total)) + " d'arrêt au total.")), 1200);
+  setTimeout(() => { if (st.phase === 'done') showStats(); }, 1500);
   render();
 }
+// Égalité : reprise supplémentaire, de même durée, après une minute de repos (I 2.3.1)
+function extraRound() {
+  if (st.phase !== 'done' || st.extra >= cfg.extraMax) return false;
+  st.extra++; bout.end = null;
+  if ($('statsDlg').open) $('statsDlg').close();
+  startRest(); say('Reprise supplémentaire');
+  return true;
+}
 function endRest() {
-  st.running = false; st.round++; st.phase = 'ready'; st.remaining = cfg.roundSec;
-  beep(1000, 0.4); say('Round ' + st.round + '. En garde');
+  st.running = false; st.halt = false; st.round++; st.phase = 'ready'; st.remaining = roundDur();
+  temps();
   render();
 }
 function reset() {
-  Object.assign(st, { phase: 'ready', round: 1, running: false, remaining: cfg.roundSec, called: new Set() });
+  Object.assign(st, { phase: 'ready', round: 1, running: false, halt: false, called: new Set(),
+    extra: 0, bonus: 0, prolonged: false, relayUntil: null });
+  st.remaining = roundDur();
   bout = newBout(); undoStack.length = 0;
   render();
 }
@@ -384,56 +434,77 @@ function reset() {
 function tick() {
   if (!st.running) return;
   st.remaining = Math.max(0, (st.deadline - performance.now()) / 1000);
-  if (st.phase === 'rest') {
-    for (const c of cfg.calls) {
-      if (!st.called.has(c) && st.remaining <= c && c < cfg.restSec) {
-        st.called.add(c);
-        if (st.remaining > c - 1.5) {
-          say(durationFr(c));
-          for (let i = 0; i < (c <= 5 ? 3 : 2); i++) beep(1000, 0.08, i * 0.15, 0.4); // bip de secours si la voix ne sort pas
-          showHeard('🔊 ' + durationFr(c));
-        }
+  if (st.phase === 'rest') restCalls();
+  if (st.phase === 'round' && cfg.mode === 'relais') relayCalls();
+  if (st.remaining <= 0) { st.phase === 'round' ? endRound() : endRest(); }
+}
+function restCalls() {
+  for (const c of cfg.calls) {
+    if (!st.called.has(c) && st.remaining <= c && c < cfg.restSec) {
+      st.called.add(c);
+      if (st.remaining > c - 1.5) {
+        say(durationFr(c));
+        for (let i = 0; i < (c <= 5 ? 3 : 2); i++) beep(1000, 0.08, i * 0.15, 0.4); // bip de secours si la voix ne sort pas
+        showHeard('🔊 ' + durationFr(c));
       }
     }
   }
-  if (st.remaining <= 0) { st.phase === 'round' ? endRound() : endRest(); }
+}
+// Relais : à chaque minute annoncée, l'équipe a 10 s pour changer de tireur (J 4.4.3.6)
+function relayCalls() {
+  const k = Math.floor(elapsed() / 60);
+  if (k >= 1 && !st.called.has(k) && st.remaining > 2) {
+    st.called.add(k); st.relayUntil = k * 60 + 10;
+    beep(1000, 0.1); beep(1000, 0.1, 0.18); say('Relais'); showHeard('🔁 Relais');
+  }
 }
 
 // ---------- Affichage ----------
 const $ = id => document.getElementById(id);
 function render() {
-  const max = st.phase === 'rest' ? cfg.restSec : cfg.roundSec;
-  $('roundLabel').textContent = `Round ${st.round} / ${cfg.rounds}`;
+  const max = curMax();
+  $('roundLabel').textContent = cfg.mode === 'relais'
+    ? (isExtra() ? 'Relais — reprise supplémentaire' : 'Relais — reprise unique')
+    : isExtra() ? `Reprise supplémentaire ${st.round - cfg.rounds}` : `Reprise ${st.round} / ${cfg.rounds}`;
   $('time').textContent = fmt(st.remaining);
   $('max').textContent = '/ ' + fmt(max);
   const rs = bout.stops.filter(x => x.round === st.round);
-  const open = rs.find(x => x.dur === null);
-  const rsTotal = rs.reduce((a, x) => a + (x.dur ?? (Date.now() - x.t0) / 1000), 0);
-  $('stops').textContent = open ? `Arrêt ${rs.length} · ${fmt(Math.floor((Date.now() - open.t0) / 1000))}`
-    : (st.phase === 'round' || st.phase === 'roundEnd') && rs.length ? `${rs.length} arrêt${rs.length > 1 ? 's' : ''} · ${fmt(rsTotal)}` : '';
+  const open = st.halt && st.phase === 'round' ? rs[rs.length - 1] : null;
+  let line = '';
+  if (open) line = `Arrêt ${rs.length} · ${fmt(Math.floor((Date.now() - open.t0) / 1000))}` + (cfg.countStops ? '' : ' (non décompté)');
+  else if (st.phase === 'round' && st.relayUntil && elapsed() < st.relayUntil) line = `🔁 Relais · ${fmt(st.relayUntil - elapsed())}`;
+  else if ((st.phase === 'round' || st.phase === 'roundEnd') && rs.length) {
+    const tot = rs.reduce((a, x) => a + (x.dur ?? 0), 0);
+    line = `${rs.length} arrêt${rs.length > 1 ? 's' : ''} · ${fmt(tot)}`;
+  }
+  if (st.prolonged && (st.phase === 'round' || st.phase === 'roundEnd')) line += (line ? ' · ' : '') + 'prolongation +30 s';
+  $('stops').textContent = line;
   $('barFill').style.width = (st.phase === 'done' ? 100 : 100 * (1 - st.remaining / max)) + '%';
-  const paused = (st.phase === 'round' || st.phase === 'rest') && !st.running;
+  const paused = st.halt;
   document.body.className = (st.phase === 'rest' ? 'rest' : st.phase === 'round' ? 'round' : st.phase) + (paused ? ' paused' : '');
-  const labels = { ready: 'Prêt — en garde', round: 'Assaut', roundEnd: 'Fin du round', rest: 'Repos', done: "Fin de l'assaut" };
-  $('phaseLabel').textContent = paused ? 'Arrêt' : labels[st.phase];
+  const labels = { ready: 'Prêt — en garde', round: 'Assaut', roundEnd: 'Temps — attente du stop', rest: 'Minute de repos', done: "Fin de l'assaut" };
+  let label = paused ? (st.phase === 'rest' ? 'Repos arrêté' : 'Arrêt') : labels[st.phase];
+  if (st.phase === 'ready' && Date.now() - lastEnGarde < 10000) label = 'En garde';
+  $('phaseLabel').textContent = label;
 
   const b = $('mainBtn'); b.disabled = false; b.className = '';
   if (st.phase === 'ready' || paused) b.textContent = 'ALLEZ';
   else if (st.phase === 'round' || st.phase === 'rest') { b.textContent = 'STOP'; b.className = 'stop'; }
-  else if (st.phase === 'roundEnd') { b.textContent = 'REPOS'; b.className = 'rest'; }
+  else if (st.phase === 'roundEnd') { b.textContent = st.round >= totalRounds() ? 'STOP · FIN' : 'STOP · REPOS'; b.className = 'rest'; }
+  else if (st.extra < cfg.extraMax) b.textContent = 'REPRISE SUPPL.';
   else { b.textContent = 'Terminé'; b.disabled = true; }
-  $('skipBtn').textContent = st.phase === 'rest' ? 'Fin de la pause' : 'Fin du round';
+  $('skipBtn').textContent = st.phase === 'rest' ? 'Fin du repos' : 'Fin de la reprise';
   $('skipBtn').disabled = !(st.phase === 'round' || st.phase === 'rest');
   const last = undoStack[undoStack.length - 1];
   $('undoBtn').disabled = !last;
   $('undoBtn').textContent = last ? '↶ Annuler ' + last.name : '↶ Annuler';
 }
 // Le temps avance avec setInterval : requestAnimationFrame s'arrête dès que la page n'est plus affichée
-let lastPausedRender = 0;
+let lastSlowRender = 0;
 setInterval(tick, 100);
 (function loop(t) {
   if (st.running) render();
-  else if (st.phase === 'round' && t - lastPausedRender > 250) { lastPausedRender = t; render(); } // compteur d'arrêt en direct
+  else if (t - lastSlowRender > 250 && (st.halt || st.phase === 'ready')) { lastSlowRender = t; render(); } // compteur d'arrêt, « en garde »
   requestAnimationFrame(loop);
 })(0);
 
@@ -462,10 +533,9 @@ const cmdRepos = () => command('REPOS', repos);
 
 function mainAction() {
   audio();
-  const paused = (st.phase === 'round' || st.phase === 'rest') && !st.running;
-  if (st.phase === 'ready' || paused) cmdAllez();
-  else if (st.phase === 'round' || st.phase === 'rest') cmdStop();
-  else if (st.phase === 'roundEnd') cmdRepos();
+  if (st.phase === 'ready' || st.halt) cmdAllez();
+  else if (st.phase === 'round' || st.phase === 'rest' || st.phase === 'roundEnd') cmdStop();
+  else if (st.phase === 'done') command('REPRISE SUPPL.', extraRound);
 }
 $('mainBtn').onclick = mainAction;
 $('undoBtn').onclick = undo;
@@ -495,36 +565,89 @@ $('resetBtn').onclick = () => {
   resetArmed = setTimeout(() => { resetArmed = null; b.classList.remove('confirm'); b.textContent = 'Réinitialiser'; }, 3000);
 };
 $('skipBtn').onclick = () => {
-  if (st.phase === 'round') command('Fin du round', endRound);
-  else if (st.phase === 'rest') command('Fin de la pause', endRest);
+  if (st.phase === 'round') command('Fin de reprise', endRound);
+  else if (st.phase === 'rest') command('Fin du repos', endRest);
 };
-$('announceBtn').onclick = () => { audio(); say(buildSentence()); showHeard('📣 ' + buildSentence()); };
+$('announceBtn').onclick = () => { audio(); say(buildSentence(cfg)); showHeard('📣 ' + buildSentence(cfg)); };
+
+// ---------- Chronomètre annexe (retards, I 4.2.13) ----------
+const annex = { running: false, t0: 0, acc: 0, called: new Set() };
+const annexElapsed = () => annex.acc + (annex.running ? (Date.now() - annex.t0) / 1000 : 0);
+function annexTick() {
+  if (!annex.running) return;
+  const e = annexElapsed();
+  for (let m = 1; m <= 3; m++) {
+    if (e >= m * 60 && !annex.called.has(m)) {
+      annex.called.add(m); beep(900, 0.15); beep(900, 0.15, 0.25);
+      say(m === 3 ? 'Trois minutes. Disqualification' : `${numFr(m)} minute${m > 1 ? 's' : ''}. Pénalité`);
+    }
+  }
+}
+function renderAnnex() {
+  const e = annexElapsed();
+  $('annexTime').textContent = fmt(Math.floor(e));
+  $('annexTime').classList.toggle('alert', e >= 180);
+  $('annexStart').textContent = annex.running ? 'Arrêter' : (e ? 'Reprendre' : 'Démarrer');
+  $('annexBtn').textContent = e ? '⏱ ' + fmt(Math.floor(e)) : '⏱';
+}
+setInterval(() => { annexTick(); if (annex.running) renderAnnex(); }, 250);
+$('annexBtn').onclick = () => { renderAnnex(); $('annexDlg').showModal(); };
+$('annexClose').onclick = () => $('annexDlg').close();
+$('annexStart').onclick = () => {
+  audio();
+  if (annex.running) { annex.acc = annexElapsed(); annex.running = false; }
+  else { annex.t0 = Date.now(); annex.running = true; keepAwake(); }
+  renderAnnex();
+};
+$('annexReset').onclick = () => { Object.assign(annex, { running: false, acc: 0, called: new Set() }); renderAnnex(); };
 
 // ---------- Statistiques ----------
+const EVENT_LABELS = {
+  observation: 'Observation', penalite: 'Pénalité', 'demande-avert': "Demande d'avertissement",
+  avertissement: 'Avertissement', 'avert-refuse': 'Avertissement refusé', 'carton-jaune': 'Carton jaune',
+  'carton-rouge': 'Carton rouge', disqualification: 'Disqualification', abandon: 'Abandon', forfait: 'Forfait',
+};
+const eventLabel = e => EVENT_LABELS[e.type] + (e.detail ? ' (' + e.detail + ')' : '') + (e.color ? ' ' + e.color : '');
 function computeStats(b) {
   const now = Date.now();
   const stops = b.stops.map(x => ({ ...x, d: x.dur ?? (now - x.t0) / 1000 }));
   const total = stops.reduce((a, x) => a + x.d, 0);
   const rounds = Object.entries(b.rounds).map(([n, r]) => {
     const rs = stops.filter(x => x.round === +n);
-    return { n: +n, stops: rs.length, stopped: rs.reduce((a, x) => a + x.d, 0), real: ((r.end || now) - r.start) / 1000 };
+    return { n: +n, stops: rs.length, stopped: rs.reduce((a, x) => a + x.d, 0), real: ((r.end || now) - r.start) / 1000, prolonged: r.prolonged };
   });
+  const events = b.events || [];
+  // sanctions par tireur ; les points vont à l'adversaire (pénalité 1, avertissement et carton 2)
+  const colors = [...new Set([...(b.cfg?.colors || []), ...events.map(e => e.color)])].filter(Boolean);
+  const byColor = [...colors, null].map(c => {
+    const es = events.filter(e => (e.color || null) === c);
+    const n = type => es.filter(e => e.type === type).length;
+    return { color: c, observation: n('observation'), penalite: n('penalite'), avertissement: n('avertissement'),
+      cartons: n('carton-jaune') + n('carton-rouge'), pts: es.reduce((a, e) => a + (e.pts || 0), 0), any: es.length };
+  }).filter(r => r.color || r.any);
   return {
-    n: stops.length, total, stops, rounds,
+    n: stops.length, total, stops, rounds, events, byColor,
     avg: stops.length ? total / stops.length : 0,
     max: stops.reduce((a, x) => Math.max(a, x.d), 0),
+    prolongations: rounds.filter(r => r.prolonged).length,
     bout: b.start ? ((b.end || now) - b.start) / 1000 : 0,
   };
 }
 const mmss = s => fmt(Math.round(s));
+const roundName = (n, b) => n > (b.cfg?.rounds ?? Infinity) ? 'S' + (n - b.cfg.rounds) : String(n);
 function statsText(b, k) {
   const d = new Date(b.start);
   const lines = [`Assaut du ${d.toLocaleDateString('fr-FR')} à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`];
   if (b.cfg) lines.push(buildSentence(b.cfg));
   lines.push(`Arrêts : ${k.n} — temps d'arrêt total ${mmss(k.total)} (moyen ${mmss(k.avg)}, plus long ${mmss(k.max)})`);
+  if (k.prolongations) lines.push(`Prolongations de 30 s : ${k.prolongations}`);
   lines.push(`Durée réelle de l'assaut : ${mmss(k.bout)}`);
-  for (const r of k.rounds) lines.push(`Round ${r.n} : ${r.stops} arrêt(s), ${mmss(r.stopped)} d'arrêt, durée réelle ${mmss(r.real)}`);
-  k.stops.forEach((x, i) => lines.push(`  #${i + 1} R${x.round} à ${mmss(x.at)} : ${mmss(x.d)}`));
+  for (const r of k.rounds) lines.push(`Reprise ${roundName(r.n, b)} : ${r.stops} arrêt(s), ${mmss(r.stopped)} d'arrêt, durée réelle ${mmss(r.real)}`);
+  k.stops.forEach((x, i) => {
+    const motifs = k.events.filter(e => e.stop === i).map(eventLabel).join(', ');
+    lines.push(`  #${i + 1} reprise ${roundName(x.round, b)} à ${mmss(x.at)} : ${mmss(x.d)}${motifs ? ' — ' + motifs : ''}`);
+  });
+  for (const c of k.byColor) if (c.any) lines.push(`Tireur ${c.color || '(couleur non précisée)'} : ${c.observation} observation(s), ${c.penalite} pénalité(s), ${c.avertissement} avertissement(s), ${c.cartons} carton(s) — ${c.pts} point(s) à l'adversaire`);
   return lines.join('\n');
 }
 let statsShown = null;
@@ -548,16 +671,20 @@ function showStats() {
         <div class="tile"><b>${mmss(k.total)}</b><span>temps d'arrêt total</span></div>
         <div class="tile"><b>${mmss(k.avg)}</b><span>arrêt moyen</span></div>
         <div class="tile"><b>${mmss(k.max)}</b><span>arrêt le plus long</span></div>
-        <div class="tile" style="grid-column:1/-1"><b>${mmss(k.bout)}</b><span>durée réelle de l'assaut (arrêts et pauses compris)</span></div>
+        <div class="tile" style="grid-column:1/-1"><b>${mmss(k.bout)}</b><span>durée réelle de l'assaut (arrêts et repos compris)${k.prolongations ? ` — ${k.prolongations} prolongation(s) de 30 s` : ''}</span></div>
       </div>
-      <h3>Par round</h3>
-      <table><tr><th>Round</th><th>Arrêts</th><th>Temps arrêté</th><th>Durée réelle</th></tr>
-        ${k.rounds.map(r => `<tr><td>${r.n}</td><td>${r.stops}</td><td>${mmss(r.stopped)}</td><td>${mmss(r.real)}</td></tr>`).join('')}
+      <h3>Par reprise</h3>
+      <table><tr><th>Reprise</th><th>Arrêts</th><th>Temps arrêté</th><th>Durée réelle</th></tr>
+        ${k.rounds.map(r => `<tr><td>${roundName(r.n, b)}${r.prolonged ? ' +30 s' : ''}</td><td>${r.stops}</td><td>${mmss(r.stopped)}</td><td>${mmss(r.real)}</td></tr>`).join('')}
       </table>
       <h3>Détail des arrêts</h3>
-      ${k.n ? `<table><tr><th>#</th><th>Round</th><th>Chrono à</th><th>Durée</th></tr>
-        ${k.stops.map((x, i) => `<tr><td>${i + 1}</td><td>${x.round}</td><td>${mmss(x.at)}</td><td>${mmss(x.d)}${x.dur === null ? ' ⏸' : ''}</td></tr>`).join('')}
-      </table>` : '<p class="empty">Aucun arrêt.</p>'}`;
+      ${k.n ? `<table><tr><th>#</th><th>Reprise</th><th>Chrono à</th><th>Durée</th><th>Motif</th></tr>
+        ${k.stops.map((x, i) => `<tr><td>${i + 1}</td><td>${roundName(x.round, b)}</td><td>${mmss(x.at)}</td><td>${mmss(x.d)}${x.dur === null ? ' ⏸' : ''}</td><td>${k.events.filter(e => e.stop === i).map(eventLabel).join(', ') || '—'}</td></tr>`).join('')}
+      </table>` : '<p class="empty">Aucun arrêt.</p>'}
+      ${k.events.length ? `<h3>Sanctions par tireur</h3>
+      <table><tr><th>Tireur</th><th>Obs.</th><th>Pén.</th><th>Avert.</th><th>Cartons</th><th>Pts adv.</th></tr>
+        ${k.byColor.map(c => `<tr><td>${c.color || '?'}</td><td>${c.observation}</td><td>${c.penalite}</td><td>${c.avertissement}</td><td>${c.cartons}</td><td>${c.pts}</td></tr>`).join('')}
+      </table>` : ''}`;
   }
   if (!$('statsDlg').open) $('statsDlg').showModal();
 }
@@ -572,30 +699,75 @@ $('shareStats').onclick = async () => {
 };
 
 // ---------- Réglages UI ----------
-function fillSettings(c) {
-  $('sRounds').value = c.rounds; $('sRound').value = fmt(c.roundSec); $('sRest').value = fmt(c.restSec);
-  $('sCalls').value = c.calls.join(','); $('sAutoRest').value = c.autoRest ? '1' : '0';
+// Préréglages : maximums des compétitions nationales (J 4.3), repos d'une minute
+const PRESETS = [
+  { id: 'custom', label: 'Personnalisé' },
+  { id: 'm9', label: 'Moins de 9 ans — 2 × 1\'30"', rounds: 2, roundSec: 90, extraMax: 0 },
+  { id: 'm12', label: 'Moins de 12 ans — 2 × 1\'30"', rounds: 2, roundSec: 90, extraMax: 1 },
+  { id: 'm15cdf', label: 'Moins de 15 ans, Ch. de France — 2 × 1\'30"', rounds: 2, roundSec: 90, extraMax: 1 },
+  { id: 'm15', label: 'Moins de 15 ans, Challenge Jeunes — 3 × 1\'30"', rounds: 3, roundSec: 90, extraMax: 1 },
+  { id: 'm18', label: 'Moins de 18 ans — 3 × 1\'30"', rounds: 3, roundSec: 90, extraMax: 1 },
+  { id: 'sen', label: 'Seniors, phases 1 et 2 — 3 × 2\'', rounds: 3, roundSec: 120, extraMax: 1 },
+  { id: 'senf', label: 'Seniors, finales — 4 × 2\'', rounds: 4, roundSec: 120, extraMax: 1 },
+  { id: 'vet', label: 'Vétérans, phases 1 et 2 — 3 × 1\'30"', rounds: 3, roundSec: 90, extraMax: 1 },
+  { id: 'vetf', label: 'Vétérans, finales — 4 × 1\'30"', rounds: 4, roundSec: 90, extraMax: 1 },
+];
+$('sPreset').innerHTML = PRESETS.map(p => `<option value="${p.id}">${p.label}</option>`).join('');
+$('sPreset').addEventListener('change', () => {
+  const p = PRESETS.find(x => x.id === $('sPreset').value);
+  if (p.rounds) { $('sRounds').value = p.rounds; $('sRound').value = fmt(p.roundSec); $('sRest').value = '1:00'; $('sExtra').value = p.extraMax; }
   updatePreview();
+});
+['sRounds', 'sRound'].forEach(id => $(id).addEventListener('input', () => { $('sPreset').value = 'custom'; }));
+function showModeFields() {
+  const m = $('sMode').value;
+  document.querySelectorAll('#settings [data-mode]').forEach(el => el.hidden = el.dataset.mode !== m);
+}
+$('sMode').addEventListener('change', () => { showModeFields(); updatePreview(); });
+const yes = id => $(id).value === '1';
+function fillSettings(c) {
+  $('sMode').value = c.mode; $('sPreset').value = c.preset || 'custom';
+  $('sRounds').value = c.rounds; $('sRound').value = fmt(c.mode === 'relais' ? 90 : c.roundSec); $('sRest').value = fmt(c.restSec);
+  $('sExtra').value = c.extraMax; $('sRelayBase').value = c.relayBase; $('sRelayCount').value = c.relayCount;
+  $('sCount').value = c.countStops ? '1' : '0'; $('sProlong').value = c.prolong ? '1' : '0';
+  $('sEnGarde').value = c.requireEnGarde ? '1' : '0'; $('sAutoRest').value = c.autoRest ? '1' : '0';
+  $('sCalls').value = c.calls.join(','); $('sColor1').value = c.colors[0] || ''; $('sColor2').value = c.colors[1] || '';
+  $('sReady').value = c.answerReady ? '1' : '0';
+  showModeFields(); updatePreview();
 }
 function readSettings() {
-  return {
-    rounds: +$('sRounds').value,
-    roundSec: parseMmSs($('sRound').value) || cfg.roundSec,
+  const mode = $('sMode').value;
+  const c = {
+    mode, preset: $('sPreset').value,
     restSec: parseMmSs($('sRest').value) || cfg.restSec,
+    extraMax: +$('sExtra').value,
+    relayBase: +$('sRelayBase').value, relayCount: +$('sRelayCount').value,
+    countStops: yes('sCount'), prolong: yes('sProlong'), requireEnGarde: yes('sEnGarde'), autoRest: yes('sAutoRest'),
     calls: $('sCalls').value.split(/[,;\s]+/).map(Number).filter(n => n > 0).sort((a, b) => b - a),
-    autoRest: $('sAutoRest').value === '1',
+    colors: [$('sColor1').value.trim().toLowerCase(), $('sColor2').value.trim().toLowerCase()],
+    answerReady: yes('sReady'),
   };
+  if (mode === 'relais') { // reprise unique (I 2.3.2) ; reprise supplémentaire = base × 2
+    Object.assign(c, { rounds: 1, roundSec: c.relayBase * c.relayCount * 2, extraSec: c.relayBase * 2, extraMax: Math.min(1, c.extraMax) });
+  } else {
+    c.rounds = +$('sRounds').value;
+    c.roundSec = parseMmSs($('sRound').value) || cfg.roundSec;
+    c.extraSec = c.roundSec;
+  }
+  return c;
 }
 function updatePreview() { $('sentencePreview').textContent = '« ' + buildSentence(readSettings()) + ' »'; }
-['sRounds', 'sRound', 'sRest', 'sCalls'].forEach(id => $(id).addEventListener('input', updatePreview));
+['sRounds', 'sRound', 'sRest', 'sCalls', 'sRelayBase', 'sRelayCount'].forEach(id => $(id).addEventListener('input', updatePreview));
 $('settingsBtn').onclick = () => { fillSettings(cfg); renderLearn(); $('settings').showModal(); };
 $('closeBtn').onclick = () => $('settings').close();
 $('saveBtn').onclick = () => { applyConfig(readSettings()); $('settings').close(); };
 
 function applyConfig(c) {
-  cfg = { ...cfg, ...c }; saveSettings();
-  if (st.phase === 'ready' && !st.running) st.remaining = cfg.roundSec;
-  if (st.round > cfg.rounds) reset();
+  cfg = { ...cfg, ...c };
+  if (cfg.mode !== 'relais') cfg.extraSec = cfg.roundSec;
+  saveSettings();
+  if (st.phase === 'ready' && !st.running) st.remaining = roundDur();
+  if (st.round > totalRounds()) reset();
   render();
 }
 
@@ -604,26 +776,29 @@ const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let rec = null, listening = false, firedFor = new Set(), heardTimer;
 function showHeard(t) { $('heard').textContent = t; clearTimeout(heardTimer); heardTimer = setTimeout(() => $('heard').textContent = '', 5000); }
 
-// Comparaison « phonétique » grossière : « allez », « aller », « allé », « hallez », « à les », « à l'est »… → « ale »
-function phon(text) {
-  const ws = normalize(text).replace(/[^a-z0-9 ]/g, ' ').trim().split(/\s+/).map(w => w
-    .replace(/h/g, '').replace(/(.)\1+/g, '$1')
-    .replace(/(ez|er|ais|ait|ai|est|es|et|ey|e)$/, 'e'));
-  return (ws.every(w => w === ws[0]) ? [ws[0]] : ws).join(''); // « allez allez » = « allez »
-}
-const COMMANDS = [
-  { re: /^e?s?tope?$|^stopez$/, fn: () => cmdStop(), name: 'STOP' },
-  { re: /^ale(y|i)?$|^ole$/, fn: () => cmdAllez(), name: 'ALLEZ' },
-  { re: /^re?po(s|t)?$/, fn: () => cmdRepos(), name: 'REPOS' },
-];
+const COMMANDS = COMMAND_PATTERNS.map(c => ({ ...c, fn: { STOP: () => cmdStop(), ALLEZ: () => cmdAllez(), REPOS: () => cmdRepos() }[c.name] }));
 function tryCommand(text) {
-  const t = normalize(text).trim();
-  if (!t || t.split(' ').length > 3) return false; // une commande est un mot court, pas une phrase
-  const p = phon(t);
-  for (const c of COMMANDS) {
-    if (c.re.test(p) || (cfg.learned[c.name] || []).includes(p)) { c.fn(); showHeard('🎙 ' + c.name + ' (« ' + text.trim() + ' »)'); return true; }
+  const r = parseCommand(text, cfg.learned);
+  if (!r) return false;
+  if (r.enGarde) lastEnGarde = Date.now();
+  if (!r.cmd) { showHeard('🎙 EN GARDE'); render(); return 'engarde'; }
+  const cmd = COMMANDS.find(c => c.name === r.cmd);
+  // « allez » est toujours précédé de « en garde » (I 4.2.6.1) : filtre contre le public et les aires voisines
+  if (cmd.name === 'ALLEZ' && cfg.requireEnGarde && Date.now() - lastEnGarde > 10000) {
+    showHeard('🎙 ALLEZ ignoré : pas de « en garde » juste avant'); return true;
   }
-  return false;
+  cmd.fn(); showHeard('🎙 ' + cmd.name + ' (« ' + text.trim() + ' »)');
+  return true;
+}
+function tryMotif(text) {
+  if (!bout.start) return false;
+  const e = parseMotif(text, cfg.colors);
+  if (!e) return false;
+  const i = bout.stops.length - 1;
+  const ev = { ...e, round: st.round, t: Date.now(), stop: i >= 0 && bout.stops[i].round === st.round ? i : null };
+  command(EVENT_LABELS[e.type].toUpperCase(), () => { bout.events.push(ev); });
+  showHeard('📝 ' + eventLabel(ev));
+  return true;
 }
 // Mots courts entendus mais non reconnus, pour les apprendre depuis les réglages
 let unheard = [];
@@ -657,11 +832,12 @@ document.addEventListener('click', e => {
 function tryReferee(text) {
   if (st.running) return false;
   const p = parseReferee(text);
+  if (p.tooMany) { showHeard(`⚠️ ${p.tooMany} reprises : 4 au maximum`); say('Quatre reprises au maximum'); return true; }
   if (!p.rounds && !p.roundSec) return false;
-  applyConfig(p);
+  applyConfig({ ...p, mode: 'assaut', preset: 'custom' });
   if (st.phase !== 'ready' || st.round !== 1) reset();
-  showHeard('✅ ' + buildSentence());
-  say('Compris. ' + buildSentence().replace(/^Pour un/, 'Un'));
+  showHeard('✅ ' + buildSentence(cfg));
+  say('Compris. ' + buildSentence(cfg).replace(/^Pour un/, 'Un'));
   return true;
 }
 
@@ -675,11 +851,24 @@ function startListening() {
       const res = e.results[i];
       if (firedFor.has(i)) continue;
       const alts = Array.from(res).map(a => a.transcript);
-      if (alts.some(tryCommand)) { firedFor.add(i); continue; }
+      if (alts.some(isReadyCheck)) {
+        firedFor.add(i);
+        if (cfg.answerReady) { say('Prêt'); showHeard('🎙 Chrono, prêt ? → « Prêt »'); }
+        continue;
+      }
+      // « en garde » seul ne consomme pas le résultat : la suite (« … allez ») peut arriver dans le même résultat
+      let heard = false;
+      for (const a of alts) {
+        const r = tryCommand(a);
+        if (r === true) { heard = true; break; }
+        if (r === 'engarde') heard = 'engarde';
+      }
+      if (heard === true) { firedFor.add(i); continue; }
       if (res.isFinal) {
         firedFor.add(i);
-        if (!tryReferee(alts[0])) { showHeard('… ' + alts[0]); noteUnheard(alts[0]); }
-      } else {
+        if (heard === 'engarde' || tryMotif(alts[0]) || tryReferee(alts[0])) continue;
+        showHeard('… ' + alts[0]); noteUnheard(alts[0]);
+      } else if (!heard) {
         showHeard('… ' + alts[0]);
       }
     }
