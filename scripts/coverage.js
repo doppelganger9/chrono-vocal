@@ -13,7 +13,7 @@ const e2eRaw = path.join(out, '.raw-e2e');
 fs.rmSync(out, { recursive: true, force: true });
 
 const run = (cmd, env) => execSync(cmd, { cwd: root, stdio: 'inherit', env: { ...process.env, ...env } });
-run('node --test tests/unit/', { NODE_V8_COVERAGE: unitRaw });
+run('node --test tests/unit/*.test.js', { NODE_V8_COVERAGE: unitRaw });
 run('npx playwright test --project=android-chrome --reporter=dot', { COVERAGE_E2E_DIR: e2eRaw });
 
 // Fichiers de l'app seulement (ni les tests, ni les dépendances), sous un même nom qu'ils viennent de Node ou du navigateur
