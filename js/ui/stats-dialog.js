@@ -1,12 +1,19 @@
 // Fenêtre des statistiques : assaut en cours, ou dernier assaut enregistré sur le téléphone.
+import { $, $button, $dialog } from './dom.js';
 import { computeStats, statsText, eventLabel, roundName, mmss } from '../stats.js';
 
 export const LAST_BOUT_KEY = 'chrono-canne-last';
 
-export function createStatsDialog({ $, getBout, storage }) {
+/** @typedef {import('../types.js').Bout} Bout */
+
+/** @param {{ getBout: () => Bout, storage: Pick<Storage, 'getItem'> }} deps */
+export function createStatsDialog({ getBout, storage }) {
+  /** @type {Bout | null} */
   let shown = null;
   function show() {
-    let b = getBout(), title = 'Assaut en cours';
+    /** @type {Bout | null} */
+    let b = getBout();
+    let title = 'Assaut en cours';
     if (!b.start) {
       try { b = JSON.parse(storage.getItem(LAST_BOUT_KEY) || 'null'); } catch { b = null; }
       title = 'Dernier assaut';
@@ -15,10 +22,10 @@ export function createStatsDialog({ $, getBout, storage }) {
     $('statsTitle').textContent = title;
     if (!b || !b.start) {
       $('statsBody').innerHTML = '<p class="empty">Aucun assaut enregistré pour l\'instant.</p>';
-      $('shareStats').hidden = true;
+      $button('shareStats').hidden = true;
     } else {
       const k = computeStats(b);
-      $('shareStats').hidden = false;
+      $button('shareStats').hidden = false;
       $('statsBody').innerHTML = `
         <div class="tiles">
           <div class="tile"><b>${k.n}</b><span>arrêts</span></div>
@@ -40,16 +47,17 @@ export function createStatsDialog({ $, getBout, storage }) {
           ${k.byColor.map(c => `<tr><td>${c.color || '?'}</td><td>${c.observation}</td><td>${c.penalite}</td><td>${c.avertissement}</td><td>${c.cartons}</td><td>${c.pts}</td></tr>`).join('')}
         </table>` : ''}`;
     }
-    if (!$('statsDlg').open) $('statsDlg').showModal();
+    if (!$dialog('statsDlg').open) $dialog('statsDlg').showModal();
   }
   $('statsBtn').onclick = show;
-  $('closeStats').onclick = () => $('statsDlg').close();
-  $('shareStats').onclick = async () => {
+  $('closeStats').onclick = () => $dialog('statsDlg').close();
+  $button('shareStats').onclick = async () => {
+    if (!shown) return;
     const text = statsText(shown, computeStats(shown));
     try {
       if (navigator.share) await navigator.share({ title: 'Chrono Canne', text });
-      else { await navigator.clipboard.writeText(text); $('shareStats').textContent = 'Copié ✓'; setTimeout(() => $('shareStats').textContent = 'Partager', 2000); }
+      else { await navigator.clipboard.writeText(text); $button('shareStats').textContent = 'Copié ✓'; setTimeout(() => $button('shareStats').textContent = 'Partager', 2000); }
     } catch {}
   };
-  return { show, close() { if ($('statsDlg').open) $('statsDlg').close(); } };
+  return { show, close() { if ($dialog('statsDlg').open) $dialog('statsDlg').close(); } };
 }

@@ -1,10 +1,20 @@
 // Affichage de l'écran principal à partir de l'état du chrono.
+import { $, $button } from './dom.js';
 import { fmt } from '../lang.js';
 
+/** @type {Record<import('../types.js').Phase, string>} */
 const LABELS = { ready: 'Prêt — en garde', round: 'Assaut', overtime: 'Temps dépassé', rest: 'Minute de repos', done: "Fin de l'assaut" };
 
-/** @param undoTop dernière commande annulable (ou undefined) ; lastEnGarde heure du dernier « en garde » */
-export function render({ $, chrono, cfg, lastEnGarde, undoTop, now = Date.now(), body = document.body }) {
+/**
+ * @param {object} p
+ * @param {ReturnType<typeof import('../chrono.js').createChrono>} p.chrono
+ * @param {import('../types.js').Config} p.cfg
+ * @param {number} p.lastEnGarde  heure du dernier « en garde »
+ * @param {{ name: string } | undefined} p.undoTop  dernière commande annulable
+ * @param {number} [p.now]
+ * @param {HTMLElement} [p.body]
+ */
+export function render({ chrono, cfg, lastEnGarde, undoTop, now = Date.now(), body = document.body }) {
   const st = chrono.state, bout = chrono.bout, inPlay = chrono.inPlay(), max = chrono.curMax();
   $('roundLabel').textContent = cfg.mode === 'relais'
     ? (chrono.isExtra() ? 'Relais — reprise supplémentaire' : 'Relais — reprise unique')
@@ -22,21 +32,21 @@ export function render({ $, chrono, cfg, lastEnGarde, undoTop, now = Date.now(),
   }
   if (st.prolonged && inPlay) line += (line ? ' · ' : '') + 'prolongation +30 s';
   $('stops').textContent = line;
-  $('prolongBtn').hidden = !(st.prolongOffer > now && !st.prolonged && inPlay);
+  $button('prolongBtn').hidden = !(st.prolongOffer > now && !st.prolonged && inPlay);
   $('barFill').style.width = (st.phase === 'done' || st.phase === 'overtime' ? 100 : 100 * (1 - st.remaining / max)) + '%';
   const paused = st.halt;
-  body.className = ({ rest: 'rest', round: 'round', overtime: 'over' }[st.phase] || st.phase) + (paused ? ' paused' : '');
+  body.className = (/** @type {Partial<Record<string, string>>} */ ({ rest: 'rest', round: 'round', overtime: 'over' })[st.phase] || st.phase) + (paused ? ' paused' : '');
   let label = paused ? (st.phase === 'rest' ? 'Repos arrêté' : 'Arrêt') : LABELS[st.phase];
   if (st.phase === 'ready' && now - lastEnGarde < 10000) label = 'En garde';
   $('phaseLabel').textContent = label;
 
-  const b = $('mainBtn'); b.disabled = false; b.className = '';
+  const b = $button('mainBtn'); b.disabled = false; b.className = '';
   if (st.phase === 'ready' || paused) b.textContent = 'ALLEZ';
   else if (inPlay || st.phase === 'rest') { b.textContent = 'STOP'; b.className = 'stop'; }
   else if (st.extra < cfg.extraMax) b.textContent = 'REPRISE SUPPL.';
   else { b.textContent = 'Terminé'; b.disabled = true; }
-  $('skipBtn').textContent = st.phase === 'rest' ? 'Fin du repos' : st.round >= chrono.totalRounds() ? "Fin de l'assaut" : 'Fin de la reprise';
-  $('skipBtn').disabled = !(inPlay || st.phase === 'rest');
-  $('undoBtn').disabled = !undoTop;
-  $('undoBtn').textContent = undoTop ? '↶ Annuler ' + undoTop.name : '↶ Annuler';
+  $button('skipBtn').textContent = st.phase === 'rest' ? 'Fin du repos' : st.round >= chrono.totalRounds() ? "Fin de l'assaut" : 'Fin de la reprise';
+  $button('skipBtn').disabled = !(inPlay || st.phase === 'rest');
+  $button('undoBtn').disabled = !undoTop;
+  $button('undoBtn').textContent = undoTop ? '↶ Annuler ' + undoTop.name : '↶ Annuler';
 }

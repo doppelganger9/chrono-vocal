@@ -1,8 +1,11 @@
 // Langue et phrases de l'arbitre : fonctions pures, sans DOM ni état.
 // Module ES, importé par l'app et par les tests unitaires.
+/** @typedef {import('./types.js').Config} Config @typedef {import('./types.js').Learned} Learned @typedef {import('./types.js').CommandName} CommandName @typedef {import('./types.js').Motif} Motif */
 
 // ---------- Formatage ----------
+/** @param {number} s secondes → « m:ss » */
 export const fmt = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+/** @param {string | number} str « 1:30 », « 2 » (minutes), « 90 » (secondes) @returns {number | null} */
 export function parseMmSs(str) {
   const m = String(str).trim().match(/^(\d+)(?:[:'h.,\s]+(\d{1,2}))?$/);
   if (!m) return null;
@@ -10,7 +13,9 @@ export function parseMmSs(str) {
 }
 
 export const NUM_WORDS = ['zéro','une','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize'];
+/** @type {Record<number, string>} */
 export const TENS = { 20: 'vingt', 30: 'trente', 40: 'quarante', 50: 'cinquante' };
+/** @param {number} n @param {boolean} [fem] */
 export function numFr(n, fem = true) {
   if (n === 1) return fem ? 'une' : 'un';
   if (n < NUM_WORDS.length) return NUM_WORDS[n];
@@ -19,6 +24,7 @@ export function numFr(n, fem = true) {
   if (TENS[t]) return TENS[t] + (u === 1 ? ' et un' : '-' + NUM_WORDS[u]);
   return String(n);
 }
+/** @param {number} sec */
 export function durationFr(sec) {
   const m = Math.floor(sec / 60), s = sec % 60;
   if (m === 0) return numFr(s, true) + (s > 1 ? ' secondes' : ' seconde');
@@ -27,7 +33,9 @@ export function durationFr(sec) {
   if (s) out += ' ' + numFr(s);
   return out;
 }
+/** @param {string} w */
 export const de = w => /^[aeiouyh]/i.test(w) ? "d'" + w : 'de ' + w;
+/** @param {Pick<Config, 'mode' | 'rounds' | 'roundSec' | 'restSec' | 'relayCount'>} c */
 export function buildSentence(c) {
   if (c.mode === 'relais') return `Pour un relais à ${numFr(c.relayCount, false)} équipiers, en reprise unique ${de(durationFr(c.roundSec))}.`;
   const r = c.rounds === 1 ? 'une reprise' : numFr(c.rounds) + ' reprises';
@@ -37,14 +45,19 @@ export function buildSentence(c) {
 }
 
 // ---------- Analyse de la phrase de l'arbitre ----------
+/** @param {string} t */
 export function normalize(t) {
   t = t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’'\-]/g, ' ');
   const words = { 'quarante cinq': 45, 'trente cinq': 35, 'vingt cinq': 25, 'cinquante': 50, 'quarante': 40, 'trente': 30,
     'vingt': 20, 'quinze': 15, 'dix': 10, 'neuf': 9, 'huit': 8, 'sept': 7, 'six': 6, 'cinq': 5, 'quatre': 4,
     'trois': 3, 'deux': 2, 'une': 1, 'un': 1 };
-  for (const [w, n] of Object.entries(words)) t = t.replace(new RegExp('\\b' + w + '\\b', 'g'), n);
+  for (const [w, n] of Object.entries(words)) t = t.replace(new RegExp('\\b' + w + '\\b', 'g'), String(n));
   return t.replace(/\s+/g, ' ');
 }
+/**
+ * @param {string} raw
+ * @returns {{ rounds?: number, roundSec?: number, restSec?: number, tooMany?: number }}
+ */
 export function parseReferee(raw) {
   const t = normalize(raw);
   const out = {};
@@ -63,14 +76,15 @@ export function parseReferee(raw) {
   }
   const pm = t.match(/\b(pause|repos|recuperation|recup)\b/);
   if (pm && durs.length) {
-    const p = pm.index, pEnd = p + pm[0].length;
+    const p = pm.index ?? 0, pEnd = p + pm[0].length;
+    /** @typedef {{ sec: number, pos: number, end: number }} Dur */
     // « pause de 1 minute » ou « 1 minute de pause », sinon la durée la plus proche du mot
-    const gapAfter = d => d.pos >= pEnd ? t.slice(pEnd, d.pos) : null;
-    const gapBefore = d => d.end <= p ? t.slice(d.end, p) : null;
+    const gapAfter = (/** @type {Dur} */ d) => d.pos >= pEnd ? t.slice(pEnd, d.pos) : null;
+    const gapBefore = (/** @type {Dur} */ d) => d.end <= p ? t.slice(d.end, p) : null;
     let best = durs.find(d => /^\s*(de|d)?\s*$/.test(gapAfter(d) ?? 'x')) ||
                durs.find(d => /^\s*(de|d)?\s*$/.test(gapBefore(d) ?? 'x'));
     if (!best && durs.length > 1) {
-      const dist = d => Math.min(Math.abs(d.pos - pEnd), Math.abs(d.end - p));
+      const dist = (/** @type {Dur} */ d) => Math.min(Math.abs(d.pos - pEnd), Math.abs(d.end - p));
       best = durs.reduce((a, d) => dist(d) < dist(a) ? d : a);
     }
     if (best) { out.restSec = best.sec; durs.splice(durs.indexOf(best), 1); }
@@ -81,15 +95,18 @@ export function parseReferee(raw) {
 
 // ---------- Commandes vocales ----------
 // Comparaison « phonétique » grossière : « allez », « aller », « allé », « hallez », « à les », « à l'est »… → « ale »
+/** @param {string} text */
 export function phonWords(text) {
   return normalize(text).replace(/[^a-z0-9 ]/g, ' ').trim().split(/\s+/).filter(Boolean).map(w => w
     .replace(/h/g, '').replace(/(.)\1+/g, '$1')
     .replace(/(ez|er|ais|ait|ai|est|es|et|ey|e)$/, 'e'));
 }
+/** @param {string} text */
 export function phon(text) {
   const ws = phonWords(text);
   return (ws.every(w => w === ws[0]) ? [ws[0]] : ws).join(''); // « allez allez » = « allez »
 }
+/** @type {{ name: CommandName, re: RegExp }[]} */
 export const COMMAND_PATTERNS = [
   { name: 'STOP', re: /^e?s?tope?$|^stopez$/ },
   { name: 'ALLEZ', re: /^ale(y|i)?$|^ole$/ },
@@ -103,8 +120,14 @@ export const EN_GARDE = /^[ae]ngu?ard?e$/; // « en garde », « an garde », «
 export const END_WORDS = new Set(['fin', 'de', 'd', 'la', 'l', 'reprise', 'asaut', 'e']);
 // Découpe un commandement de l'arbitre : « en garde » éventuel, puis une commande courte, puis la fin
 // protocolaire éventuelle. end vaut 'reprise' ou 'assaut' quand l'arbitre termine la reprise (I 3.2.2).
+/**
+ * @param {string} text
+ * @param {Partial<Learned>} [learned]
+ * @returns {{ enGarde: boolean, cmd: CommandName | null, end: 'reprise' | 'assaut' | null } | null}
+ */
 export function parseCommand(text, learned = {}) {
   let ws = phonWords(text);
+  /** @type {'reprise' | 'assaut' | null} */
   let end = null;
   const f = ws.findIndex((w, i) => w === 'fin' && ws.slice(i).some(x => x === 'reprise' || x === 'asaut'));
   if (f >= 0 && ws.slice(f).every(w => END_WORDS.has(w))) {
@@ -121,10 +144,13 @@ export function parseCommand(text, learned = {}) {
   return cmd ? { enGarde, cmd: cmd.name, end } : null;
 }
 // « Chrono, prêt ? » (contrôle des officiels avant chaque reprise)
+/** @param {string} text */
 export const isReadyCheck = text => /\bchrono\w*\b.*\bpret\b/.test(normalize(text).replace(/[^a-z0-9 ]/g, ' '));
 // Motif d'un arrêt annoncé par l'arbitre (I 4.2.8 à 4.2.13), avec la couleur du tireur concerné
+/** @param {string} text @param {string[]} [colors] @returns {Motif | null} */
 export function parseMotif(text, colors = []) {
   const t = normalize(text).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ');
+  /** @type {Motif | null} */
   let e = null;
   if (/carton rouge/.test(t)) e = { type: 'carton-rouge', pts: 2 };
   else if (/carton jaune/.test(t)) e = { type: 'carton-jaune', pts: 2 };

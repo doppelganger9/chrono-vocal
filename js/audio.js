@@ -1,11 +1,15 @@
 // Sons : bips et gong, synthétisés (Web Audio, aucun fichier).
+/** @param {Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }} [win] */
 export function createAudio(win = window) {
+  /** @type {AudioContext | null} */
   let actx = null;
   /** Crée ou réveille le contexte audio ; à appeler depuis un toucher (exigence d'iOS) */
+  /** @returns {AudioContext} */
   function ctx() {
-    if (!actx) actx = new (win.AudioContext || win.webkitAudioContext)();
-    if (actx.state === 'suspended') actx.resume();
-    return actx;
+    const a = actx ?? new (win.AudioContext || /** @type {typeof AudioContext} */ (win.webkitAudioContext))();
+    actx = a;
+    if (a.state === 'suspended') a.resume();
+    return a;
   }
   function beep(freq = 880, dur = 0.15, when = 0, vol = 0.5) {
     const a = ctx(), o = a.createOscillator(), g = a.createGain();
