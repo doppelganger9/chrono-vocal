@@ -11,9 +11,9 @@ Voir aussi : [ADR 0001](docs/adr/0001-backlog-dans-les-issues-github.md) (backlo
 | Étape | Qui | Résultat |
 |---|---|---|
 | **Dégrossissage** | Claude | Chaque issue reçoit un découpage, ses dépendances, ses critères d'acceptation, et les **décisions à prendre**, chacune avec une proposition par défaut. Les questions de toutes les issues sont regroupées en **un seul questionnaire**. |
-| **Décisions** | David | Réponse au questionnaire, une fois. Les choix de goût (couleurs, illustration, mise en page) sont proposés sous forme visuelle. Une issue tranchée reçoit le label `prêt`. |
+| **Décisions** | David | Réponse au questionnaire, une fois. Les choix de goût (couleurs, illustration, mise en page) sont proposés en 2 ou 3 variantes directement dans la PR, avec captures : David choisit avant de fusionner. Une issue tranchée reçoit le label `prêt`. |
 | **Développement** | Claude | Les issues `prêt` sont enchaînées dans l'ordre de [docs/backlog.md](docs/backlog.md) : une branche et une pull request par issue (§ 2 à 4). Claude ne s'arrête que pour une décision imprévue. |
-| **Revue et fusion** | David | Lecture de la PR, depuis l'app GitHub au besoin, puis fusion. GitHub Pages publie `main` : **une PR fusionnée est en ligne une minute plus tard.** Claude fusionne lui-même seulement si David l'a dit explicitement (« fusionne si les tests passent »). |
+| **Revue et fusion** | Claude ou David | GitHub Pages publie `main` : **une PR fusionnée est en ligne une minute plus tard.** **Claude fusionne lui-même les PR sans changement visible** (technique, documentation) dès que les tests passent sur GitHub. **David fusionne les PR qui se voient** (interface, thèmes, orientation, écran titre), après un coup d'œil aux captures, depuis l'app GitHub au besoin. Si une PR visible attend, Claude empile le sujet suivant dessus. |
 | **Recette** | David | Essai sur téléphone, en salle si besoin, notamment pour la vraie reconnaissance vocale. Les problèmes trouvés deviennent des issues. |
 
 ## 2. Développer une issue : TDD adapté
