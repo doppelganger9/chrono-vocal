@@ -28,6 +28,7 @@
  * @property {Learned} learned
  * @property {'auto' | 'jour' | 'nuit'} theme  « auto » : selon le réglage du téléphone
  * @property {Partial<Record<'round' | 'rest' | 'stop' | 'over', string>>} palette  couleurs personnalisées (#rrggbb)
+ * @property {boolean} board  mode tableau en paysage
  */
 
 /**

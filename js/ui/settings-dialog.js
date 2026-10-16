@@ -37,6 +37,7 @@ export function createSettingsDialog({ getCfg, onSave, voice }) {
     $field('sCalls').value = c.calls.join(','); $field('sColor1').value = c.colors[0] || ''; $field('sColor2').value = c.colors[1] || '';
     $field('sReady').value = c.answerReady ? '1' : '0';
     $field('sTheme').value = c.theme;
+    $field('sBoard').value = c.board ? '1' : '0';
     for (const k of PALETTE_KEYS) { if (c.palette[k]) { colorInput(k).value = /** @type {string} */ (c.palette[k]); colorInput(k).dataset.custom = '1'; } else delete colorInput(k).dataset.custom; }
     showModeFields(); updatePreview(); showPalette();
   }
@@ -54,6 +55,7 @@ export function createSettingsDialog({ getCfg, onSave, voice }) {
       answerReady: yes('sReady'),
       theme: /** @type {'auto' | 'jour' | 'nuit'} */ ($field('sTheme').value),
       palette: customPalette(),
+      board: yes('sBoard'),
     };
     if (mode === 'relais') { // reprise unique (I 2.3.2) ; reprise supplémentaire = base × 2
       return { ...c, rounds: 1, roundSec: c.relayBase * c.relayCount * 2, extraSec: c.relayBase * 2, extraMax: Math.min(1, c.extraMax) };

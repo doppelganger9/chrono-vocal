@@ -199,6 +199,16 @@ let lastSlowRender = 0;
   requestAnimationFrame(loop);
 })(0);
 
+// Mode tableau (#4) : un toucher sur le chrono affiche les boutons quelques secondes
+/** @type {ReturnType<typeof setTimeout> | undefined} */
+let controlsTimer;
+document.querySelector('main')?.addEventListener('click', () => {
+  if (!cfg.board) return;
+  document.body.dataset.controls = 'shown';
+  clearTimeout(controlsTimer);
+  controlsTimer = setTimeout(() => { delete document.body.dataset.controls; }, 8000);
+});
+
 applyTheme(cfg);
 watchSystemTheme(() => applyTheme(cfg));
 render();

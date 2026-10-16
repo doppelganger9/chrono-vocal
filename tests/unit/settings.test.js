@@ -74,7 +74,7 @@ test('valeurs par défaut exactes (ce que voit un nouveau téléphone)', () => {
     countStops: true, prolong: 'propose', requireEnGarde: false, autoRest: false, calls: [30, 15, 5],
     colors: ['rouge', 'bleu'], answerReady: true,
     learned: { STOP: [], ALLEZ: [], REPOS: [] },
-    theme: 'auto', palette: {},
+    theme: 'auto', palette: {}, board: false,
   });
 });
 

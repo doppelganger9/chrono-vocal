@@ -97,6 +97,9 @@ const test = base.extend({
   // réglages déjà enregistrés sur le téléphone avant l'ouverture (facultatif)
   savedSettings: [null, { option: true }],
   app: async ({ page, savedSettings, browserName }, use) => {
+    // toute erreur JavaScript de la page fait échouer le test
+    const pageErrors = [];
+    page.on('pageerror', e => pageErrors.push(e.message));
     const coverage = COVERAGE_DIR && browserName === 'chromium';
     if (coverage) await page.coverage.startJSCoverage({ resetOnNavigation: false });
     await page.addInitScript(installFakes);
@@ -109,6 +112,7 @@ const test = base.extend({
     const app = new App(page);
     await app.micOn();
     await use(app);
+    expect(pageErrors, 'erreurs JavaScript dans la page').toEqual([]);
     if (coverage) {
       fs.mkdirSync(COVERAGE_DIR, { recursive: true });
       fs.writeFileSync(path.join(COVERAGE_DIR, crypto.randomUUID() + '.json'), JSON.stringify(await page.coverage.stopJSCoverage()));

@@ -16,6 +16,7 @@ export function applyTheme(cfg) {
     if (v) root.style.setProperty('--' + k, v); else root.style.removeProperty('--' + k);
   }
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEMES[name].bg);
+  document.body.dataset.board = cfg.board ? '1' : '';
 }
 
 /** Rappelle onChange quand le téléphone passe du mode clair au mode sombre @param {() => void} onChange */
