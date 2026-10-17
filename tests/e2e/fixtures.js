@@ -107,10 +107,11 @@ const test = base.extend({
     const coverage = COVERAGE_DIR && browserName === 'chromium';
     if (coverage) await page.coverage.startJSCoverage({ resetOnNavigation: false });
     await page.addInitScript(installFakes);
-    if (introSeen) await page.addInitScript(v => localStorage.setItem('chrono-canne-intro', String(v)), introSeen);
+    // (les scripts d'initialisation tournent aussi sur about:blank, où le stockage est interdit)
+    if (introSeen) await page.addInitScript(v => { try { localStorage.setItem('chrono-canne-intro', String(v)); } catch {} }, introSeen);
     if (blockStorage) await page.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('bloqué', 'SecurityError'); } }));
     if (savedSettings) {
-      await page.addInitScript(s => localStorage.setItem('chrono-canne', JSON.stringify(s)), savedSettings);
+      await page.addInitScript(s => { try { localStorage.setItem('chrono-canne', JSON.stringify(s)); } catch {} }, savedSettings);
     }
     await page.clock.install({ time: new Date('2026-10-17T10:00:00') });
     await page.goto('/');

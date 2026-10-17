@@ -143,6 +143,14 @@
       <select id="sReady"><option value="1">Oui</option><option value="0">Non</option></select>
     </div>
     <div class="dlg-actions"><button id="introAgain" class="secondary" type="button">Revoir la présentation</button></div>
+    <h3>Partage des réglages</h3>
+    <p class="note">Pour configurer à l'identique tous les téléphones d'un club ou d'une compétition.</p>
+    <div class="dlg-actions">
+      <button id="shareLink" class="secondary" type="button">Copier le lien</button>
+      <button id="exportFileBtn" class="secondary" type="button">Exporter un fichier</button>
+      <label class="secondary file-btn">Importer un fichier<input id="importFile" type="file" accept="application/json,.json" hidden></label>
+    </div>
+    <input id="shareUrl" readonly hidden aria-label="Lien des réglages">
     <div class="learn">
       <h3>Mots entendus non reconnus</h3>
       <p>Mots courts entendus qui n'ont déclenché aucune commande. Touchez la commande voulue pour que l'app les reconnaisse ensuite.</p>
@@ -170,6 +178,16 @@
     <div class="dlg-actions">
       <button id="introStart">Commencer</button>
       <button id="introSkip" class="secondary">Sans la voix</button>
+    </div>
+  </dialog>
+
+  <dialog id="importDlg">
+    <h2>Importer des réglages</h2>
+    <p id="importError" class="warn" hidden></p>
+    <div id="importDiff"></div>
+    <div class="dlg-actions">
+      <button id="importApply">Appliquer</button>
+      <button id="importCancel" class="secondary">Annuler</button>
     </div>
   </dialog>
 
