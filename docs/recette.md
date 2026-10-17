@@ -13,6 +13,7 @@ Ce que les tests automatiques ne peuvent pas vérifier : la **vraie** reconnaiss
 - [ ] « Chrono, prêt ? » : l'app répond « Prêt ».
 - [ ] « En garde, allez » démarre, « stop » arrête, « allez » reprend. Essayer aussi « allez » prononcé vite.
 - [ ] Une sanction, par exemple « Pénalité pour sortie d'aire, tireur bleu » : elle s'affiche sous le chrono.
+- [ ] Pendant la minute de repos, « Rappel, tireur bleu » : « 1er rappel : Observation » s'affiche, et le bouton « Rappel bleu » annonce la pénalité suivante.
 - [ ] À la fin du temps : gong, « Temps », puis « Temps » répété toutes les 5 s. « Stop, fin de la reprise » lance la minute de repos.
 - [ ] Pendant le repos : annonces à 30, 15 et 5 s, **audibles alors que le micro écoute**.
 - [ ] Laisser le chrono en attente 2 minutes, puis dire « allez » : l'écoute a dû repartir toute seule.

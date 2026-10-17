@@ -58,6 +58,19 @@ test('statistiques', async ({ app }, t) => {
   await shot(app, '6-statistiques', t);
 });
 
+test('rappels à l\'appel', async ({ app }, t) => {
+  await app.configure({ sRound: '0:05' });
+  await app.hear('Allez');
+  await app.wait(5500);
+  await app.$('#skipBtn').click();
+  await app.wait(1500);
+  await app.hear('Rappel, tireur bleu');
+  await shot(app, '5b-rappel', t);
+  await app.$('#statsBtn').click();
+  await app.$('#statsBody').evaluate(el => el.lastElementChild?.scrollIntoView());
+  await shot(app, '6b-statistiques-rappel', t);
+});
+
 test('réglages', async ({ app }, t) => {
   await app.$('#settingsBtn').click();
   await shot(app, '7-reglages', t);

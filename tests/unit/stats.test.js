@@ -1,7 +1,7 @@
 // Statistiques de l'assaut (js/stats.js)
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { computeStats, statsText, eventLabel, roundName, mmss } from '../../js/stats.js';
+import { computeStats, statsText, eventLabel, rappelLabel, roundName, mmss } from '../../js/stats.js';
 
 const T = Date.UTC(2026, 9, 17, 10);
 const s = sec => T + sec * 1000;
@@ -71,4 +71,17 @@ test('résumé texte à partager', () => {
   assert.match(text, /#1 reprise 1 à 0:10 : 0:12 — Pénalité \(sortie d'aire\) bleu/);
   assert.match(text, /Tireur bleu : 0 observation\(s\), 1 pénalité\(s\), 0 avertissement\(s\), 1 carton\(s\) — 3 point\(s\) à l'adversaire/);
   assert.match(text, /Tireur \(couleur non précisée\) : 1 observation/);
+});
+
+test('rappels à l\'appel (C15) : comptés comme sanctions, listés à part dans le résumé', () => {
+  const ev = (rappel, type, pts) => ({ type, pts, detail: "retard à l'appel", color: 'bleu', rappel, round: 2, t: s(160), stop: null });
+  const b = { ...bout, events: [ev(1, 'observation', 0), ev(2, 'penalite', 1)] };
+  assert.equal(rappelLabel(b.events[0]), "1er rappel : Observation (retard à l'appel) bleu");
+  assert.equal(rappelLabel(b.events[1]), "2e rappel : Pénalité (retard à l'appel) bleu");
+  const k = computeStats(b, s(300));
+  const bleu = k.byColor.find(c => c.color === 'bleu');
+  assert.deepEqual([bleu.observation, bleu.penalite, bleu.pts], [1, 1, 1]);
+  const text = statsText(b, k);
+  assert.match(text, /Reprise 2 : 1er rappel : Observation \(retard à l'appel\) bleu\nReprise 2 : 2e rappel : Pénalité/);
+  assert.doesNotMatch(statsText(bout, computeStats(bout, s(300))), /rappel/, 'pas de ligne sans rappel');
 });
