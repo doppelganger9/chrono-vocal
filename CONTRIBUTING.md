@@ -28,6 +28,11 @@ Le développement est piloté par les tests, sans dogmatisme sur la taille des c
 4. Les cycles se font **par critère ou groupe de critères**, pas par ligne de code.
 5. **Un bug trouvé = d'abord un test qui le reproduit**, ensuite la correction.
 6. **Un test existant n'est modifié que si le comportement change volontairement**, et la PR le dit.
+7. **Filets de sécurité automatiques des tests de bout en bout** (`tests/e2e/fixtures.js`) :
+   - **toute erreur JavaScript de la page fait échouer le test**, même si le scénario semble passer. Une erreur au chargement peut arrêter silencieusement la fin d'un script ;
+   - la voix, la reconnaissance et les sons sont des doublures muettes, et l'horloge est simulée ;
+   - l'écran titre est marqué comme déjà vu (option `introSeen`), sauf dans les tests qui le concernent ; l'option `blockStorage` simule un stockage indisponible.
+8. **Les mises en page se testent dans le pire cas** : plusieurs formats d'écran (iPhone SE, iPhone Pro Max, Android, en portrait et en paysage) et une **police large** forcée. Sur GitHub, WebKit tourne sous Linux, sans la police d'Apple : un débordement invisible sur le Mac y apparaît.
 
 ## 3. Prouver la qualité
 

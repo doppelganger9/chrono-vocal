@@ -62,3 +62,10 @@ test('réglages', async ({ app }, t) => {
   await app.$('#settingsBtn').click();
   await shot(app, '7-reglages', t);
 });
+
+test('mode tableau', async ({ app }, t) => {
+  await app.configure({ sBoard: '1' });
+  await app.hear('Allez');
+  await app.wait(12_000);
+  await shot(app, '8-tableau', t);
+});
