@@ -68,3 +68,20 @@ test('réglages en paysage : sur deux colonnes, sans dépasser l\'écran en larg
   const dlg = await box(page, '#settings');
   expect(dlg.x + dlg.width).toBeLessThanOrEqual(SIZES['iPhone Pro Max paysage'].width);
 });
+
+// Police large (comme WebKit sous Linux, sans la police d'Apple) et chiffres longs : rien ne déborde, dans aucun format
+for (const name of Object.keys(SIZES)) {
+  test(`${name} : chiffres longs et police large, sans débordement`, async ({ app, page }) => {
+    await page.setViewportSize(SIZES[name]);
+    await page.addStyleTag({ content: 'html, body { font-family: Verdana, "DejaVu Sans", sans-serif !important; }' });
+    await app.configure({ sRound: '10:00' });
+    await expect(app.time).toHaveText('10:00');                  // 5 caractères
+    expect(await noScroll(page)).toBe(true);
+    await app.hear('Allez');
+    await app.configure({ sRound: '0:05' });
+    await app.hear('Stop, fin de la reprise'); await app.$('#skipBtn').click();
+    await app.hear('Allez'); await app.wait(9000);
+    await expect(app.time).toHaveText('+0:04');                  // temps dépassé
+    expect(await noScroll(page)).toBe(true);
+  });
+}
