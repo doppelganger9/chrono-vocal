@@ -1,0 +1,20 @@
+# Fusion automatique des PR de Dependabot (#17) : toutes les dépendances sont des outils de développement ou de CI,
+# aucune n'est servie aux utilisateurs. La fusion n'a lieu que si « Tests » passe (protection de main).
+name: Fusion des PR de Dependabot
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  fusion-auto:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fusion automatique quand les tests passent
+        run: gh pr merge --auto --merge "$PR"
+        env:
+          PR: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
