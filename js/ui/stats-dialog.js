@@ -1,6 +1,10 @@
 // Fenêtre des statistiques : assaut en cours, ou dernier assaut enregistré sur le téléphone.
 import { $, $button, $dialog } from './dom.js';
 import { computeStats, statsText, eventLabel, roundName, mmss } from '../stats.js';
+import { tireurColor } from '../colors.js';
+
+/** Pastille de couleur devant le nom d'un tireur @param {string | null} name */
+const dot = name => { const c = tireurColor(name); return c ? `<span class="tireur-dot" style="background:${c}"></span>` : ''; };
 
 export const LAST_BOUT_KEY = 'chrono-canne-last';
 
@@ -44,7 +48,7 @@ export function createStatsDialog({ getBout, storage }) {
         </table>` : '<p class="empty">Aucun arrêt.</p>'}
         ${k.events.length ? `<h3>Sanctions par tireur</h3>
         <table><tr><th>Tireur</th><th>Obs.</th><th>Pén.</th><th>Avert.</th><th>Cartons</th><th>Pts adv.</th></tr>
-          ${k.byColor.map(c => `<tr><td>${c.color || '?'}</td><td>${c.observation}</td><td>${c.penalite}</td><td>${c.avertissement}</td><td>${c.cartons}</td><td>${c.pts}</td></tr>`).join('')}
+          ${k.byColor.map(c => `<tr><td>${dot(c.color)}${c.color || '?'}</td><td>${c.observation}</td><td>${c.penalite}</td><td>${c.avertissement}</td><td>${c.cartons}</td><td>${c.pts}</td></tr>`).join('')}
         </table>` : ''}`;
     }
     if (!$dialog('statsDlg').open) $dialog('statsDlg').showModal();

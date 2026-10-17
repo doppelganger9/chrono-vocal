@@ -12,6 +12,7 @@ import { createStatsDialog, LAST_BOUT_KEY } from './ui/stats-dialog.js';
 import { createSettingsDialog } from './ui/settings-dialog.js';
 import { createAnnexDialog } from './ui/annex-dialog.js';
 import { $, $button } from './ui/dom.js';
+import { applyTheme, watchSystemTheme } from './ui/theme.js';
 
 const storage = (() => { try { return window.localStorage; } catch { return { getItem: () => null, setItem() {} }; } })();
 const clock = { now: () => performance.now(), wall: () => Date.now() };
@@ -96,6 +97,7 @@ const cmdRepos = () => command('REPOS', chrono.endReprise);
 function applyConfig(c) {
   cfg = normalizeConfig({ ...cfg, ...c });
   save(storage, cfg);
+  applyTheme(cfg);
   chrono.configChanged();
   render();
 }
@@ -197,4 +199,6 @@ let lastSlowRender = 0;
   requestAnimationFrame(loop);
 })(0);
 
+applyTheme(cfg);
+watchSystemTheme(() => applyTheme(cfg));
 render();
