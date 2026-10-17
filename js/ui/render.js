@@ -19,7 +19,9 @@ export function render({ chrono, cfg, lastEnGarde, undoTop, now = Date.now(), bo
   $('roundLabel').textContent = cfg.mode === 'relais'
     ? (chrono.isExtra() ? 'Relais — reprise supplémentaire' : 'Relais — reprise unique')
     : chrono.isExtra() ? `Reprise supplémentaire ${st.round - cfg.rounds}` : `Reprise ${st.round} / ${cfg.rounds}`;
-  $('time').textContent = st.phase === 'overtime' ? '+' + fmt(Math.floor(chrono.overtime())) : fmt(st.remaining);
+  const time = st.phase === 'overtime' ? '+' + fmt(Math.floor(chrono.overtime())) : fmt(st.remaining);
+  $('time').textContent = time;
+  $('time').style.setProperty('--chars', String(time.length)); // taille des chiffres selon leur nombre (css/app.css)
   $('max').textContent = '/ ' + fmt(max);
   const rs = bout.stops.filter(x => x.round === st.round);
   const open = st.halt && inPlay ? rs[rs.length - 1] : null;

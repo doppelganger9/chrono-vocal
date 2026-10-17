@@ -8,7 +8,7 @@ Deux niveaux de tests automatisés :
 - des **tests unitaires** (`node --test`, sans dépendance) sur la logique pure (`js/chrono.js`, `js/lang.js`, `js/stats.js`, `js/settings.js`, `js/annex.js`), avec une horloge simulée pour le chrono : toutes les règles du corpus fonctionnel y sont vérifiées ;
 - des **tests de bout en bout** (Playwright) sur la vraie page, dans **Chromium et WebKit**, les moteurs de Chrome Android et de Safari iPhone.
 
-Dans ces tests, la reconnaissance vocale, la synthèse vocale et les sons sont remplacés par des **doublures muettes** : le test « fait parler » l'arbitre et vérifie ce que l'app dit et joue. L'**horloge est simulée** : un assaut complet se joue en deux secondes, et les tests ne font aucun bruit.
+Toute erreur JavaScript de la page fait échouer le test. Dans ces tests, la reconnaissance vocale, la synthèse vocale et les sons sont remplacés par des **doublures muettes** : le test « fait parler » l'arbitre et vérifie ce que l'app dit et joue. L'**horloge est simulée** : un assaut complet se joue en deux secondes, et les tests ne font aucun bruit.
 
 ## Options écartées
 
