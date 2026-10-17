@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Chrono Canne">
+  <!-- Tenue d'officiel : fond noir, éléments blancs ; cannes rouge et bleue, les couleurs des deux tireurs (sans texte, choisi en revue de #24) -->
+  <rect width="512" height="512" rx="112" fill="#0b0b0c"/>
+  <g stroke-linecap="round" stroke-width="24">
+    <line x1="104" y1="420" x2="408" y2="104" stroke="#e5484d"/>
+    <line x1="408" y1="420" x2="104" y2="104" stroke="#3b82f6"/>
+  </g>
+  <rect x="236" y="112" width="40" height="34" rx="8" fill="#ffffff"/>
+  <circle cx="256" cy="268" r="112" fill="#0b0b0c" stroke="#ffffff" stroke-width="22"/>
+  <g stroke="#ffffff" stroke-width="17" stroke-linecap="round">
+    <line x1="256" y1="268" x2="256" y2="190"/>
+    <line x1="256" y1="268" x2="314" y2="298"/>
+  </g>
+  <circle cx="256" cy="268" r="14" fill="#ffffff"/>
+  
+</svg>

@@ -7,6 +7,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0d0f12">
 <title>Chrono Canne</title>
+<meta name="apple-mobile-web-app-title" content="Chrono Canne">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="css/themes.css">
 <link rel="stylesheet" href="css/app.css">
 <!-- modules chargés en parallèle plutôt qu'en cascade (main.js → ses imports) -->
@@ -138,6 +142,15 @@
       <label for="sReady">Répondre « Prêt »<small>à « Chrono, prêt ? »</small></label>
       <select id="sReady"><option value="1">Oui</option><option value="0">Non</option></select>
     </div>
+    <div class="dlg-actions"><button id="introAgain" class="secondary" type="button">Revoir la présentation</button></div>
+    <h3>Partage des réglages</h3>
+    <p class="note">Pour configurer à l'identique tous les téléphones d'un club ou d'une compétition.</p>
+    <div class="dlg-actions">
+      <button id="shareLink" class="secondary" type="button">Copier le lien</button>
+      <button id="exportFileBtn" class="secondary" type="button">Exporter un fichier</button>
+      <label class="secondary file-btn">Importer un fichier<input id="importFile" type="file" accept="application/json,.json" hidden></label>
+    </div>
+    <input id="shareUrl" readonly hidden aria-label="Lien des réglages">
     <div class="learn">
       <h3>Mots entendus non reconnus</h3>
       <p>Mots courts entendus qui n'ont déclenché aucune commande. Touchez la commande voulue pour que l'app les reconnaisse ensuite.</p>
@@ -149,6 +162,32 @@
     <div class="dlg-actions">
       <button id="saveBtn">Enregistrer</button>
       <button id="closeBtn" class="secondary">Annuler</button>
+    </div>
+  </dialog>
+
+  <dialog id="intro" class="intro" aria-labelledby="introTitle">
+    <img src="assets/logo.svg" alt="" width="120" height="120">
+    <h1 id="introTitle">Chrono Canne</h1>
+    <p class="note">Le chronomètre de l'aire de combat, piloté par la voix de l'arbitre.</p>
+    <ul class="intro-how">
+      <li>« <b>En garde, allez</b> » démarre, « <b>stop</b> » arrête.</li>
+      <li>« <b>Stop, fin de la reprise</b> » lance la minute de repos.</li>
+      <li>Les boutons et une télécommande Bluetooth marchent aussi.</li>
+    </ul>
+    <div id="introNews" hidden><h3>Quoi de neuf</h3><ul id="introNewsList"></ul></div>
+    <div class="dlg-actions">
+      <button id="introStart">Commencer</button>
+      <button id="introSkip" class="secondary">Sans la voix</button>
+    </div>
+  </dialog>
+
+  <dialog id="importDlg">
+    <h2>Importer des réglages</h2>
+    <p id="importError" class="warn" hidden></p>
+    <div id="importDiff"></div>
+    <div class="dlg-actions">
+      <button id="importApply">Appliquer</button>
+      <button id="importCancel" class="secondary">Annuler</button>
     </div>
   </dialog>
 

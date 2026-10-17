@@ -117,3 +117,16 @@ body.paused #stops { color: var(--stop); font-weight: 700; }
   #settings h2, #settings .dlg-actions:last-child { column-span: all; }
   #settings .field, #settings .learn-row, #settings h3 { break-inside: avoid; }
 }
+
+/* Écran titre (#6) */
+.intro { text-align: center; }
+.intro img { display: block; margin: 4px auto 8px; border-radius: 26px; }
+.intro h1 { margin: 0 0 4px; font-size: 26px; }
+.intro ul { text-align: left; padding-left: 20px; line-height: 1.5; }
+.intro h3 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin: 12px 0 0; text-align: left; }
+
+/* Partage des réglages (#15) */
+.file-btn { flex: 1; display: flex; align-items: center; justify-content: center; border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 600; cursor: pointer; }
+#shareUrl { width: 100%; margin-top: 8px; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font-size: 13px; }
+#importDiff table { width: 100%; border-collapse: collapse; font-size: 15px; }
+#importDiff th, #importDiff td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; }

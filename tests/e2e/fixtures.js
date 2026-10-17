@@ -96,21 +96,28 @@ class App {
 const test = base.extend({
   // réglages déjà enregistrés sur le téléphone avant l'ouverture (facultatif)
   savedSettings: [null, { option: true }],
-  app: async ({ page, savedSettings, browserName }, use) => {
+  // écran titre déjà vu (version), pour ne pas gêner les autres tests ; false : premier lancement
+  introSeen: [99, { option: true }],
+  // stockage du navigateur indisponible (navigation privée stricte)
+  blockStorage: [false, { option: true }],
+  app: async ({ page, savedSettings, introSeen, blockStorage, browserName }, use) => {
     // toute erreur JavaScript de la page fait échouer le test
     const pageErrors = [];
     page.on('pageerror', e => pageErrors.push(e.message));
     const coverage = COVERAGE_DIR && browserName === 'chromium';
     if (coverage) await page.coverage.startJSCoverage({ resetOnNavigation: false });
     await page.addInitScript(installFakes);
+    // (les scripts d'initialisation tournent aussi sur about:blank, où le stockage est interdit)
+    if (introSeen) await page.addInitScript(v => { try { localStorage.setItem('chrono-canne-intro', String(v)); } catch {} }, introSeen);
+    if (blockStorage) await page.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('bloqué', 'SecurityError'); } }));
     if (savedSettings) {
-      await page.addInitScript(s => localStorage.setItem('chrono-canne', JSON.stringify(s)), savedSettings);
+      await page.addInitScript(s => { try { localStorage.setItem('chrono-canne', JSON.stringify(s)); } catch {} }, savedSettings);
     }
     await page.clock.install({ time: new Date('2026-10-17T10:00:00') });
     await page.goto('/');
     await page.clock.pauseAt(new Date('2026-10-17T10:00:01'));
     const app = new App(page);
-    await app.micOn();
+    if (!(await page.locator('#intro').isVisible())) await app.micOn(); // écran titre : c'est « Commencer » qui active le micro
     await use(app);
     expect(pageErrors, 'erreurs JavaScript dans la page').toEqual([]);
     if (coverage) {
