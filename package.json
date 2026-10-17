@@ -18,12 +18,9 @@
     "node": ">=20"
   },
   "devDependencies": {
-    "@playwright/test": "1.63.0",
-    "@stryker-mutator/core": "9.6.1",
-    "monocart-coverage-reports": "2.12.12",
+    "@playwright/test": "1.64.0",
+    "@stryker-mutator/core": "10.0.0",
+    "monocart-coverage-reports": "2.13.2",
     "typescript": "7.0.2"
-  },
-  "overrides": {
-    "@babel/traverse": "7.29.8"
   }
 }
