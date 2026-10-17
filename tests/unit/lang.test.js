@@ -226,3 +226,18 @@ test("parseMotif : « demande de disqualification » est une demande, pas une di
   assert.deepEqual(L.parseMotif("demande d'avertissement ou disqualification au tireur bleu pour antijeu", ['rouge', 'bleu']),
     { type: 'demande-avert', pts: 0, color: 'bleu' });
 });
+
+test('parseRappel : « rappel, tireur bleu » et ses variantes (#8)', () => {
+  const colors = ['rouge', 'bleu'];
+  assert.deepEqual(L.parseRappel('Rappel, tireur bleu', colors), { color: 'bleu' });
+  assert.deepEqual(L.parseRappel('deuxième rappel au tireur rouge', colors), { color: 'rouge' });
+  assert.deepEqual(L.parseRappel('rappels bleu', colors), { color: 'bleu' });
+  assert.deepEqual(L.parseRappel('rappel', colors), { color: null }, 'sans couleur : le rappel est reconnu, le tireur non');
+  assert.equal(L.parseRappel('Pénalité tireur bleu', colors), null);
+  assert.equal(L.parseRappel('la pelle', colors), null);
+  assert.deepEqual(L.parseRappel('rappel tireur bleu'), { color: null }, 'sans liste de couleurs');
+});
+
+test('classify : un rappel passe avant les sanctions', () => {
+  assert.deepEqual(L.classify('rappel tireur bleu, observation', {}, ['rouge', 'bleu']), { kind: 'rappel', color: 'bleu' });
+});

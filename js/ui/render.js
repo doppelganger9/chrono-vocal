@@ -1,7 +1,11 @@
 // Affichage de l'écran principal à partir de l'état du chrono.
 import { $, $button } from './dom.js';
 import { fmt } from '../lang.js';
+import { rappelSanction } from '../chrono.js';
+import { tireurColor } from '../colors.js';
 
+/** @type {Partial<Record<import('../types.js').SanctionType, string>>} */
+const NEXT = { observation: 'observation', penalite: 'pénalité', 'carton-jaune': 'carton jaune' };
 /** @type {Record<import('../types.js').Phase, string>} */
 const LABELS = { ready: 'Prêt — en garde', round: 'Assaut', overtime: 'Temps dépassé', rest: 'Minute de repos', done: "Fin de l'assaut" };
 
@@ -35,6 +39,17 @@ export function render({ chrono, cfg, lastEnGarde, undoTop, now = Date.now(), bo
   if (st.prolonged && inPlay) line += (line ? ' · ' : '') + 'prolongation +30 s';
   $('stops').textContent = line;
   $button('prolongBtn').hidden = !(st.prolongOffer > now && !st.prolonged && inPlay);
+  // Rappels à l'appel de la reprise (C15) : un bouton par tireur, avec la sanction qu'il entraînerait
+  const rappels = $('rappels');
+  rappels.hidden = !chrono.canRappel();
+  if (!rappels.hidden) {
+    const html = cfg.colors.filter(c => c).map(c => {
+      const next = rappelSanction(chrono.rappelsOf(c) + 1).type;
+      const dot = tireurColor(c) ? `<span class="tireur-dot" style="background:${tireurColor(c)}"></span>` : '';
+      return `<button data-color="${c}">${dot}Rappel ${c}<small><span hidden> · </span>${NEXT[next]}</small></button>`;
+    }).join('');
+    if (rappels.dataset.html !== html) { rappels.innerHTML = html; rappels.dataset.html = html; } // pas à chaque image : le bouton touché serait remplacé
+  }
   $('barFill').style.width = (st.phase === 'done' || st.phase === 'overtime' ? 100 : 100 * (1 - st.remaining / max)) + '%';
   const paused = st.halt;
   body.className = (/** @type {Partial<Record<string, string>>} */ ({ rest: 'rest', round: 'round', overtime: 'over' })[st.phase] || st.phase) + (paused ? ' paused' : '');

@@ -170,17 +170,27 @@ export function parseMotif(text, colors = []) {
   return e;
 }
 
+/** « Rappel, tireur bleu » : retard d'un tireur à l'appel de la reprise (C15). null si ce n'est pas un rappel.
+ * @param {string} text @param {string[]} [colors] @returns {{ color: string | null } | null} */
+export function parseRappel(text, colors = []) {
+  const t = normalize(text).replace(/[^a-z0-9 ]/g, ' ');
+  if (!/\brappels?\b/.test(t)) return null;
+  return { color: colors.find(c => c && new RegExp('\\b' + normalize(c) + '\\b').test(t)) || null };
+}
+
 /**
  * Ce que l'app comprend d'une phrase, indépendamment de la phase (même ordre de décision que js/voice.js).
  * Sert au corpus de phrases réelles (tests/corpus) et au journal vocal.
  * @param {string} text @param {Partial<Learned>} [learned] @param {string[]} [colors]
  * @returns {{ kind: 'ready' } | { kind: 'engarde' } | { kind: 'command', cmd: CommandName, enGarde: boolean, end: 'reprise' | 'assaut' | null }
- *   | ({ kind: 'motif' } & Motif) | ({ kind: 'referee' } & ReturnType<typeof parseReferee>) | { kind: 'none' }}
+ *   | { kind: 'rappel', color: string | null } | ({ kind: 'motif' } & Motif) | ({ kind: 'referee' } & ReturnType<typeof parseReferee>) | { kind: 'none' }}
  */
 export function classify(text, learned = {}, colors = []) {
   if (isReadyCheck(text)) return { kind: 'ready' };
   const c = parseCommand(text, learned);
   if (c) return c.cmd ? { kind: 'command', cmd: c.cmd, enGarde: c.enGarde, end: c.end } : { kind: 'engarde' };
+  const rp = parseRappel(text, colors);
+  if (rp) return { kind: 'rappel', ...rp };
   const m = parseMotif(text, colors);
   if (m) return { kind: 'motif', ...m };
   const r = parseReferee(text);
