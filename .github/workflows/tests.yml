@@ -9,8 +9,8 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -23,7 +23,7 @@ jobs:
         run: npx playwright install --with-deps chromium webkit
       - name: Tests de bout en bout
         run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-traces
@@ -36,8 +36,8 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -50,7 +50,7 @@ jobs:
           npm run mutation
           node -e "const f=require('./reports/mutation/mutation.json').files; let k=0,t=0; for (const [n,x] of Object.entries(f)) { const m=x.mutants; const kk=m.filter(z=>['Killed','Timeout'].includes(z.status)).length; const tt=m.filter(z=>!['Ignored','CompileError','RuntimeError'].includes(z.status)).length; k+=kk; t+=tt; console.log('| '+n+' | '+(100*kk/tt).toFixed(1)+' % | '+kk+' / '+tt+' |'); } console.log('| **Total** | **'+(100*k/t).toFixed(1)+' %** | '+k+' / '+t+' |');" > mutation.md
           { echo '### Score de mutation'; echo; echo '| Fichier | Score | Tués / total |'; echo '|---|---|---|'; cat mutation.md; } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: rapports-qualite
