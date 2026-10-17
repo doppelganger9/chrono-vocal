@@ -37,6 +37,12 @@ function installFakes() {
     }
   }
   window.AudioContext = window.webkitAudioContext = FakeAudioContext;
+  // Partage de fichiers (feuille de partage du téléphone) : on enregistre ce que l'app partage
+  window.__shared = [];
+  Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true });
+  Object.defineProperty(navigator, 'share', { configurable: true, value: async d => {
+    for (const f of d.files || []) window.__shared.push({ name: f.name, text: await f.text() });
+  } });
   // Reconnaissance vocale : le test « parle » avec window.__hear
   class FakeRecognition {
     constructor() { window.__rec = this; this.results = []; }
@@ -75,6 +81,8 @@ class App {
     await this.page.evaluate(([a, f]) => window.__hear(a, f), [alts, final]);
   }
   async spoken() { return this.page.evaluate(() => window.__spoken.slice()); }
+  /** Fichiers partagés par l'app (feuille de partage simulée) */
+  async shared() { return this.page.evaluate(() => window.__shared.slice()); }
   async clearSpoken() { await this.page.evaluate(() => { window.__spoken.length = 0; }); }
   async expectSpoken(text) { await expect.poll(() => this.spoken()).toContain(text); }
   /** Fréquences des sons joués (bips, gong) */
