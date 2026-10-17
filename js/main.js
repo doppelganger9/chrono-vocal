@@ -15,6 +15,8 @@ import { $, $button } from './ui/dom.js';
 import { applyTheme, watchSystemTheme } from './ui/theme.js';
 import { createIntro } from './ui/intro-dialog.js';
 import { createShare } from './ui/share-dialog.js';
+import { createJournal } from './journal.js';
+import { shareOrDownload } from './ui/download.js';
 
 const storage = (() => { try { return window.localStorage; } catch { return { getItem: () => null, setItem() {} }; } })();
 const clock = { now: () => performance.now(), wall: () => Date.now() };
@@ -106,8 +108,9 @@ function applyConfig(c) {
 
 // ---------- Interface ----------
 const stats = createStatsDialog({ getBout: () => chrono.bout, storage });
+const journal = createJournal({ storage });
 const voice = createVoice({
-  getCfg: () => cfg, updateCfg: applyConfig, chrono, command,
+  getCfg: () => cfg, updateCfg: applyConfig, chrono, command, journal,
   commands: { STOP: cmdStop, ALLEZ: cmdAllez, REPOS: cmdRepos }, endReprise: chrono.endReprise,
   speech, ui: { showHeard, phaseText: () => $('phaseLabel').textContent, render },
   onReferee(p) {
@@ -116,6 +119,21 @@ const voice = createVoice({
   },
 });
 createSettingsDialog({ getCfg: () => cfg, onSave: applyConfig, voice });
+
+// Journal vocal (#3) : affiché à l'ouverture des réglages, exportable, effaçable en deux appuis
+const showJournal = () => {
+  const n = journal.entries.length;
+  $('journalCount').textContent = n ? `${n} phrase${n > 1 ? 's' : ''} notée${n > 1 ? 's' : ''}` : 'Aucune phrase notée';
+};
+$('settingsBtn').addEventListener('click', showJournal);
+$('journalExport').onclick = () => { const f = journal.exportFile(); shareOrDownload(f.name, f.text, 'Journal vocal Chrono Canne'); };
+/** @type {ReturnType<typeof setTimeout> | null} */
+let clearArmed = null;
+$('journalClear').onclick = () => {
+  if (clearArmed) { clearTimeout(clearArmed); clearArmed = null; journal.clear(); $('journalClear').textContent = 'Effacer'; showJournal(); return; }
+  $('journalClear').textContent = 'Confirmer ?';
+  clearArmed = setTimeout(() => { clearArmed = null; $('journalClear').textContent = 'Effacer'; }, 3000);
+};
 
 const annex = createAnnex({
   clock,
