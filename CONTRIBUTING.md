@@ -33,7 +33,7 @@ Le développement est piloté par les tests, sans dogmatisme sur la taille des c
    - **toute erreur JavaScript de la page fait échouer le test**, même si le scénario semble passer. Une erreur au chargement peut arrêter silencieusement la fin d'un script ;
    - la voix, la reconnaissance et les sons sont des doublures muettes, et l'horloge est simulée ;
    - les doublures suivent le navigateur là où l'app en dépend : chaque `start()` de la reconnaissance ouvre une écoute neuve, `stop()` la termine (`onend`), et `window.__recLog` garde la trace des reconnaissances créées et relancées. `window.__speechMs` fait durer les annonces, pour faire parler l'arbitre pendant que l'app parle. **Toute fonction qui touche à la voix se teste aussi sur WebKit** (projet `iphone-safari`) : certains comportements ne valent que sur iPhone ;
-   - **horloge simulée** (`page.clock`) : un délai programmé pendant une avance de l'horloge ne part qu'à l'avance suivante. Après une annonce, faire un pas (`app.wait(500)`) avant de vérifier son effet ;
+   - **horloge simulée** (`page.clock`) : un délai programmé pendant une avance de l'horloge ne part qu'à l'avance suivante. Après une annonce, faire un pas (`app.wait(500)`) avant de vérifier son effet . La mise en pause se fait à l'heure courante de la page, jamais à une heure fixe : sur une machine chargée, une heure fixe est vite passée. Même piège avec les minuteries simulées de Node (`mock.timers`) dans les tests unitaires : avancer par petits pas ;
    - l'écran titre est marqué comme déjà vu (option `introSeen`), sauf dans les tests qui le concernent ; l'option `blockStorage` simule un stockage indisponible ; l'option `micSilentMs` règle le témoin « micro silencieux » (#56), coupé par défaut puisque la fausse reconnaissance ne transmet rien d'elle-même.
 8. **Style des fichiers** ([`.editorconfig`](.editorconfig)) : UTF-8, fins de ligne LF, retour à la ligne final, indentation de 2 espaces, pas d'espace en fin de ligne (sauf Markdown). `tests/unit/style.test.js` le vérifie sur tous les fichiers suivis par git.
 9. **Un fichier de tests par fonctionnalité** (`tests/unit/<module>-<sujet>.test.js`, `tests/e2e/<sujet>.spec.js`) plutôt qu'à la fin d'un gros fichier : deux PR parallèles qui ajoutent des tests au même endroit se gênent à chaque fusion.
@@ -49,7 +49,7 @@ Chaque PR apporte des **mesures**, pas seulement l'affirmation que « les tests 
 |---|---|---|
 | Tests | `npm test` (unitaires + bout en bout) | Tout vert, en local et sur GitHub |
 | **Couverture de code** | Couverture intégrée de Node pour les tests unitaires ; couverture de Chromium (via Playwright) pour les tests de bout en bout | Valeurs avant → après. Pas de baisse sur les fichiers touchés. Objectif ≥ 90 % des lignes sur les modules purs. |
-| **Tests de mutation** | [StrykerJS](https://stryker-mutator.io/) sur les modules purs | Le score de mutation **prouve que les tests sont de vrais tests** : Stryker modifie le code (un `<` devient `<=`, une condition est inversée…) et vérifie qu'au moins un test échoue. Objectif ≥ 80 % sur les fichiers touchés. Chaque mutant survivant est **tué par un nouveau test ou justifié** dans la PR (mutant équivalent, code d'affichage…). |
+| **Tests de mutation** | [StrykerJS](https://stryker-mutator.io/) sur les modules purs | Le score de mutation **prouve que les tests sont de vrais tests** : Stryker modifie le code (un `<` devient `<=`, une condition est inversée…) et vérifie qu'au moins un test échoue. Objectif ≥ 80 % sur les fichiers touchés ; **sous 80 % au total, la tâche `qualite` échoue**. Périmètre : les modules purs, et ceux de la voix (`voice.js`, `speech.js`, #58). Chaque mutant survivant est **tué par un nouveau test ou justifié** dans la PR (mutant équivalent, code d'affichage…). |
 | Typage | `npm run typecheck`, à partir de [#2](https://github.com/doppelganger9/chrono-vocal/issues/2) | Sans erreur, en mode strict |
 
 Les tests de mutation tournent sur les modules purs et leurs tests unitaires, rapides. Les relancer sur les tests de bout en bout serait trop long : c'est une raison de plus pour garder la logique hors de l'interface ([#1](https://github.com/doppelganger9/chrono-vocal/issues/1)).
@@ -112,7 +112,7 @@ Ces chiffres sont **mesurés, pas estimés**, sauf le temps actif, qui est une a
 | `npm run pr-assets -- <PR> [écrans…]` | Publie ces captures dans la branche `pr-assets`, affiche leur tableau et l'enregistre dans `reports/pr-assets.md` (repris par `pr-body`) |
 | `npm run ai-stats -- --since <date ISO>` | Statistiques IA de la période (journal de session de Claude Code), au format du modèle de PR |
 
-Sur GitHub, chaque PR affiche aussi la couverture et le score de mutation dans le résumé de l'exécution (tâche `qualite`, non bloquante).
+Sur GitHub, chaque PR affiche aussi la couverture et le score de mutation dans le résumé de l'exécution (tâche `qualite`). **Un score de mutation total sous 80 % fait échouer cette tâche** (`thresholds.break` de Stryker, #60), comme `npm run verifier -- --complet` en local. La tâche n'est pas exigée pour fusionner : seule `tests` l'est.
 
 **Le circuit d'une issue** :
 1. **Au début**, sur la branche toute neuve : `npm run verifier`. Les mesures sont enregistrées comme point de départ (`reports/verifier-<commit>.json`).
