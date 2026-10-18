@@ -4,17 +4,14 @@ Le backlog vit dans les **[Issues GitHub](https://github.com/doppelganger9/chron
 
 Ce fichier ne garde que l'**ordre de priorité**, que les issues ne portent pas. Les issues dégrossies et tranchées portent le label `prêt` :
 
-1. [#13 T4 · Outillage qualité](https://github.com/doppelganger9/chrono-vocal/issues/13) : couverture, mutation, captures, statistiques IA. D'abord, pour que toutes les PR suivantes apportent ces preuves ([CONTRIBUTING.md](../CONTRIBUTING.md)).
-2. [#1 T1 · Revoir l'architecture](https://github.com/doppelganger9/chrono-vocal/issues/1) et [#2 T2 · Typage JSDoc](https://github.com/doppelganger9/chrono-vocal/issues/2), ensemble : la base des suivants, sans changer le comportement.
-3. [#5 P2 · Mode jour / nuit et palette](https://github.com/doppelganger9/chrono-vocal/issues/5) : profite des variables CSS de T1.
-4. [#4 P1 · Portrait et paysage](https://github.com/doppelganger9/chrono-vocal/issues/4).
-5. [#6 P3 · Écran titre et icône](https://github.com/doppelganger9/chrono-vocal/issues/6).
-6. [#15 P4 · Exporter / importer les réglages](https://github.com/doppelganger9/chrono-vocal/issues/15).
-7. [#3 T3 · Journal vocal et recette](https://github.com/doppelganger9/chrono-vocal/issues/3) : dès les premiers entraînements avec l'app.
-8. [#17 T5 · Montées de version des dépendances](https://github.com/doppelganger9/chrono-vocal/issues/17) et [#18 T6 · Autres bonnes pratiques](https://github.com/doppelganger9/chrono-vocal/issues/18) : les pratiques retenues dans #18 rejoignent les issues indiquées (par exemple l'accessibilité avec #5).
-9. [#8 R2 · Rappels](https://github.com/doppelganger9/chrono-vocal/issues/8), [#9 R3 · Second exclu](https://github.com/doppelganger9/chrono-vocal/issues/9), [#10 R4 · Relais](https://github.com/doppelganger9/chrono-vocal/issues/10).
-10. [#11 R5 · Plusieurs aires](https://github.com/doppelganger9/chrono-vocal/issues/11), si le besoin se confirme.
+1. [#30 · Coupure micro après « Prêt »](https://github.com/doppelganger9/chrono-vocal/issues/30) : bug constaté sur iPhone, en salle. En premier.
+2. [#34 T7 · CodeQL et npm audit](https://github.com/doppelganger9/chrono-vocal/issues/34) et [#35 T8 · .editorconfig](https://github.com/doppelganger9/chrono-vocal/issues/35) : rapides et sans changement visible.
+3. [#9 R3 · Second exclu](https://github.com/doppelganger9/chrono-vocal/issues/9), puis [#10 R4 · Relais](https://github.com/doppelganger9/chrono-vocal/issues/10).
+4. [#36 T9 · ESLint et Prettier](https://github.com/doppelganger9/chrono-vocal/issues/36), puis [#37 T10 · CSP](https://github.com/doppelganger9/chrono-vocal/issues/37) : le code gagne en régularité avant les gros chantiers.
+5. [#38 T11 · Accessibilité testée](https://github.com/doppelganger9/chrono-vocal/issues/38).
+6. [#39 T12 · Version et CHANGELOG](https://github.com/doppelganger9/chrono-vocal/issues/39), puis [#40 T13 · Hors ligne (PWA)](https://github.com/doppelganger9/chrono-vocal/issues/40), qui s'appuie sur le numéro de version pour mettre son cache à jour.
+7. [#11 R5 · Plusieurs aires](https://github.com/doppelganger9/chrono-vocal/issues/11), si le besoin se confirme.
 
 À rediscuter : [#12 Idées : protocole guidé, feuille de marque](https://github.com/doppelganger9/chrono-vocal/issues/12).
 
-Fait : [#7 R1 · L'arbitre décide, le chrono suit](https://github.com/doppelganger9/chrono-vocal/issues/7).
+Fait : #7 (l'arbitre décide), #13 (outillage qualité), #1 et #2 (architecture, typage), #5 (jour / nuit), #4 (portrait et paysage), #6 (écran titre), #15 (export des réglages), #17 (Dependabot), #18 (bonnes pratiques, réparties dans #34 à #40). En cours de relecture : #3 (journal vocal), #8 (rappels).
