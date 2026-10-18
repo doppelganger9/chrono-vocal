@@ -133,7 +133,10 @@ const test = base.extend({
     }
     await page.clock.install({ time: new Date('2026-10-17T10:00:00') });
     await page.goto('/');
-    await page.clock.pauseAt(new Date('2026-10-17T10:00:01'));
+    // pause juste après l'heure de la page : sur une machine chargée, le chargement peut durer plus d'une seconde, et une
+    // heure fixe (10:00:01) serait déjà passée (« Cannot fast-forward to the past »)
+    const pageNow = await page.evaluate(() => Date.now());
+    await page.clock.pauseAt(new Date(pageNow + 100));
     const app = new App(page);
     if (!(await page.locator('#intro').isVisible())) await app.micOn(); // écran titre : c'est « Commencer » qui active le micro
     await use(app);
