@@ -31,6 +31,7 @@ Le développement est piloté par les tests, sans dogmatisme sur la taille des c
 7. **Filets de sécurité automatiques des tests de bout en bout** (`tests/e2e/fixtures.js`) :
    - **toute erreur JavaScript de la page fait échouer le test**, même si le scénario semble passer. Une erreur au chargement peut arrêter silencieusement la fin d'un script ;
    - la voix, la reconnaissance et les sons sont des doublures muettes, et l'horloge est simulée ;
+   - les doublures suivent le navigateur là où l'app en dépend : chaque `start()` de la reconnaissance ouvre une écoute neuve, `stop()` la termine (`onend`), et `window.__recLog` garde la trace des reconnaissances créées et relancées. `window.__speechMs` fait durer les annonces, pour faire parler l'arbitre pendant que l'app parle. **Toute fonction qui touche à la voix se teste aussi sur WebKit** (projet `iphone-safari`) : certains comportements ne valent que sur iPhone ;
    - l'écran titre est marqué comme déjà vu (option `introSeen`), sauf dans les tests qui le concernent ; l'option `blockStorage` simule un stockage indisponible.
 8. **Les mises en page se testent dans le pire cas** : plusieurs formats d'écran (iPhone SE, iPhone Pro Max, Android, en portrait et en paysage) et une **police large** forcée. Sur GitHub, WebKit tourne sous Linux, sans la police d'Apple : un débordement invisible sur le Mac y apparaît.
 

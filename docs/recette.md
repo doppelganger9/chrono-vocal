@@ -13,8 +13,8 @@ Ce que les tests automatiques ne peuvent pas vérifier : la **vraie** reconnaiss
 - [ ] « Chrono, prêt ? » : l'app répond « Prêt » une fois la phrase finie, puis « En garde, allez » démarre bien la reprise (le micro ne doit pas se figer, #30).
 - [ ] « En garde, allez » démarre, « stop » arrête, « allez » reprend. Essayer aussi « allez » prononcé vite.
 - [ ] Une sanction, par exemple « Pénalité pour sortie d'aire, tireur bleu » : elle s'affiche sous le chrono.
-- [ ] À la fin du temps : gong, « Temps », puis « Temps » répété toutes les 5 s. « Stop, fin de la reprise » lance la minute de repos.
-- [ ] Pendant le repos : annonces à 30, 15 et 5 s, **audibles alors que le micro écoute**.
+- [ ] À la fin du temps : gong, « Temps », puis « Temps » répété toutes les 5 s. « Stop, fin de la reprise » **à la voix**, même dit pendant un « Temps », lance la minute de repos (#45).
+- [ ] Pendant le repos : annonces à 30, 15 et 5 s, **audibles alors que le micro écoute**. Après la fin du repos, « En garde, allez » **à la voix** démarre la reprise suivante (#45).
 - [ ] Laisser le chrono en attente 2 minutes, puis dire « allez » : l'écoute a dû repartir toute seule.
 
 ## Écran et geste
