@@ -19,6 +19,8 @@ Chrono vocal pour la canne de combat : une page web pilotée par la voix de l'ar
 - **Architecture** : la logique va dans les modules purs de `js/` (testés en unitaire, avec mutation) ; `js/main.js` ne fait qu'assembler et traduire les événements du chrono. Pas de variable globale : les tests de bout en bout passent par les API du navigateur simulées et par `window.__chronoEnv`.
 - **Filets de sécurité** : toute erreur JavaScript de la page fait échouer les tests de bout en bout ; les mises en page se testent sur plusieurs formats et avec une police large (WebKit sous Linux, sur GitHub, n'a pas la police d'Apple). Toute nouvelle règle de ce genre se documente dans CONTRIBUTING.md § 2.
 - **Tests silencieux** : la voix et les sons sont toujours remplacés par les doublures de `tests/e2e/fixtures.js`. Pour essayer l'app dans le navigateur intégré, utiliser `npm run serve` (les modules ne se chargent pas depuis un fichier ouvert directement), et couper le son de l'onglet.
+- **Modifier le code avec l'outil d'édition**, avec assez de contexte, plutôt que par des remplacements de chaînes en script : rien entre un commentaire JSDoc et sa fonction, et `npm run typecheck` après chaque série de modifications.
+- **Rétrospective chaque début de journée**, avant le backlog (CONTRIBUTING § 1).
 - **Rien de personnel dans le dépôt**, qui est public : adresse GitHub masquée pour les commits, pas de chemin local ni d'e-mail.
 
 ## Commandes
