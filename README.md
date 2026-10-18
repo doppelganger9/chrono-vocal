@@ -45,3 +45,9 @@ npm test
 - `npm run coverage`, `npm run mutation`, `npm run avant-apres -- main`, `npm run ai-stats` : preuves de qualité pour les PR (voir [CONTRIBUTING.md](CONTRIBUTING.md) § 7)
 
 Les tests tournent aussi sur GitHub à chaque envoi (onglet Actions).
+
+## Licence
+
+Le code et la documentation sont sous [licence MIT](LICENSE) : libres de réutiliser, de modifier et de redistribuer, en gardant la mention de copyright.
+
+Les règles citées dans [docs/corpus-fonctionnel.md](docs/corpus-fonctionnel.md) viennent du cahier n°10 de la FFSBF&DA (Fédération française de savate, boxe française et disciplines associées), qui en reste propriétaire ; elles ne sont pas couvertes par cette licence.
