@@ -8,6 +8,9 @@ const SIZES = {
   'iPhone Pro Max paysage': { width: 932, height: 430 },
   'Android portrait': { width: 412, height: 915 },
   'Android paysage': { width: 915, height: 412 },
+  // Safari sur iPhone, barre d'adresse et onglets affichés : la page n'a plus que cette place (recette du 18 octobre 2026)
+  'iPhone paysage, barres Safari': { width: 844, height: 280 },
+  'iPhone portrait, barres Safari': { width: 390, height: 560 },
 };
 const box = (page, sel) => page.locator(sel).boundingBox();
 const noScroll = page => page.evaluate(() => document.scrollingElement.scrollHeight <= innerHeight + 1 && document.scrollingElement.scrollWidth <= innerWidth + 1);
@@ -18,7 +21,10 @@ for (const [name, size] of Object.entries(SIZES)) {
     await app.hear('Allez');
     await app.wait(2000);
     expect(await noScroll(page)).toBe(true);
-    for (const sel of ['#time', '#mainBtn', '#roundLabel', '#micBtn']) await expect(page.locator(sel)).toBeInViewport();
+    for (const sel of ['#time', '#mainBtn', '#roundLabel', '#micBtn', '.bar']) await expect(page.locator(sel)).toBeInViewport();
+    expect((await box(page, '.bar')).height, 'barre de temps non écrasée').toBeGreaterThanOrEqual(4);
+    const header = await box(page, 'header'), label = await box(page, '#roundLabel');
+    expect(label.y, 'l\'en-tête ne recouvre pas « Reprise »').toBeGreaterThanOrEqual(header.y + header.height - 1);
   });
 }
 

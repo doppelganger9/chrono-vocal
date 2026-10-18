@@ -146,3 +146,14 @@ body.paused #stops { color: var(--stop); font-weight: 700; }
   #rappels small span[hidden] { display: inline; }
   main:has(#rappels:not([hidden])) #time { font-size: min(46vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
 }
+
+/* Paysage très bas : Safari sur iPhone avec la barre d'adresse et les onglets (recette du 18 octobre 2026) */
+@media (orientation: landscape) and (max-height: 320px) {
+  header { padding: 2px 0; }
+  main { gap: 0; }
+  #time { font-size: min(42vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
+  .controls { gap: 6px; padding-bottom: 4px; }
+  body[data-board="1"]:not([data-controls="shown"]) #time { font-size: min(46vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
+  main:has(#rappels:not([hidden])) #time { font-size: min(34vh, calc(100cqw / (var(--chars, 4) * 0.7))); } /* avec les rappels (#8) */
+  .intro img { display: none; } /* écran titre : le texte et les boutons d'abord */
+}
