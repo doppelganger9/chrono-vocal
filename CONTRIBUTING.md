@@ -33,7 +33,8 @@ Le développement est piloté par les tests, sans dogmatisme sur la taille des c
    - la voix, la reconnaissance et les sons sont des doublures muettes, et l'horloge est simulée ;
    - les doublures suivent le navigateur là où l'app en dépend : chaque `start()` de la reconnaissance ouvre une écoute neuve, `stop()` la termine (`onend`), et `window.__recLog` garde la trace des reconnaissances créées et relancées. `window.__speechMs` fait durer les annonces, pour faire parler l'arbitre pendant que l'app parle. **Toute fonction qui touche à la voix se teste aussi sur WebKit** (projet `iphone-safari`) : certains comportements ne valent que sur iPhone ;
    - l'écran titre est marqué comme déjà vu (option `introSeen`), sauf dans les tests qui le concernent ; l'option `blockStorage` simule un stockage indisponible.
-8. **Les mises en page se testent dans le pire cas** : plusieurs formats d'écran (iPhone SE, iPhone Pro Max, Android, en portrait et en paysage, et **Safari avec sa barre d'adresse et ses onglets**, qui ne laisse que 280 px de haut en paysage) et une **police large** forcée. Sur GitHub, WebKit tourne sous Linux, sans la police d'Apple : un débordement invisible sur le Mac y apparaît.
+8. **Style des fichiers** ([`.editorconfig`](.editorconfig)) : UTF-8, fins de ligne LF, retour à la ligne final, indentation de 2 espaces, pas d'espace en fin de ligne (sauf Markdown). `tests/unit/style.test.js` le vérifie sur tous les fichiers suivis par git.
+9. **Les mises en page se testent dans le pire cas** : plusieurs formats d'écran (iPhone SE, iPhone Pro Max, Android, en portrait et en paysage, et **Safari avec sa barre d'adresse et ses onglets**, qui ne laisse que 280 px de haut en paysage) et une **police large** forcée. Sur GitHub, WebKit tourne sous Linux, sans la police d'Apple : un débordement invisible sur le Mac y apparaît.
 
 ## 3. Prouver la qualité
 
