@@ -43,10 +43,14 @@ function installFakes() {
   Object.defineProperty(navigator, 'share', { configurable: true, value: async d => {
     for (const f of d.files || []) window.__shared.push({ name: f.name, text: await f.text() });
   } });
-  // Reconnaissance vocale : le test « parle » avec window.__hear
+  // Reconnaissance vocale : le test « parle » avec window.__hear. Comme dans le navigateur, chaque start() ouvre
+  // une nouvelle écoute (résultats remis à zéro), et stop() la termine (onend) ; window.__recLog garde la trace.
+  window.__recLog = [];
   class FakeRecognition {
     constructor() { window.__rec = this; this.results = []; }
-    start() {} stop() {} abort() {}
+    start() { window.__recLog.push('start'); this.results = []; }
+    stop() { window.__recLog.push('stop'); setTimeout(() => this.onend?.(), 0); }
+    abort() { this.stop(); }
   }
   window.SpeechRecognition = window.webkitSpeechRecognition = FakeRecognition;
   window.__hear = (alternatives, isFinal) => {

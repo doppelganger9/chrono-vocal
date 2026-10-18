@@ -36,13 +36,18 @@ export function createSpeech(win = window) {
   }
   if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
 
-  /** @param {string} text */
-  function say(text) {
+  /** @param {string} text @param {{ relisten?: boolean }} [opts]  relisten : relancer l'écoute une fois l'annonce finie (#30) */
+  function say(text, { relisten = false } = {}) {
     if (!synth) return;
     const u = new win.SpeechSynthesisUtterance(text);
     u.lang = 'fr-FR'; u.rate = 1.05; if (frVoice) u.voice = frVoice;
     speakingUntil = Date.now() + 600 + text.length * 90;
-    u.onend = u.onerror = () => { pending.delete(u); speakingUntil = Date.now() + echoGuardMs; };
+    u.onend = u.onerror = () => {
+      pending.delete(u); speakingUntil = Date.now() + echoGuardMs;
+      // iOS peut laisser la reconnaissance figée après une annonce (voyant allumé, plus aucun résultat) :
+      // l'arrêter la fait repartir aussitôt (onend → start)
+      if (relisten && listening && rec) { try { rec.stop(); } catch {} }
+    };
     pending.add(u);
     // cancel() suivi immédiatement de speak() fait perdre l'annonce sur Chrome : on attend un peu
     const go = () => { synth.resume(); synth.speak(u); };

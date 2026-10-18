@@ -12,7 +12,7 @@ import { EVENT_LABELS, eventLabel } from './stats.js';
  * @param {(name: string, fn: () => unknown) => boolean} deps.command  exécute une action annulable
  * @param {Record<CommandName, () => boolean>} deps.commands  exécutent la commande, true si elle a eu un effet
  * @param {() => boolean} deps.endReprise
- * @param {{ say: (text: string) => void }} deps.speech
+ * @param {{ say: (text: string, opts?: { relisten?: boolean }) => void }} deps.speech
  * @param {{ showHeard: (t: string) => void, phaseText: () => string, render: () => void }} deps.ui
  * @param {(p: ReturnType<typeof parseReferee>) => void} deps.onReferee  réglages lus dans la phrase de l'arbitre
  * @param {() => number} [deps.now]
@@ -26,6 +26,15 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
   let firedFor = new Set();
   /** @type {string[]} */
   let unheard = [];
+  /** « Chrono, prêt ? » entendu dans un résultat provisoire : la réponse attend la fin de la phrase (#30) */
+  let readyPending = -1;
+
+  // Répondre pendant que la reconnaissance écoute encore la même phrase bloquait le micro sur iPhone (#30) :
+  // on répond une fois la phrase finie, puis l'écoute est relancée
+  function answerReady() {
+    readyPending = -1;
+    if (getCfg().answerReady) { speech.say('Prêt', { relisten: true }); ui.showHeard('🎙 Chrono, prêt ? → « Prêt »'); }
+  }
 
   // Renvoie true si une commande a été traitée, 'engarde' si seul « en garde » a été entendu
   /** @param {string} text @returns {boolean | 'engarde'} */
@@ -91,9 +100,10 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
     const phase = chrono.state.phase;
     const note = () => journal?.add({ alts, final: isFinal, phase, action });
     action = '';
-    if (alts.some(isReadyCheck)) {
+    if (alts.some(isReadyCheck) || readyPending === index) {
+      if (!isFinal) { readyPending = index; ui.showHeard('🎙 Chrono, prêt ?'); return; }
       firedFor.add(index);
-      if (getCfg().answerReady) { speech.say('Prêt'); ui.showHeard('🎙 Chrono, prêt ? → « Prêt »'); }
+      answerReady();
       action = 'Prêt'; note();
       return;
     }
@@ -118,7 +128,8 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
 
   return {
     onResult,
-    onRestart() { firedFor = new Set(); },
+    // nouvelle écoute : une question « Chrono, prêt ? » restée sans résultat final reçoit sa réponse
+    onRestart() { firedFor = new Set(); if (readyPending >= 0) answerReady(); },
     get lastEnGarde() { return lastEnGarde; },
     get unheard() { return unheard; },
     /** @param {number} i @param {CommandName} cmd */

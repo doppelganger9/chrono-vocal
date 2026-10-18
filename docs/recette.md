@@ -10,7 +10,7 @@ Ce que les tests automatiques ne peuvent pas vérifier : la **vraie** reconnaiss
 
 ## Voix (téléphone posé au bord de l'aire, arbitre à 4-5 m)
 
-- [ ] « Chrono, prêt ? » : l'app répond « Prêt ».
+- [ ] « Chrono, prêt ? » : l'app répond « Prêt » une fois la phrase finie, puis « En garde, allez » démarre bien la reprise (le micro ne doit pas se figer, #30).
 - [ ] « En garde, allez » démarre, « stop » arrête, « allez » reprend. Essayer aussi « allez » prononcé vite.
 - [ ] Une sanction, par exemple « Pénalité pour sortie d'aire, tireur bleu » : elle s'affiche sous le chrono.
 - [ ] À la fin du temps : gong, « Temps », puis « Temps » répété toutes les 5 s. « Stop, fin de la reprise » lance la minute de repos.
