@@ -28,5 +28,7 @@ Chrono vocal pour la canne de combat : une page web pilotée par la voix de l'ar
 Node 20 ou plus récent ; sur ce Mac, le Node par défaut de nvm est trop ancien :
 
 ```bash
-PATH=/opt/homebrew/bin:$PATH npm test
+PATH=/opt/homebrew/bin:$PATH npm run verifier
 ```
+
+**Circuit d'une issue** (CONTRIBUTING § 7) : `npm run verifier` sur la branche neuve (point de départ), puis à la fin `npm run verifier -- --complet` et `npm run pr-body` ; écrire les parties « À ÉCRIRE » de `reports/pr-body.md`.

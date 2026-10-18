@@ -23,7 +23,7 @@ try {
   fs.rmSync(dest, { recursive: true, force: true });
   // colonnes : « avant », « apres », puis les autres dossiers de screenshots/ (variantes…)
   const sides = fs.readdirSync(shots).filter(d => fs.statSync(path.join(shots, d)).isDirectory())
-    .sort((a, b) => ['avant', 'apres'].indexOf(b) - ['avant', 'apres'].indexOf(a) || a.localeCompare(b));
+    .sort((a, b) => ['avant', 'apres'].indexOf(a) - ['avant', 'apres'].indexOf(b) || a.localeCompare(b));
   const rows = new Map(); // écran + appareil → { dossier: url }
   for (const side of sides) {
     const src = path.join(shots, side);
@@ -40,8 +40,12 @@ try {
   sh(`git add -A && git -c user.name="$(git -C ${JSON.stringify(root)} config user.name)" -c user.email="$(git -C ${JSON.stringify(root)} config user.email)" commit -qm "Captures de la PR #${pr}"`, dir);
   sh('git push -q origin HEAD:pr-assets', dir);
   const img = u => (u ? `<img src="${u}" width="180">` : '—');
-  console.log([`| Écran | ${sides.join(' | ')} |`, `|---|${sides.map(() => '---').join('|')}|`,
-    ...[...rows].sort().map(([k, v]) => `| ${k} | ${sides.map(s => img(v[s])).join(' | ')} |`)].join('\n'));
+  const table = [`| Écran | ${sides.join(' | ')} |`, `|---|${sides.map(() => '---').join('|')}|`,
+    ...[...rows].sort().map(([k, v]) => `| ${k} | ${sides.map(s => img(v[s])).join(' | ')} |`)].join('\n');
+  console.log(table);
+  // repris par scripts/pr-body.js (#57)
+  fs.mkdirSync(path.join(root, 'reports'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'reports/pr-assets.md'), table + '\n');
 } finally {
   execSync(`git worktree remove --force ${JSON.stringify(dir)}`, { cwd: root, stdio: 'ignore' });
 }
