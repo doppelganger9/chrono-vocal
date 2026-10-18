@@ -37,9 +37,16 @@ function buildBody({ issue, visible, verif, base, coverage, mutation, touched, a
   if (mutation) {
     const mine = Object.entries(mutation.files).filter(([f]) => touched.includes(f));
     quality.push(`- **Mutation : ${fr(mutation.total)} %**${mine.length ? ` (${mine.map(([f, s]) => `${path.basename(f, '.js')} ${fr(s)} %`).join(', ')})` : ''}.`);
+    // un compte par fichier, et les premiers survivants : la liste complète est dans le rapport de mutation
     const surv = mutation.survivors.filter(s => touched.includes(s.file));
-    if (surv.length) quality.push(`- **Mutants survivants dans les fichiers touchés** (tués par un test, ou justifiés) :`,
-      ...surv.map(s => `  - \`${s.file}:${s.line} ${s.mutator}\` → \`${s.replacement.slice(0, 60)}\` : ${TODO}`));
+    if (surv.length) {
+      /** @type {Record<string, number>} */
+      const byFile = {};
+      for (const s of surv) byFile[s.file] = (byFile[s.file] || 0) + 1;
+      quality.push(`- **Mutants survivants dans les fichiers touchés** : ${Object.entries(byFile).map(([f, n]) => `${path.basename(f)} ${n}`).join(', ')}. ${TODO} (tués par un test, ou pourquoi ils sont équivalents)`,
+        ...surv.slice(0, 8).map(s => `  - \`${s.file}:${s.line} ${s.mutator}\` → \`${s.replacement.slice(0, 60)}\``),
+        ...(surv.length > 8 ? [`  - et ${surv.length - 8} autres : rapport complet dans \`reports/mutation/\`, et dans l'artefact « rapports-qualite » de la CI`] : []));
+    }
   }
   quality.push('- `npm run typecheck` : 0 erreur.');
   return [
