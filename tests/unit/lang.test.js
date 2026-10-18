@@ -226,3 +226,15 @@ test("parseMotif : « demande de disqualification » est une demande, pas une di
   assert.deepEqual(L.parseMotif("demande d'avertissement ou disqualification au tireur bleu pour antijeu", ['rouge', 'bleu']),
     { type: 'demande-avert', pts: 0, color: 'bleu' });
 });
+
+test('isEcho : ce que le micro entend pendant une annonce est-il l\'annonce elle-même ? (#45)', () => {
+  assert.equal(L.isEcho('temps', 'Temps'), true);
+  assert.equal(L.isEcho('Prêt', 'Prêt'), true, 'accents et majuscules ignorés');
+  assert.equal(L.isEcho('trente secondes', 'Trente secondes'), true);
+  assert.equal(L.isEcho('secondes', 'Trente secondes'), true, 'une partie de l\'annonce');
+  assert.equal(L.isEcho('Temps', 'Trente secondes'), false);
+  assert.equal(L.isEcho('Stop, fin de la reprise', 'Temps'), false, 'l\'arbitre parle pendant l\'annonce');
+  assert.equal(L.isEcho('temps stop', 'Temps'), false, 'un mot de plus que l\'annonce');
+  assert.equal(L.isEcho('', 'Temps'), false);
+  assert.equal(L.isEcho('temps', ''), false);
+});
