@@ -103,6 +103,9 @@ Sanction (jaune ou rouge) pour comportement antisportif ou défaut d'équipement
 **Disqualification** :
 Perte de la rencontre prononcée par les juges ou l'arbitre (trois avertissements, blessure imputable, retard), sans exclure de la compétition.
 
+**Rappel** :
+Nouvel appel d'un tireur absent de l'aire quand l'arbitre appelle la reprise ; le 1er vaut une observation, le 2e une pénalité, le 3e un carton jaune.
+
 **Sortie d'aire** :
 Faute commise quand une partie du corps touche le sol au-delà de la limite de l'aire de combat.
 

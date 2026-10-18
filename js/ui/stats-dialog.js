@@ -1,6 +1,6 @@
 // Fenêtre des statistiques : assaut en cours, ou dernier assaut enregistré sur le téléphone.
 import { $, $button, $dialog } from './dom.js';
-import { computeStats, statsText, eventLabel, roundName, mmss } from '../stats.js';
+import { computeStats, statsText, eventLabel, rappelLabel, roundName, mmss } from '../stats.js';
 import { tireurColor } from '../colors.js';
 
 /** Pastille de couleur devant le nom d'un tireur @param {string | null} name */
@@ -49,7 +49,8 @@ export function createStatsDialog({ getBout, storage }) {
         ${k.events.length ? `<h3>Sanctions par tireur</h3>
         <table><tr><th>Tireur</th><th>Obs.</th><th>Pén.</th><th>Avert.</th><th>Cartons</th><th>Pts adv.</th></tr>
           ${k.byColor.map(c => `<tr><td>${dot(c.color)}${c.color || '?'}</td><td>${c.observation}</td><td>${c.penalite}</td><td>${c.avertissement}</td><td>${c.cartons}</td><td>${c.pts}</td></tr>`).join('')}
-        </table>` : ''}`;
+        </table>` : ''}
+        ${k.events.some(e => e.rappel) ? `<h3>Rappels à l'appel</h3><ul class="rappels">${k.events.filter(e => e.rappel).map(e => `<li>Reprise ${roundName(e.round, b)} : ${rappelLabel(e).replace(' : ', ', ')}</li>`).join('')}</ul>` : ''}`;
     }
     if (!$dialog('statsDlg').open) $dialog('statsDlg').showModal();
   }

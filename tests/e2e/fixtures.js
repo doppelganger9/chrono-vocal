@@ -12,15 +12,17 @@ const COVERAGE_DIR = process.env.COVERAGE_E2E_DIR;
 function installFakes() {
   // l'arbitre parle juste après les annonces : pas de délai anti-écho (js/speech.js)
   window.__chronoEnv = { echoGuardMs: 0 };
-  // Synthèse vocale : on enregistre ce que l'app dit, et l'annonce se termine aussitôt
+  // Synthèse vocale : on enregistre ce que l'app dit, et l'annonce se termine aussitôt,
+  // ou au bout de window.__speechMs millisecondes (horloge simulée), pour parler pendant une annonce
   window.__spoken = [];
+  window.__speechMs = 0;
   window.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
   Object.defineProperty(window, 'speechSynthesis', {
     configurable: true,
     value: {
       speaking: false, pending: false, onvoiceschanged: null,
       getVoices: () => [], cancel() {}, resume() {},
-      speak(u) { window.__spoken.push(u.text); u.onend?.(); },
+      speak(u) { window.__spoken.push(u.text); if (window.__speechMs) setTimeout(() => u.onend?.(), window.__speechMs); else u.onend?.(); },
     },
   });
   // Sons (bips, gong) : moteur audio muet, on enregistre la fréquence de chaque son joué
@@ -47,7 +49,7 @@ function installFakes() {
   // une nouvelle écoute (résultats remis à zéro), et stop() la termine (onend) ; window.__recLog garde la trace.
   window.__recLog = [];
   class FakeRecognition {
-    constructor() { window.__rec = this; this.results = []; }
+    constructor() { window.__rec = this; this.results = []; window.__recLog.push('new'); }
     start() { window.__recLog.push('start'); this.results = []; }
     stop() { window.__recLog.push('stop'); setTimeout(() => this.onend?.(), 0); }
     abort() { this.stop(); }

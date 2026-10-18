@@ -258,3 +258,41 @@ test('« Chrono » puis « prêt » en deux phrases : isChronoCall et isPretAlon
   assert.equal(L.isPretAlone('après'), false);
   assert.equal(L.isPretAlone('prêtre'), false);
 });
+
+test('parseRappel : « rappel, tireur bleu » et ses variantes (#8)', () => {
+  const colors = ['rouge', 'bleu'];
+  assert.deepEqual(L.parseRappel('Rappel, tireur bleu', colors), { color: 'bleu' });
+  assert.deepEqual(L.parseRappel('deuxième rappel au tireur rouge', colors), { color: 'rouge' });
+  assert.deepEqual(L.parseRappel('rappels bleu', colors), { color: 'bleu' });
+  assert.deepEqual(L.parseRappel('rappel', colors), { color: null }, 'sans couleur : le rappel est reconnu, le tireur non');
+  assert.equal(L.parseRappel('Pénalité tireur bleu', colors), null);
+  assert.equal(L.parseRappel('la pelle', colors), null);
+  assert.deepEqual(L.parseRappel('rappel tireur bleu'), { color: null }, 'sans liste de couleurs');
+});
+
+test('classify : un rappel passe avant les sanctions', () => {
+  assert.deepEqual(L.classify('rappel tireur bleu, observation', {}, ['rouge', 'bleu']), { kind: 'rappel', color: 'bleu' });
+});
+
+test('restCue : ce que l\'arbitre doit dire pendant la minute de repos (C7, #43)', () => {
+  assert.equal(L.restCue(60), null, 'début du repos : rien');
+  assert.equal(L.restCue(30.05), null, 'pas avant 30 s');
+  assert.equal(L.restCue(30), 'Tireurs, équipez-vous');
+  assert.equal(L.restCue(15.05), 'Tireurs, équipez-vous', 'reste affiché jusqu\'à l\'étape suivante');
+  assert.equal(L.restCue(15), 'Tireurs au centre');
+  assert.equal(L.restCue(5.05), 'Tireurs au centre');
+  assert.equal(L.restCue(5), 'Juge 1, prêt ? … Chrono, prêt ?');
+  assert.equal(L.restCue(0), 'Juge 1, prêt ? … Chrono, prêt ?');
+});
+
+test('isEcho : ce que le micro entend pendant une annonce est-il l\'annonce elle-même ? (#45)', () => {
+  assert.equal(L.isEcho('temps', 'Temps'), true);
+  assert.equal(L.isEcho('Prêt', 'Prêt'), true, 'accents et majuscules ignorés');
+  assert.equal(L.isEcho('trente secondes', 'Trente secondes'), true);
+  assert.equal(L.isEcho('secondes', 'Trente secondes'), true, 'une partie de l\'annonce');
+  assert.equal(L.isEcho('Temps', 'Trente secondes'), false);
+  assert.equal(L.isEcho('Stop, fin de la reprise', 'Temps'), false, 'l\'arbitre parle pendant l\'annonce');
+  assert.equal(L.isEcho('temps stop', 'Temps'), false, 'un mot de plus que l\'annonce');
+  assert.equal(L.isEcho('', 'Temps'), false);
+  assert.equal(L.isEcho('temps', ''), false);
+});

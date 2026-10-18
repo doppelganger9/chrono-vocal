@@ -2,7 +2,7 @@
 import { fmt, durationFr, numFr, buildSentence } from './lang.js';
 import { load, save, normalizeConfig } from './settings.js';
 import { createChrono } from './chrono.js';
-import { computeStats } from './stats.js';
+import { computeStats, rappelLabel } from './stats.js';
 import { createAnnex } from './annex.js';
 import { createAudio } from './audio.js';
 import { createSpeech } from './speech.js';
@@ -112,7 +112,7 @@ const journal = createJournal({ storage });
 const voice = createVoice({
   getCfg: () => cfg, updateCfg: applyConfig, chrono, command, journal,
   commands: { STOP: cmdStop, ALLEZ: cmdAllez, REPOS: cmdRepos }, endReprise: chrono.endReprise,
-  speech, ui: { showHeard, phaseText: () => $('phaseLabel').textContent, render },
+  rappel, speech, ui: { showHeard, phaseText: () => $('phaseLabel').textContent, render },
   onReferee(p) {
     applyConfig({ ...p, mode: 'assaut', preset: 'custom' });
     if (chrono.state.phase !== 'ready' || chrono.state.round !== 1) { chrono.reset(); undoStack.length = 0; }
@@ -182,6 +182,19 @@ $('resetBtn').onclick = () => {
   }
   b.classList.add('confirm'); b.textContent = 'Confirmer ?';
   resetArmed = setTimeout(() => { resetArmed = null; b.classList.remove('confirm'); b.textContent = 'Réinitialiser'; }, 3000);
+};
+// Rappel d'un tireur à l'appel de la reprise (C15) : la sanction suit le rang du rappel. false si hors repos et « prêt »
+/** @param {string} color */
+function rappel(color) {
+  /** @type {import('./types.js').SanctionEvent | null} */
+  let ev = null;
+  command('RAPPEL ' + color.toUpperCase(), () => !!(ev = chrono.rappel(color)));
+  if (ev) showHeard('📝 ' + rappelLabel(ev));
+  return !!ev;
+}
+$('rappels').onclick = e => {
+  const color = /** @type {HTMLElement} */ (e.target).closest('button')?.dataset.color;
+  if (color) rappel(color);
 };
 $button('prolongBtn').onclick = () => command('PROLONGATION', chrono.prolong);
 $button('skipBtn').onclick = () => {

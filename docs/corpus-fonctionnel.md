@@ -150,6 +150,8 @@ Tous les écarts relevés ont été corrigés.
 | 7 | Motif des arrêts reconnu à la voix (observation, pénalité et son motif, demande, prononcé ou refus d'avertissement, cartons, disqualification, abandon, forfait), avec la couleur du tireur. Statistiques et points à l'adversaire par tireur. | ✅ Fait |
 | 8 | Chronomètre annexe pour les retards (C14) : annonces à 1, 2 et 3 minutes | ✅ Fait |
 | 9 | Mode relais (C13) : reprise unique = base × équipiers × 2, annonce « Relais » à chaque minute et fenêtre de 10 s | ✅ Fait, sauf la limite de 2 minutes par tireur ([#10](https://github.com/doppelganger9/chrono-vocal/issues/10)) |
+| 11 | Rappels à l'appel de la reprise (C15) : un bouton par tireur pendant le repos et en « prêt », ou « rappel, tireur bleu » à la voix. La sanction suit le rang du rappel ; annulable ; dans les statistiques. | ✅ Fait ([#8](https://github.com/doppelganger9/chrono-vocal/issues/8)) |
+| 12 | Sous-titre du repos (C7) : pendant la minute de repos, l'écran rappelle ce que l'arbitre doit dire depuis la dernière étape (« Tireurs, équipez-vous » à 30 s, « Tireurs au centre » à 15 s, contrôle des officiels à 5 s), même si les annonces vocales sont réglées autrement. | ✅ Fait ([#43](https://github.com/doppelganger9/chrono-vocal/issues/43)) |
 | 10 | Plusieurs aires, chronomètre central (C12) | Plus tard : [#11](https://github.com/doppelganger9/chrono-vocal/issues/11) |
 
 ### Hypothèses prises
@@ -157,6 +159,7 @@ Tous les écarts relevés ont été corrigés.
 - **Prolongation (C11) seulement quand les arrêts ne sont pas décomptés.** Quand ils le sont, le chrono est déjà figé pendant l'arrêt, et ajouter 30 s compterait ce temps deux fois. Les 30 s s'ajoutent au « allez » qui termine l'arrêt.
 - **« Stop » pendant la minute de repos** fige le repos. Le règlement ne le prévoit pas, mais c'est utile en pratique.
 - **Points à l'adversaire** : pénalité 1, avertissement prononcé 2, carton jaune ou rouge 2. Une demande d'avertissement, un avertissement refusé ou une observation valent 0. C'est une aide, pas une feuille de marque officielle : les touches sont comptées par les juges.
+- **Rappels (C15)** : comptés par tireur sur tout l'assaut, pas reprise par reprise. Au-delà du 3e, chaque rappel vaut à nouveau un carton jaune ; le règlement ne dit rien de plus, l'arbitre décide de la suite. Un rappel pendant le repos compte pour la reprise appelée.
 - **Relais** : l'app ne sait pas quel tireur est sur l'aire. La limite de 2 minutes consécutives par tireur reste à surveiller par l'arbitre.
 
 ## 6. Questions ouvertes
