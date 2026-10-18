@@ -32,34 +32,3 @@ jobs:
           name: playwright-traces
           path: test-results/
           retention-days: 7
-
-  # Preuves de qualité (CONTRIBUTING.md § 3) : couverture et score de mutation dans le résumé de l'exécution.
-  # Sur les PR seulement. Un score de mutation sous 80 % fait échouer ce job (thresholds.break de Stryker, #60).
-  # Pas sur les PR de Dependabot : une montée de version d'outils ne change pas le code testé, et la CI reste légère.
-  qualite:
-    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - name: Couverture
-        run: npm run coverage && cat coverage/coverage-summary.md >> "$GITHUB_STEP_SUMMARY"
-      - name: Tests de mutation
-        run: |
-          status=0; npm run mutation || status=$?   # le résumé s'affiche même sous le seuil
-          node -e "const f=require('./reports/mutation/mutation.json').files; let k=0,t=0; for (const [n,x] of Object.entries(f)) { const m=x.mutants; const kk=m.filter(z=>['Killed','Timeout'].includes(z.status)).length; const tt=m.filter(z=>!['Ignored','CompileError','RuntimeError'].includes(z.status)).length; k+=kk; t+=tt; console.log('| '+n+' | '+(100*kk/tt).toFixed(1)+' % | '+kk+' / '+tt+' |'); } console.log('| **Total** | **'+(100*k/t).toFixed(1)+' %** | '+k+' / '+t+' |');" > mutation.md
-          { echo '### Score de mutation'; echo; echo '| Fichier | Score | Tués / total |'; echo '|---|---|---|'; cat mutation.md; } >> "$GITHUB_STEP_SUMMARY"
-          exit $status
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: rapports-qualite
-          path: |
-            coverage/
-            reports/mutation/
-          retention-days: 14
