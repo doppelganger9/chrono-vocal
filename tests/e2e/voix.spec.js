@@ -57,3 +57,29 @@ test('apprendre une variante mal reconnue depuis les réglages', async ({ app })
   await app.hear('Allô');
   await expect(app.phase).toHaveText('Assaut');
 });
+
+// #30 : sur iPhone, parler pendant que la reconnaissance écoute encore la même phrase bloquait le micro
+test('« Chrono, prêt ? » : réponse une fois la phrase finie, puis l\'écoute est relancée', async ({ app }) => {
+  const log = () => app.page.evaluate(() => window.__recLog.slice());
+  const startsBefore = (await log()).filter(x => x === 'start').length;
+  await app.hear('Chrono, prêt', { final: false });                     // résultat provisoire
+  await expect(app.heard).toHaveText('🎙 Chrono, prêt ?');
+  expect(await app.spoken()).not.toContain('Prêt');                       // pas de voix pendant que l'arbitre parle
+  await app.hear('Chrono, prêt ?');                                      // la phrase est finie
+  await app.expectSpoken('Prêt');
+  await app.wait(500);
+  await expect.poll(async () => (await log()).filter(x => x === 'start').length).toBe(startsBefore + 1); // écoute relancée
+  expect((await app.spoken()).filter(t => t === 'Prêt')).toHaveLength(1); // une seule réponse
+
+  // le micro répond toujours aux commandements
+  await app.hear('Allez');
+  await expect(app.phase).toHaveText('Assaut');
+});
+
+test('« Chrono, prêt ? » : si l\'écoute s\'arrête avant la fin de la phrase, la réponse est quand même donnée', async ({ app }) => {
+  await app.hear('Chrono, prêt', { final: false });
+  await app.page.evaluate(() => window.__rec.onend());                  // Safari coupe l'écoute après un silence
+  await app.expectSpoken('Prêt');
+  await app.hear('Allez');
+  await expect(app.phase).toHaveText('Assaut');
+});
