@@ -1,6 +1,7 @@
 {
   "name": "chrono-vocal",
   "private": true,
+  "license": "MIT",
   "description": "Chrono vocal pour la canne de combat",
   "scripts": {
     "test": "npm run typecheck && npm run test:unit && npm run test:e2e",
