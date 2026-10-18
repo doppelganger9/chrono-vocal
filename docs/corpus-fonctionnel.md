@@ -151,6 +151,7 @@ Tous les écarts relevés ont été corrigés.
 | 8 | Chronomètre annexe pour les retards (C14) : annonces à 1, 2 et 3 minutes | ✅ Fait |
 | 9 | Mode relais (C13) : reprise unique = base × équipiers × 2, annonce « Relais » à chaque minute et fenêtre de 10 s | ✅ Fait, sauf la limite de 2 minutes par tireur ([#10](https://github.com/doppelganger9/chrono-vocal/issues/10)) |
 | 11 | Rappels à l'appel de la reprise (C15) : un bouton par tireur pendant le repos et en « prêt », ou « rappel, tireur bleu » à la voix. La sanction suit le rang du rappel ; annulable ; dans les statistiques. | ✅ Fait ([#8](https://github.com/doppelganger9/chrono-vocal/issues/8)) |
+| 12 | Sous-titre du repos (C7) : pendant la minute de repos, l'écran rappelle ce que l'arbitre doit dire depuis la dernière étape (« Tireurs, équipez-vous » à 30 s, « Tireurs au centre » à 15 s, contrôle des officiels à 5 s), même si les annonces vocales sont réglées autrement. | ✅ Fait ([#43](https://github.com/doppelganger9/chrono-vocal/issues/43)) |
 | 10 | Plusieurs aires, chronomètre central (C12) | Plus tard : [#11](https://github.com/doppelganger9/chrono-vocal/issues/11) |
 
 ### Hypothèses prises

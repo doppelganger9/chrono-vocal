@@ -1,6 +1,6 @@
 // Affichage de l'écran principal à partir de l'état du chrono.
 import { $, $button } from './dom.js';
-import { fmt } from '../lang.js';
+import { fmt, restCue } from '../lang.js';
 import { rappelSanction } from '../chrono.js';
 import { tireurColor } from '../colors.js';
 
@@ -35,7 +35,7 @@ export function render({ chrono, cfg, lastEnGarde, undoTop, now = Date.now(), bo
   else if (inPlay && rs.length) {
     const tot = rs.reduce((a, x) => a + (x.dur ?? 0), 0);
     line = `${rs.length} arrêt${rs.length > 1 ? 's' : ''} · ${fmt(tot)}`;
-  }
+  } else if (st.phase === 'rest' && !st.halt) { const cue = restCue(st.remaining); if (cue) line = `🗣 « ${cue} »`; } // ce que l'arbitre doit dire
   if (st.prolonged && inPlay) line += (line ? ' · ' : '') + 'prolongation +30 s';
   $('stops').textContent = line;
   $button('prolongBtn').hidden = !(st.prolongOffer > now && !st.prolonged && inPlay);
