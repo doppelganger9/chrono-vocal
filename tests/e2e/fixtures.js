@@ -110,17 +110,21 @@ class App {
 const test = base.extend({
   // réglages déjà enregistrés sur le téléphone avant l'ouverture (facultatif)
   savedSettings: [null, { option: true }],
+  // témoin « micro silencieux » (#56) : la fausse reconnaissance ne transmet rien d'elle-même, il est donc coupé (0)
+  // sauf dans les tests qui le concernent
+  micSilentMs: [0, { option: true }],
   // écran titre déjà vu (version), pour ne pas gêner les autres tests ; false : premier lancement
   introSeen: [99, { option: true }],
   // stockage du navigateur indisponible (navigation privée stricte)
   blockStorage: [false, { option: true }],
-  app: async ({ page, savedSettings, introSeen, blockStorage, browserName }, use) => {
+  app: async ({ page, savedSettings, introSeen, blockStorage, micSilentMs, browserName }, use) => {
     // toute erreur JavaScript de la page fait échouer le test
     const pageErrors = [];
     page.on('pageerror', e => pageErrors.push(e.message));
     const coverage = COVERAGE_DIR && browserName === 'chromium';
     if (coverage) await page.coverage.startJSCoverage({ resetOnNavigation: false });
     await page.addInitScript(installFakes);
+    await page.addInitScript(ms => { window.__chronoEnv.micSilentMs = ms; }, micSilentMs);
     // (les scripts d'initialisation tournent aussi sur about:blank, où le stockage est interdit)
     if (introSeen) await page.addInitScript(v => { try { localStorage.setItem('chrono-canne-intro', String(v)); } catch {} }, introSeen);
     if (blockStorage) await page.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('bloqué', 'SecurityError'); } }));
