@@ -226,3 +226,35 @@ test("parseMotif : « demande de disqualification » est une demande, pas une di
   assert.deepEqual(L.parseMotif("demande d'avertissement ou disqualification au tireur bleu pour antijeu", ['rouge', 'bleu']),
     { type: 'demande-avert', pts: 0, color: 'bleu' });
 });
+
+test('« en garde » : variantes relevées en recette, sans faux positifs (#47)', () => {
+  for (const t of ['On garde', 'Garde', 'Sans garde', 'Tireur en garde', 'Tireurs en garde', 'Tire en garde', 'Tir en garde'])
+    assert.deepEqual(L.parseCommand(t), { enGarde: true, cmd: null, end: null }, t);
+  assert.deepEqual(L.parseCommand('Tireurs en garde, allez'), { enGarde: true, cmd: 'ALLEZ', end: null });
+  assert.deepEqual(L.parseCommand('San garde'), { enGarde: true, cmd: null, end: null });
+  assert.deepEqual(L.parseCommand('Tireur garde'), { enGarde: true, cmd: null, end: null }, 'deux mots seulement');
+  for (const t of ['On regarde', 'Regarde', 'Garderie', 'Tireur', 'Tireur bleu', 'Satire en garde', 'Tireuse en garde', 'garde à vous'])
+    assert.equal(L.parseCommand(t), null, t);
+});
+
+test('sanctions : pluriel, et sortie d\'aire ou lâcher de canne sans le mot « pénalité » (#47)', () => {
+  const colors = ['rouge', 'bleu'];
+  assert.equal(L.parseMotif('Observations rouge, défaut de priorité', colors).type, 'observation');
+  assert.deepEqual(L.parseMotif("Pour sortie d'air tir en bleu", colors), { type: 'penalite', pts: 1, detail: "sortie d'aire", color: 'bleu' });
+  assert.deepEqual(L.parseMotif('lâcher de canne tireur rouge', colors), { type: 'penalite', pts: 1, detail: 'lâcher de canne', color: 'rouge' });
+  assert.deepEqual(L.parseMotif("pénalités pour sortie d'aire bleu", colors), { type: 'penalite', pts: 1, detail: "sortie d'aire", color: 'bleu' });
+  assert.equal(L.parseMotif('sortie', colors), null);
+});
+
+test('« Chrono » puis « prêt » en deux phrases : isChronoCall et isPretAlone (#47)', () => {
+  assert.equal(L.isChronoCall('Chrono'), true);
+  assert.equal(L.isChronoCall('Chrono ?'), true);
+  assert.equal(L.isChronoCall('Chrono prêt'), false);
+  assert.equal(L.isChronoCall('le chrono tourne'), false);
+  assert.equal(L.isPretAlone('Prêt'), true);
+  assert.equal(L.isPretAlone('Près ?'), true);
+  assert.equal(L.isPretAlone('prêts'), true);
+  assert.equal(L.isPretAlone('prêt pour le salut'), false);
+  assert.equal(L.isPretAlone('après'), false);
+  assert.equal(L.isPretAlone('prêtre'), false);
+});

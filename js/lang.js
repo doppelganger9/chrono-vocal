@@ -112,7 +112,9 @@ export const COMMAND_PATTERNS = [
   { name: 'ALLEZ', re: /^ale(y|i)?$|^ole$/ },
   { name: 'REPOS', re: /^re?po(s|t)?$/ },
 ];
-export const EN_GARDE = /^[ae]ngu?ard?e$/; // « en garde », « an garde », « en gare »
+export const EN_GARDE = /^(?:[ae]n|on|sans?)?gu?ard?e$/; // « en garde », « an garde », « en gare », « on garde », « sans garde », « garde » (#47)
+/** « Tireurs, en garde » : le mot qui précède parfois « en garde » (#47) */
+const TIREUR = /^tir(e|eur)?s?$/;
 // Découpe un commandement de l'arbitre : « en garde » éventuel, puis une commande courte, avec la fin
 // protocolaire « … fin de la reprise / fin de l'assaut » ignorée (I 3.2.2)
 // learned : variantes apprises par commande, ex. { ALLEZ: ['alo'] }
@@ -135,6 +137,7 @@ export function parseCommand(text, learned = {}) {
     ws = ws.slice(0, f);
   }
   let enGarde = false;
+  if (TIREUR.test(ws[0])) ws = ws.slice(1);
   if (ws.length >= 2 && EN_GARDE.test(ws[0] + ws[1])) { enGarde = true; ws = ws.slice(2); }
   else if (ws.length >= 1 && EN_GARDE.test(ws[0])) { enGarde = true; ws = ws.slice(1); }
   if (!ws.length) return end ? { enGarde, cmd: 'STOP', end } : enGarde ? { enGarde, cmd: null, end } : null;
@@ -143,9 +146,15 @@ export function parseCommand(text, learned = {}) {
   const cmd = COMMAND_PATTERNS.find(c => c.re.test(p) || (learned[c.name] || []).includes(p));
   return cmd ? { enGarde, cmd: cmd.name, end } : null;
 }
+/** « Chrono » seul : la reconnaissance a pu couper « Chrono, prêt ? » en deux phrases (#47) @param {string} text */
+export const isChronoCall = text => phon(text) === 'crono';
+/** « Prêt » seul (« près », « prêts ») : la fin de « Chrono, prêt ? » @param {string} text */
+export const isPretAlone = text => /^pre(ts)?$/.test(phon(text));
 // « Chrono, prêt ? » (contrôle des officiels avant chaque reprise)
 /** @param {string} text */
 export const isReadyCheck = text => /\bchrono\w*\b.*\bpret\b/.test(normalize(text).replace(/[^a-z0-9 ]/g, ' '));
+const SORTIE = /sortie d? ?aire?\b/; // « sortie d'aire », « sortie d'air »
+const LACHER = /lache\w* (de )?(la )?canne/;
 // Motif d'un arrêt annoncé par l'arbitre (I 4.2.8 à 4.2.13), avec la couleur du tireur concerné
 /** @param {string} text @param {string[]} [colors] @returns {Motif | null} */
 export function parseMotif(text, colors = []) {
@@ -158,10 +167,11 @@ export function parseMotif(text, colors = []) {
   else if (/avertissement prononce/.test(t)) e = { type: 'avertissement', pts: 2 };
   else if (/\bdemande (de |d )?d?(avertissement|disqualification)\b/.test(t)) e = { type: 'demande-avert', pts: 0 }; // « demande d'avertissement », « demande de disqualification »
   else if (/\bdisqualification\b/.test(t)) e = { type: 'disqualification', pts: 0 };
-  else if (/\bpenalite\b/.test(t)) e = { type: 'penalite', pts: 1,
-    detail: /sortie d? ?aire/.test(t) ? "sortie d'aire" : /lache\w* (de )?(la )?canne/.test(t) ? 'lâcher de canne'
+  // une sortie d'aire ou un lâcher de canne vaut toujours une pénalité, même si le mot « pénalité » s'est perdu (#47)
+  else if (/\bpenalites?\b/.test(t) || SORTIE.test(t) || LACHER.test(t)) e = { type: 'penalite', pts: 1,
+    detail: SORTIE.test(t) ? "sortie d'aire" : LACHER.test(t) ? 'lâcher de canne'
       : /equipement/.test(t) ? 'équipement' : /retard/.test(t) ? 'retard' : null };
-  else if (/\bobservation\b/.test(t)) e = { type: 'observation', pts: 0 };
+  else if (/\bobservations?\b/.test(t)) e = { type: 'observation', pts: 0 };
   else if (/\babandon\b/.test(t)) e = { type: 'abandon', pts: 0 };
   else if (/\bforfait\b/.test(t)) e = { type: 'forfait', pts: 0 };
   if (!e) return null;

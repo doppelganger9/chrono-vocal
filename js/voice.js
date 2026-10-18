@@ -1,5 +1,5 @@
 // Ce que l'arbitre dit → commandes du chrono, sanctions, réglages. ADR 0005 (mots courts) et 0006 (l'arbitre décide).
-import { parseCommand, parseMotif, parseReferee, isReadyCheck, phon, buildSentence } from './lang.js';
+import { parseCommand, parseMotif, parseReferee, isReadyCheck, isChronoCall, isPretAlone, phon, buildSentence } from './lang.js';
 import { EVENT_LABELS, eventLabel } from './stats.js';
 
 /** @typedef {import('./types.js').Config} Config @typedef {import('./types.js').CommandName} CommandName */
@@ -28,11 +28,13 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
   let unheard = [];
   /** « Chrono, prêt ? » entendu dans un résultat provisoire : la réponse attend la fin de la phrase (#30) */
   let readyPending = -1;
+  /** heure d'un « Chrono » entendu seul : « prêt » peut arriver dans la phrase suivante (#47) */
+  let lastChronoAt = 0;
 
   // Répondre pendant que la reconnaissance écoute encore la même phrase bloquait le micro sur iPhone (#30) :
   // on répond une fois la phrase finie, puis l'écoute est relancée
   function answerReady() {
-    readyPending = -1;
+    readyPending = -1; lastChronoAt = 0;
     if (getCfg().answerReady) { speech.say('Prêt', { relisten: true }); ui.showHeard('🎙 Chrono, prêt ? → « Prêt »'); }
   }
 
@@ -100,11 +102,18 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
     const phase = chrono.state.phase;
     const note = () => journal?.add({ alts, final: isFinal, phase, action });
     action = '';
-    if (alts.some(isReadyCheck) || readyPending === index) {
+    const pretAfterChrono = now() - lastChronoAt < 4000 && alts.some(isPretAlone);
+    if (alts.some(isReadyCheck) || pretAfterChrono || readyPending === index) {
       if (!isFinal) { readyPending = index; ui.showHeard('🎙 Chrono, prêt ?'); return; }
       firedFor.add(index);
       answerReady();
       action = 'Prêt'; note();
+      return;
+    }
+    // « Chrono » seul, en phrase finie : la suite (« prêt ») arrive souvent à part (#47)
+    if (isFinal && alts.some(isChronoCall)) {
+      firedFor.add(index); lastChronoAt = now();
+      action = 'Chrono…'; ui.showHeard('🎙 Chrono…'); note();
       return;
     }
     // « en garde » seul ne consomme pas le résultat : la suite (« … allez ») peut arriver dans le même résultat

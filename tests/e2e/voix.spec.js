@@ -83,3 +83,16 @@ test('« Chrono, prêt ? » : si l\'écoute s\'arrête avant la fin de la phrase
   await app.hear('Allez');
   await expect(app.phase).toHaveText('Assaut');
 });
+
+test('« Chrono » puis « prêt » arrivés en deux phrases : l\'app répond quand même (#47)', async ({ app }) => {
+  await app.hear('Chrono');
+  await app.hear('Prêt');
+  await app.expectSpoken('Prêt');
+  await app.clearSpoken();
+  await app.wait(5000);
+  await app.hear('Chrono');
+  await app.wait(5000);                                          // trop tard : ce n'est plus la même question
+  await app.hear('Prêt');
+  await app.wait(500);
+  expect(await app.spoken()).not.toContain('Prêt');
+});
