@@ -137,14 +137,12 @@ body.paused #stops { color: var(--stop); font-weight: 700; }
 #rappels button { flex: 1 1 0; min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--text);
   font-size: 15px; font-weight: 600; padding: 10px 8px; }
 #rappels small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); } /* la sanction que vaudrait ce rappel */
-/* paysage et petits écrans */
-@media (orientation: landscape), (max-height: 740px) {
-  /* rappels (#8) : sur une ligne, et des chiffres un peu moins hauts tant qu'ils sont affichés */
+@media (orientation: landscape) {
+  /* rappels (#8) : sur une ligne, et des chiffres un peu moins hauts tant qu'ils sont affichés.
+     Pas en portrait : la largeur ne suffit pas, le texte passerait à la ligne après « · » */
   #rappels { margin: 2px auto; }
   #rappels button { padding: clamp(4px, 1.6vh, 10px) 8px; font-size: clamp(12px, 3.6vh, 16px); }
   #rappels small { display: inline; font-size: inherit; }
   #rappels small span[hidden] { display: inline; }
-}
-@media (orientation: landscape) {
   main:has(#rappels:not([hidden])) #time { font-size: min(46vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
 }
