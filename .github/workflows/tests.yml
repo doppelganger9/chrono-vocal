@@ -32,8 +32,9 @@ jobs:
 
   # Preuves de qualité (CONTRIBUTING.md § 3) : couverture et score de mutation dans le résumé de l'exécution.
   # Sur les PR seulement, et sans bloquer la fusion tant que les seuils ne sont pas fixés.
+  # Pas sur les PR de Dependabot : une montée de version d'outils ne change pas le code testé, et la CI reste légère.
   qualite:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
