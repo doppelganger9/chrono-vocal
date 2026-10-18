@@ -6,7 +6,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { tooOld, MIN_NODE } = require('../../scripts/check-node.js');
 const M = require('../../scripts/lib/mesures.js');
-const { buildBody } = require('../../scripts/pr-body.js');
+const { buildBody, isFresh } = require('../../scripts/pr-body.js');
 
 const root = new URL('../../', import.meta.url);
 const pkg = JSON.parse(fs.readFileSync(new URL('package.json', root), 'utf8'));
@@ -47,7 +47,7 @@ test('mesures : couverture et score de mutation', () => {
 test('description de PR : toutes les rubriques du modèle, les mesures remplies, le reste à écrire', () => {
   const body = buildBody({
     issue: 57, visible: false,
-    verif: { unit: { pass: 150, fail: 0, skipped: 0 }, e2e: { passed: 180, failed: 0, flaky: 0, skipped: 1, seconds: 40 } },
+    verif: { unit: { pass: 150, fail: 0, skipped: 0 }, e2e: { passed: 180, failed: 0, flaky: 0, skipped: 1, seconds: 40.5 } },
     base: { unit: { pass: 145, fail: 0, skipped: 0 }, e2e: { passed: 175, failed: 0, flaky: 0, skipped: 1, seconds: 39 } },
     coverage: { statements: 94.5, branches: 87, lines: 90 },
     mutation: { total: 90.2, files: { 'js/lang.js': 87.5 }, survivors: [{ file: 'js/lang.js', line: 3, mutator: 'Regex', replacement: '/x/' }] },
@@ -57,7 +57,7 @@ test('description de PR : toutes les rubriques du modèle, les mesures remplies,
     '## Coût de développement (statistiques IA)', '## À vérifier sur téléphone', '## Écarts par rapport à l\'issue']) assert.ok(body.includes(h), h);
   assert.match(body, /Closes #57/);
   assert.match(body, /Tests unitaires : 145 → 150/);
-  assert.match(body, /Tests de bout en bout : 175 → 180/);
+  assert.match(body, /Tests de bout en bout : 175 → 180\*\* \(1 ignoré\), en 40,5 s/);
   assert.match(body, /94,5 % des instructions, 87 % des branches/);
   assert.match(body, /Mutation : 90,2 %/);
   assert.match(body, /js\/lang\.js:3 Regex/);
@@ -67,4 +67,11 @@ test('description de PR : toutes les rubriques du modèle, les mesures remplies,
   assert.match(body, /À ÉCRIRE/, 'le pourquoi reste à écrire');
   assert.match(body, /🤖 Generated with \[Claude Code\]/);
   assert.match(buildBody({ issue: 1, visible: true, assets: '| a |', touched: [] }), /\| a \|/);
+});
+
+test('description de PR : une mesure d\'une PR précédente n\'est pas reprise', () => {
+  const since = '2026-10-18T15:40:00Z';
+  assert.equal(isFresh(Date.parse('2026-10-18T15:39:59Z'), since), false);
+  assert.equal(isFresh(Date.parse('2026-10-18T15:40:00Z'), since), true);
+  assert.equal(isFresh(0, undefined), true, 'sans date de début : tout est repris');
 });

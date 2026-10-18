@@ -11,6 +11,10 @@ const { fr } = require('./lib/mesures.js');
 
 const TODO = '_À ÉCRIRE_';
 
+/** Une mesure n'est reprise que si elle a été faite pendant le travail sur la branche, pas pour une PR précédente
+ * @param {number} mtimeMs @param {string | undefined} since */
+const isFresh = (mtimeMs, since) => !since || mtimeMs >= Date.parse(since);
+
 /**
  * @param {object} d
  * @param {number} d.issue
@@ -28,7 +32,7 @@ function buildBody({ issue, visible, verif, base, coverage, mutation, touched, a
   const evol = (/** @type {number | undefined} */ a, /** @type {number | undefined} */ b) => (a !== undefined && a !== b ? `${a} → ${b}` : `${b}`);
   const quality = [];
   if (verif?.unit) quality.push(`- **Tests unitaires : ${evol(base?.unit?.pass, verif.unit.pass)}**. ${TODO} (ce que vérifient les nouveaux tests)`);
-  if (verif?.e2e) quality.push(`- **Tests de bout en bout : ${evol(base?.e2e?.passed, verif.e2e.passed)}**${verif.e2e.skipped ? ` (${verif.e2e.skipped} ignoré${verif.e2e.skipped > 1 ? 's' : ''})` : ''}, en ${verif.e2e.seconds} s. ${TODO}`);
+  if (verif?.e2e) quality.push(`- **Tests de bout en bout : ${evol(base?.e2e?.passed, verif.e2e.passed)}**${verif.e2e.skipped ? ` (${verif.e2e.skipped} ignoré${verif.e2e.skipped > 1 ? 's' : ''})` : ''}, en ${fr(verif.e2e.seconds)} s. ${TODO}`);
   if (coverage) quality.push(`- **Couverture** : ${fr(coverage.statements)} % des instructions, ${fr(coverage.branches)} % des branches.`);
   if (mutation) {
     const mine = Object.entries(mutation.files).filter(([f]) => touched.includes(f));
@@ -65,6 +69,8 @@ if (require.main === module) {
   // début du travail : la création de la branche (reflog), sauf --since
   const created = sh(`git reflog show --date=iso-strict --format=%gd refs/heads/${branch}`).split('\n').pop()?.match(/\{(.+)\}/);
   const since = opt('since') || (created ? new Date(created[1]).toISOString() : undefined);
+  /** mesure faite pendant le travail sur cette branche seulement @param {string} f */
+  const readFresh = f => (fs.existsSync(path.join(root, f)) && isFresh(fs.statSync(path.join(root, f)).mtimeMs, since) ? read(f) : null);
   const verif = json('reports/verifier.json');
   const mutationReport = json('reports/mutation/mutation.json');
   const body = buildBody({
@@ -73,7 +79,7 @@ if (require.main === module) {
     coverage: verif?.coverage || null,
     mutation: verif?.mutation || (mutationReport ? require('./lib/mesures.js').mutationScore(mutationReport) : null),
     touched: sh('git diff --name-only origin/main...HEAD').split('\n').filter(Boolean),
-    assets: read('reports/pr-assets.md'), perf: read('screenshots/perf.md'),
+    assets: readFresh('reports/pr-assets.md'), perf: readFresh('screenshots/perf.md'),
     ai: since ? sh(`node scripts/ai-stats.js --since ${since}`) : null,
   });
   fs.mkdirSync(path.join(root, 'reports'), { recursive: true });
@@ -81,4 +87,4 @@ if (require.main === module) {
   console.log(`reports/pr-body.md (issue #${issue}, depuis ${since || '?'}) : ${(body.match(/À ÉCRIRE/g) || []).length} parties à écrire`);
 }
 
-module.exports = { buildBody };
+module.exports = { buildBody, isFresh };
