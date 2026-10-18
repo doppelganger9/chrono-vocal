@@ -1,8 +1,11 @@
 // Ce que l'arbitre dit → commandes du chrono, sanctions, réglages. ADR 0005 (mots courts) et 0006 (l'arbitre décide).
-import { parseCommand, parseRappel, parseMotif, parseReferee, isReadyCheck, isChronoCall, isPretAlone, phon, buildSentence } from './lang.js';
+// Ce que veut dire une phrase vient de classify (js/lang.js), testé par le corpus de phrases réelles ; ce module décide
+// seulement quoi en faire selon la phase (#58).
+import { classify, parseReferee, phon, buildSentence } from './lang.js';
 import { EVENT_LABELS, eventLabel } from './stats.js';
 
-/** @typedef {import('./types.js').Config} Config @typedef {import('./types.js').CommandName} CommandName */
+/** @typedef {import('./types.js').Config} Config @typedef {import('./types.js').CommandName} CommandName @typedef {import('./types.js').Motif} Motif */
+/** @typedef {ReturnType<typeof classify>} Meaning */
 
 /**
  * @param {object} deps
@@ -39,58 +42,49 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
     if (getCfg().answerReady) { speech.say('Prêt', { relisten: true }); ui.showHeard('🎙 Chrono, prêt ? → « Prêt »'); }
   }
 
-  // Renvoie true si une commande a été traitée, 'engarde' si seul « en garde » a été entendu
-  /** @param {string} text @returns {boolean | 'engarde'} */
-  function tryCommand(text) {
-    const r = parseCommand(text, getCfg().learned);
-    if (!r) return false;
-    if (r.enGarde) lastEnGarde = now();
-    if (!r.cmd) { action = 'EN GARDE'; ui.showHeard('🎙 EN GARDE'); ui.render(); return 'engarde'; }
+  // Un commandement : « en garde » éventuel, puis une commande courte. Renvoie 'engarde' si seul « en garde » a été dit
+  /** @param {Extract<Meaning, { kind: 'command' }> | { kind: 'engarde' }} c @param {string} text @returns {true | 'engarde'} */
+  function doCommand(c, text) {
+    if (c.kind === 'engarde') { lastEnGarde = now(); action = 'EN GARDE'; ui.showHeard('🎙 EN GARDE'); ui.render(); return 'engarde'; }
+    if (c.enGarde) lastEnGarde = now();
     // « Stop, fin de la reprise / de l'assaut » : l'arbitre termine la reprise
-    if (r.end) {
-      const name = r.end === 'assaut' ? "FIN DE L'ASSAUT" : 'FIN DE REPRISE';
+    if (c.end) {
+      const name = c.end === 'assaut' ? "FIN DE L'ASSAUT" : 'FIN DE REPRISE';
       if (command(name, endReprise)) { action = name; ui.showHeard('🎙 ' + name + ' (« ' + text.trim() + ' »)'); }
       else { action = name + ' sans effet'; ui.showHeard(`🎙 ${name} entendu — sans effet : ${ui.phaseText()}`); }
       return true;
     }
     // « allez » est toujours précédé de « en garde » (I 4.2.6.1) : filtre contre le public et les aires voisines
-    if (r.cmd === 'ALLEZ' && getCfg().requireEnGarde && now() - lastEnGarde > 10000) {
+    if (c.cmd === 'ALLEZ' && getCfg().requireEnGarde && now() - lastEnGarde > 10000) {
       action = 'ALLEZ ignoré (pas de « en garde »)';
       ui.showHeard('🎙 ALLEZ ignoré : pas de « en garde » juste avant'); return true;
     }
     // aucun commandement ignoré sans le dire
-    if (commands[r.cmd]()) { action = r.cmd; ui.showHeard('🎙 ' + r.cmd + ' (« ' + text.trim() + ' »)'); }
-    else { action = r.cmd + ' sans effet'; ui.showHeard(`🎙 ${r.cmd} entendu — sans effet : ${ui.phaseText()}`); }
+    if (commands[c.cmd]()) { action = c.cmd; ui.showHeard('🎙 ' + c.cmd + ' (« ' + text.trim() + ' »)'); }
+    else { action = c.cmd + ' sans effet'; ui.showHeard(`🎙 ${c.cmd} entendu — sans effet : ${ui.phaseText()}`); }
     return true;
   }
 
   // « Rappel, tireur bleu » : le texte affiché vient de deps.rappel
-  /** @param {string} text */
-  function tryRappel(text) {
-    const r = parseRappel(text, getCfg().colors);
-    if (!r) return false;
-    if (!r.color) { action = 'rappel sans tireur'; ui.showHeard(`🎙 Rappel entendu — quel tireur ? (${getCfg().colors.join(', ')})`); }
-    else if (rappel(r.color)) action = 'rappel ' + r.color;
+  /** @param {string | null} color */
+  function doRappel(color) {
+    if (!color) { action = 'rappel sans tireur'; ui.showHeard(`🎙 Rappel entendu — quel tireur ? (${getCfg().colors.join(', ')})`); }
+    else if (rappel(color)) action = 'rappel ' + color;
     else { action = 'rappel sans effet'; ui.showHeard(`🎙 Rappel entendu — sans effet : ${ui.phaseText()}`); }
-    return true;
   }
 
-  /** @param {string} text */
-  function tryMotif(text) {
-    if (!chrono.bout.start) return false;
-    const e = parseMotif(text, getCfg().colors);
-    if (!e) return false;
+  /** @param {Motif} e */
+  function doMotif(e) {
     let label = '';
     command(EVENT_LABELS[e.type].toUpperCase(), () => { label = eventLabel(chrono.addEvent(e)); });
     action = 'sanction : ' + label;
     ui.showHeard('📝 ' + label);
-    return true;
   }
 
-  /** @param {string} text */
-  function tryReferee(text) {
+  // Format de l'assaut dit par l'arbitre : seulement hors reprise. false si la phrase n'en contient pas
+  /** @param {ReturnType<typeof parseReferee>} p @returns {boolean} */
+  function doReferee(p) {
     if (chrono.state.running) return false;
-    const p = parseReferee(text);
     action = 'réglages';
     if (p.tooMany) { ui.showHeard(`⚠️ ${p.tooMany} reprises : 4 au maximum`); speech.say('Quatre reprises au maximum'); return true; }
     if (!p.rounds && !p.roundSec) return false;
@@ -98,6 +92,16 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
     ui.showHeard('✅ ' + buildSentence(getCfg()));
     speech.say('Compris. ' + buildSentence(getCfg()).replace(/^Pour un/, 'Un'));
     return true;
+  }
+
+  // Une phrase finie qui n'est pas un commandement : rappel, sanction (l'assaut commencé), ou format de l'assaut
+  /** @param {Meaning} m @param {string} text @returns {boolean} true si la phrase a servi */
+  function doSentence(m, text) {
+    if (m.kind === 'rappel') { doRappel(m.color); return true; }
+    if (m.kind === 'motif' && chrono.bout.start) { const { kind, ...e } = m; doMotif(e); return true; }
+    if (m.kind === 'referee') { const { kind, ...p } = m; return doReferee(p); } // les réglages seulement, sans « kind »
+    // une sanction avant l'assaut n'a rien à quoi se rattacher ; la phrase peut encore porter le format de l'assaut
+    return m.kind === 'motif' ? doReferee(parseReferee(text)) : false;
   }
 
   // Mots courts entendus mais non reconnus, pour les apprendre depuis les réglages
@@ -113,9 +117,11 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
     if (firedFor.has(index)) return;
     const phase = chrono.state.phase;
     const note = () => journal?.add({ alts, final: isFinal, phase, action });
+    const cfg = getCfg();
+    const meanings = alts.map(a => classify(a, cfg.learned, cfg.colors));
+    const has = (/** @type {Meaning['kind']} */ kind) => meanings.some(m => m.kind === kind);
     action = '';
-    const pretAfterChrono = now() - lastChronoAt < 4000 && alts.some(isPretAlone);
-    if (alts.some(isReadyCheck) || pretAfterChrono || readyPending === index) {
+    if (has('ready') || (now() - lastChronoAt < 4000 && has('pret')) || readyPending === index) {
       if (!isFinal) { readyPending = index; ui.showHeard('🎙 Chrono, prêt ?'); return; }
       firedFor.add(index);
       answerReady();
@@ -123,23 +129,26 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
       return;
     }
     // « Chrono » seul, en phrase finie : la suite (« prêt ») arrive souvent à part (#47)
-    if (isFinal && alts.some(isChronoCall)) {
+    if (isFinal && has('chrono')) {
       firedFor.add(index); lastChronoAt = now();
       action = 'Chrono…'; ui.showHeard('🎙 Chrono…'); note();
       return;
     }
-    // « en garde » seul ne consomme pas le résultat : la suite (« … allez ») peut arriver dans le même résultat
+    // un commandement peut venir de n'importe quelle alternative. « en garde » seul ne consomme pas le résultat :
+    // la suite (« … allez ») peut arriver dans le même résultat
     /** @type {boolean | 'engarde'} */
     let heard = false;
-    for (const a of alts) {
-      const r = tryCommand(a);
+    for (let i = 0; i < alts.length; i++) {
+      const m = meanings[i];
+      if (m.kind !== 'command' && m.kind !== 'engarde') continue;
+      const r = doCommand(m, alts[i]);
       if (r === true) { heard = true; break; }
-      if (r === 'engarde') heard = 'engarde';
+      heard = 'engarde';
     }
     if (heard === true) { firedFor.add(index); note(); return; }
     if (isFinal) {
       firedFor.add(index);
-      if (heard === 'engarde' || tryRappel(alts[0]) || tryMotif(alts[0]) || tryReferee(alts[0])) { note(); return; }
+      if (heard === 'engarde' || doSentence(meanings[0], alts[0])) { note(); return; }
       action = 'non reconnu'; note();
       ui.showHeard('… ' + alts[0]); noteUnheard(alts[0]);
     } else if (!heard) {

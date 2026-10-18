@@ -12,7 +12,9 @@
     "js/annex.js",
     "js/html.js",
     "js/journal.js",
-    "js/mic-watch.js"
+    "js/mic-watch.js",
+    "js/voice.js",
+    "js/speech.js"
   ],
   "reporters": [
     "clear-text",

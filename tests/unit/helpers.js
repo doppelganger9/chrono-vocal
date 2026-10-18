@@ -11,6 +11,7 @@ export function setup(overrides = {}) {
   const chrono = createChrono({ getCfg: () => cfg, clock, emit });
   return {
     chrono, clock, events,
+    getCfg: () => cfg,
     get changes() { return changes; },
     get st() { return chrono.state; },
     get bout() { return chrono.bout; },

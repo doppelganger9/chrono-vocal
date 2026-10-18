@@ -217,11 +217,14 @@ export function isEcho(heard, spoken) {
  * Ce que l'app comprend d'une phrase, indépendamment de la phase (même ordre de décision que js/voice.js).
  * Sert au corpus de phrases réelles (tests/corpus) et au journal vocal.
  * @param {string} text @param {Partial<Learned>} [learned] @param {string[]} [colors]
- * @returns {{ kind: 'ready' } | { kind: 'engarde' } | { kind: 'command', cmd: CommandName, enGarde: boolean, end: 'reprise' | 'assaut' | null }
+ * @returns {{ kind: 'ready' } | { kind: 'chrono' } | { kind: 'pret' } | { kind: 'engarde' }
+ *   | { kind: 'command', cmd: CommandName, enGarde: boolean, end: 'reprise' | 'assaut' | null }
  *   | { kind: 'rappel', color: string | null } | ({ kind: 'motif' } & Motif) | ({ kind: 'referee' } & ReturnType<typeof parseReferee>) | { kind: 'none' }}
  */
 export function classify(text, learned = {}, colors = []) {
   if (isReadyCheck(text)) return { kind: 'ready' };
+  if (isChronoCall(text)) return { kind: 'chrono' }; // « Chrono » seul : « prêt » suit souvent à part (#47)
+  if (isPretAlone(text)) return { kind: 'pret' };
   const c = parseCommand(text, learned);
   if (c) return c.cmd ? { kind: 'command', cmd: c.cmd, enGarde: c.enGarde, end: c.end } : { kind: 'engarde' };
   const rp = parseRappel(text, colors);
