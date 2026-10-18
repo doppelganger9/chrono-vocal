@@ -147,3 +147,21 @@ test.describe("l'arbitre décide de la fin de la reprise", () => {
     await expect(app.heard).toContainText('sans effet');
   });
 });
+
+test('minute de repos : sous-titre de ce que l\'arbitre doit dire, à 30, 15 et 5 s (#43)', async ({ app }) => {
+  await app.configure({ sRounds: 2, sRound: '0:05' });
+  await app.hear('Allez');
+  await app.wait(5000);
+  await app.hear('Stop, fin de la reprise');
+  await expect(app.phase).toHaveText('Minute de repos');
+  await expect(app.$('#stops')).toHaveText('');
+  await app.wait(30_500);
+  await expect(app.$('#stops')).toHaveText('🗣 « Tireurs, équipez-vous »');
+  await app.wait(15_000);
+  await expect(app.$('#stops')).toHaveText('🗣 « Tireurs au centre »');
+  await app.wait(10_000);
+  await expect(app.$('#stops')).toHaveText('🗣 « Juge 1, prêt ? … Chrono, prêt ? »');
+  await app.wait(5000);
+  await expect(app.phase).toHaveText('Prêt — en garde');
+  await expect(app.$('#stops')).toHaveText('');
+});

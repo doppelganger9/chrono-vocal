@@ -15,7 +15,7 @@ Ce que les tests automatiques ne peuvent pas vérifier : la **vraie** reconnaiss
 - [ ] Une sanction, par exemple « Pénalité pour sortie d'aire, tireur bleu » : elle s'affiche sous le chrono.
 - [ ] Pendant la minute de repos, « Rappel, tireur bleu » : « 1er rappel : Observation » s'affiche, et le bouton « Rappel bleu » annonce la pénalité suivante.
 - [ ] À la fin du temps : gong, « Temps », puis « Temps » répété toutes les 5 s. « Stop, fin de la reprise » lance la minute de repos.
-- [ ] Pendant le repos : annonces à 30, 15 et 5 s, **audibles alors que le micro écoute**.
+- [ ] Pendant le repos : annonces à 30, 15 et 5 s, **audibles alors que le micro écoute**, et sous le chrono ce que l'arbitre doit dire (« Tireurs, équipez-vous », « Tireurs au centre », « Juge 1, prêt ? … »), lisible à distance.
 - [ ] Laisser le chrono en attente 2 minutes, puis dire « allez » : l'écoute a dû repartir toute seule.
 
 ## Écran et geste

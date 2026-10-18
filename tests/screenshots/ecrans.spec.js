@@ -46,6 +46,15 @@ test('minute de repos', async ({ app }, t) => {
   await shot(app, '5-repos', t);
 });
 
+test('repos : sous-titre de l\'arbitre', async ({ app }, t) => {
+  await app.configure({ sRound: '0:05' });
+  await app.hear('Allez');
+  await app.wait(5500);
+  await app.$('#skipBtn').click();
+  await app.wait(46_000);
+  await shot(app, '5c-repos-sous-titre', t);
+});
+
 test('statistiques', async ({ app }, t) => {
   await app.configure({ sRounds: '1', sRound: '0:20' });
   await app.hear('Allez');

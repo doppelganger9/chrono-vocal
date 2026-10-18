@@ -170,6 +170,14 @@ export function parseMotif(text, colors = []) {
   return e;
 }
 
+// Ce que l'arbitre doit dire pendant la minute de repos, étape par étape (C7, I 3.2.1 et I 3.2.2) : sous-titre de l'écran (#43)
+const REST_CUES = /** @type {const} */ ([[5, 'Juge 1, prêt ? … Chrono, prêt ?'], [15, 'Tireurs au centre'], [30, 'Tireurs, équipez-vous']]);
+/** La dernière étape atteinte, d'après le temps de repos restant ; null avant 30 s @param {number} remaining @returns {string | null} */
+export function restCue(remaining) {
+  const cue = REST_CUES.find(([sec]) => remaining <= sec);
+  return cue ? cue[1] : null;
+}
+
 /** « Rappel, tireur bleu » : retard d'un tireur à l'appel de la reprise (C15). null si ce n'est pas un rappel.
  * @param {string} text @param {string[]} [colors] @returns {{ color: string | null } | null} */
 export function parseRappel(text, colors = []) {

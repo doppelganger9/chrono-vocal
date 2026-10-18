@@ -241,3 +241,14 @@ test('parseRappel : « rappel, tireur bleu » et ses variantes (#8)', () => {
 test('classify : un rappel passe avant les sanctions', () => {
   assert.deepEqual(L.classify('rappel tireur bleu, observation', {}, ['rouge', 'bleu']), { kind: 'rappel', color: 'bleu' });
 });
+
+test('restCue : ce que l\'arbitre doit dire pendant la minute de repos (C7, #43)', () => {
+  assert.equal(L.restCue(60), null, 'début du repos : rien');
+  assert.equal(L.restCue(30.05), null, 'pas avant 30 s');
+  assert.equal(L.restCue(30), 'Tireurs, équipez-vous');
+  assert.equal(L.restCue(15.05), 'Tireurs, équipez-vous', 'reste affiché jusqu\'à l\'étape suivante');
+  assert.equal(L.restCue(15), 'Tireurs au centre');
+  assert.equal(L.restCue(5.05), 'Tireurs au centre');
+  assert.equal(L.restCue(5), 'Juge 1, prêt ? … Chrono, prêt ?');
+  assert.equal(L.restCue(0), 'Juge 1, prêt ? … Chrono, prêt ?');
+});
