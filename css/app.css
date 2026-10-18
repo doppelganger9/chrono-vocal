@@ -131,6 +131,13 @@ body.paused #stops { color: var(--stop); font-weight: 700; }
 #importDiff table { width: 100%; border-collapse: collapse; font-size: 15px; }
 #importDiff th, #importDiff td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; }
 
+/* Témoin « micro silencieux » (#56) : orange, comme un avertissement ; un toucher relance l'écoute */
+#micStale { border: 1px solid var(--round); color: var(--round); background: transparent; border-radius: 999px;
+  padding: 4px 12px; font-size: 14px; font-weight: 600; max-width: 100%; }
+#micStale[hidden] { display: none; }
+.mic.stale { border-color: var(--round); }
+.mic.stale .dot { background: var(--round); }
+
 /* Rappels à l'appel de la reprise (#8) : un bouton par tireur, avec sa pastille, côte à côte */
 #rappels { display: flex; gap: 8px; justify-content: center; margin: 6px auto; width: 100%; max-width: 520px; }
 #rappels[hidden] { display: none; }
@@ -154,6 +161,8 @@ body.paused #stops { color: var(--stop); font-weight: 700; }
   #time { font-size: min(42vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
   .controls { gap: 6px; padding-bottom: 4px; }
   body[data-board="1"]:not([data-controls="shown"]) #time { font-size: min(46vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
-  main:has(#rappels:not([hidden])) #time { font-size: min(34vh, calc(100cqw / (var(--chars, 4) * 0.7))); } /* avec les rappels (#8) */
+  main:has(#rappels:not([hidden])) #time, main:has(#micStale:not([hidden])) #time { font-size: min(34vh, calc(100cqw / (var(--chars, 4) * 0.7))); } /* avec les rappels (#8) ou le témoin du micro (#56) */
+  main:has(#rappels:not([hidden])):has(#micStale:not([hidden])) #time { font-size: min(26vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
+  #micStale { padding: 2px 10px; font-size: 13px; }
   .intro img { display: none; } /* écran titre : le texte et les boutons d'abord */
 }

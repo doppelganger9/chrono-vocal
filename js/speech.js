@@ -75,8 +75,9 @@ export function createSpeech(win = window) {
   let inPhrase = false;
   /** @type {ReturnType<typeof setTimeout> | null} */
   let relistenTimer = null;
-  /** @type {{ onResult: (alternatives: string[], isFinal: boolean, index: number) => void, onRestart: () => void, onDenied: () => void }} */
-  let handlers = { onResult() {}, onRestart() {}, onDenied() {} };
+  /** @typedef {(event: string, detail?: string) => void} MicEvent  vie du micro, pour le journal et le témoin (#56) */
+  /** @type {{ onResult: (alternatives: string[], isFinal: boolean, index: number) => void, onRestart: () => void, onDenied: () => void, onEvent: MicEvent }} */
+  let handlers = { onResult() {}, onRestart() {}, onDenied() {}, onEvent() {} };
 
   function start() {
     if (!SR) return;
@@ -84,6 +85,7 @@ export function createSpeech(win = window) {
     rec = r;
     r.lang = 'fr-FR'; r.continuous = true; r.interimResults = true; r.maxAlternatives = 3;
     r.onresult = e => {
+      handlers.onEvent('result');
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const alts = Array.from(e.results[i]).map(a => a.transcript);
         if (Date.now() < speakingUntil && isEcho(alts[0], lastSpoken)) continue; // notre propre voix
@@ -91,9 +93,21 @@ export function createSpeech(win = window) {
         handlers.onResult(alts, e.results[i].isFinal, i);
       }
     };
-    r.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { listening = false; handlers.onDenied(); } };
-    r.onend = () => { inPhrase = false; handlers.onRestart(); if (listening) { try { r.start(); } catch {} } };
+    r.onerror = e => {
+      handlers.onEvent('error', e.error);
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { listening = false; handlers.onDenied(); }
+    };
+    r.onend = () => {
+      inPhrase = false; handlers.onRestart();
+      if (listening) { handlers.onEvent('restart'); try { r.start(); } catch {} }
+    };
     try { r.start(); } catch {}
+  }
+  /** Repartir sur une reconnaissance neuve @param {string} event @param {string} [detail] */
+  function renew(event, detail) {
+    const old = rec;
+    if (old) { old.onresult = old.onerror = old.onend = null; try { (old.abort || old.stop).call(old); } catch {} }
+    inPhrase = false; handlers.onEvent(event, detail); handlers.onRestart(); start();
   }
   // Nouvelle reconnaissance, une fois la phrase en cours de l'arbitre terminée (5 s au plus)
   function relistenSoon() {
@@ -103,31 +117,34 @@ export function createSpeech(win = window) {
       relistenTimer = null;
       if (!listening) return;
       if (inPhrase && waited < 5000) { waited += 250; relistenTimer = setTimeout(attempt, 250); return; }
-      const old = rec;
-      if (old) { old.onresult = old.onerror = old.onend = null; try { (old.abort || old.stop).call(old); } catch {} }
-      inPhrase = false; handlers.onRestart(); start();
+      renew('relisten', lastSpoken);
     };
     relistenTimer = setTimeout(attempt, 0);
   }
-  /** onResult(alternatives[], isFinal, index) ; onRestart() quand l'écoute repart à zéro ; onDenied() si le micro est refusé */
+  /** onResult(alternatives[], isFinal, index) ; onRestart() quand l'écoute repart à zéro ; onDenied() si le micro est refusé ;
+   *  onEvent(événement, détail) pour chaque signe de vie du micro */
   /**
    * @param {object} h
    * @param {(alternatives: string[], isFinal: boolean, index: number) => void} h.onResult
    * @param {() => void} [h.onRestart]
    * @param {() => void} h.onDenied
+   * @param {MicEvent} [h.onEvent]
    */
-  function listen({ onResult, onRestart = () => {}, onDenied }) {
+  function listen({ onResult, onRestart = () => {}, onDenied, onEvent = () => {} }) {
     if (!SR) return;
-    handlers = { onResult, onRestart, onDenied };
+    handlers = { onResult, onRestart, onDenied, onEvent };
     listening = true;
+    onEvent('start');
     start();
   }
-  function stopListening() { listening = false; try { rec && rec.stop(); } catch {} }
+  function stopListening() { listening = false; handlers.onEvent('stop'); try { rec && rec.stop(); } catch {} }
 
   return {
     canListen: !!SR,
     get listening() { return listening; },
     say, unlock, listen, stopListening,
+    /** Relance à la main, quand le micro semble figé (#56) */
+    relaunch() { if (listening) renew('relaunch', 'toucher'); },
     cancel() { if (synth) synth.cancel(); },
   };
 }

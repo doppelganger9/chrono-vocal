@@ -96,3 +96,12 @@ test.describe('écran titre', () => {
   test.use({ introSeen: false });
   test('premier lancement', async ({ app }, t) => { await shot(app, '0-ecran-titre', t); });
 });
+
+test.describe('micro silencieux (#56)', () => {
+  test.use({ micSilentMs: 30_000 });
+  test('témoin', async ({ app }, t) => {
+    await app.hear('Allez');
+    await app.wait(35_000);
+    await shot(app, '9-micro-silencieux', t);
+  });
+});

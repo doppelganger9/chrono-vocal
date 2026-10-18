@@ -47,7 +47,7 @@ test('anti-écho : pendant une annonce, l\'app ignore sa propre voix, pas celle 
   await app.page.evaluate(() => { window.__speechMs = 1500; });
   await app.wait(6000);                                        // « Temps », 0,6 s après le gong
   await app.hear('Temps');                                     // le micro entend l'annonce
-  expect((await journal(app)).some(e => e.alts[0] === 'Temps'), 'écho ignoré').toBe(false);
+  expect((await journal(app)).some(e => e.alts?.[0] === 'Temps'), 'écho ignoré').toBe(false);
 });
 
 test('la relance attend la fin de la phrase de l\'arbitre (iPhone)', async ({ app, browserName }) => {

@@ -17,6 +17,7 @@ Ce que les tests automatiques ne peuvent pas vérifier : la **vraie** reconnaiss
 - [ ] À la fin du temps : gong, « Temps », puis « Temps » répété toutes les 5 s. « Stop, fin de la reprise » **à la voix**, même dit pendant un « Temps », lance la minute de repos (#45).
 - [ ] Pendant le repos : annonces à 30, 15 et 5 s, **audibles alors que le micro écoute**, et sous le chrono ce que l'arbitre doit dire (« Tireurs, équipez-vous », « Tireurs au centre », « Juge 1, prêt ? … »), lisible à distance. Après la fin du repos, « En garde, allez » **à la voix** démarre la reprise suivante (#45).
 - [ ] Laisser le chrono en attente 2 minutes, puis dire « allez » : l'écoute a dû repartir toute seule.
+- [ ] Si « 🎙 Micro silencieux depuis … » apparaît alors que tu parles, toucher pour relancer, puis **noter le moment** : le journal exporté (Réglages → Journal vocal) montre ce que le micro a fait (démarrages, fins, erreurs, relances, silences) entre les phrases (#56).
 
 ## Écran et geste
 

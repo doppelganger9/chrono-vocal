@@ -12,7 +12,7 @@ test('les phrases entendues sont notées, exportables et effaçables', async ({ 
   const [file] = await app.shared();
   expect(file.name).toBe('chrono-canne-journal-vocal.json');
   const { journal } = JSON.parse(file.text);
-  expect(journal.map(e => [e.alts[0], e.action, e.phase])).toEqual([['à les', 'ALLEZ', 'ready'], ['Allô', 'non reconnu', 'round'], ['Stop', 'STOP', 'round']]);
+  expect(journal.filter(e => e.alts).map(e => [e.alts[0], e.action, e.phase])).toEqual([['à les', 'ALLEZ', 'ready'], ['Allô', 'non reconnu', 'round'], ['Stop', 'STOP', 'round']]);
   await page.locator('#journalClear').click();
   await expect(page.locator('#journalClear')).toHaveText('Confirmer ?');
   await page.locator('#journalClear').click();

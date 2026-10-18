@@ -17,6 +17,8 @@ import { createIntro } from './ui/intro-dialog.js';
 import { createShare } from './ui/share-dialog.js';
 import { createJournal } from './journal.js';
 import { shareOrDownload } from './ui/download.js';
+import { createMicWatch } from './mic-watch.js';
+import { createMicIndicator } from './ui/mic-indicator.js';
 
 const storage = (() => { try { return window.localStorage; } catch { return { getItem: () => null, setItem() {} }; } })();
 const clock = { now: () => performance.now(), wall: () => Date.now() };
@@ -122,7 +124,7 @@ createSettingsDialog({ getCfg: () => cfg, onSave: applyConfig, voice });
 
 // Journal vocal (#3) : affiché à l'ouverture des réglages, exportable, effaçable en deux appuis
 const showJournal = () => {
-  const n = journal.entries.length;
+  const n = journal.entries.filter(e => 'alts' in e).length; // les phrases ; les événements du micro ne comptent pas
   $('journalCount').textContent = n ? `${n} phrase${n > 1 ? 's' : ''} notée${n > 1 ? 's' : ''}` : 'Aucune phrase notée';
 };
 $('settingsBtn').addEventListener('click', showJournal);
@@ -204,6 +206,22 @@ $button('skipBtn').onclick = () => {
 $('announceBtn').onclick = () => { unlock(); speech.say(buildSentence(cfg)); showHeard('📣 ' + buildSentence(cfg)); };
 
 // ---------- Micro ----------
+// Témoin « micro silencieux » (#56) : 30 s sans aucun signe de vie de la reconnaissance. window.__chronoEnv.micSilentMs
+// le règle (0 le coupe : la fausse reconnaissance des tests ne transmet rien d'elle-même)
+const silentMs = /** @type {{ __chronoEnv?: { micSilentMs?: number } }} */ (/** @type {unknown} */ (window)).__chronoEnv?.micSilentMs;
+const micWatch = createMicWatch({ now: () => Date.now(), thresholdMs: silentMs === undefined ? 30_000 : silentMs > 0 ? silentMs : Infinity });
+const micIndicator = createMicIndicator({
+  watch: micWatch, speech,
+  onSilence: ms => journal.event('silence', String(Math.round(ms / 1000)), chrono.state.phase),
+  onRelaunch: () => { unlock(); speech.relaunch(); micIndicator.update(); },
+});
+/** @param {string} event @param {string} [detail] */
+function onMicEvent(event, detail) {
+  micWatch.activity();
+  if (event !== 'result') journal.event(event, detail, chrono.state.phase); // les résultats sont notés en phrases
+  micIndicator.update();
+}
+setInterval(micIndicator.update, 1000);
 function updateMic() {
   $('micBtn').classList.toggle('on', speech.listening);
   $('micText').textContent = speech.listening ? 'À l\'écoute' : 'Micro coupé';
@@ -214,12 +232,14 @@ function startMic() {
     onResult: voice.onResult,
     onRestart: voice.onRestart,
     onDenied: () => { updateMic(); alert('Accès au micro refusé.'); },
+    onEvent: onMicEvent,
   });
   updateMic(); keepAwake();
 }
 $('micBtn').onclick = () => {
   unlock();
-  if (speech.listening) { speech.stopListening(); updateMic(); return; }
+  if (micIndicator.silent) { speech.relaunch(); micIndicator.update(); return; } // micro figé : relancer, pas couper
+  if (speech.listening) { speech.stopListening(); updateMic(); micIndicator.update(); return; }
   startMic();
 };
 // Écran titre : au premier lancement, puis une fois par nouveauté importante (#6)
