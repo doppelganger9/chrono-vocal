@@ -1,0 +1,19 @@
+# Style des fichiers du dépôt, suivi par la plupart des éditeurs (#35). https://editorconfig.org
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Markdown : deux espaces en fin de ligne forcent un retour à la ligne
+[*.md]
+trim_trailing_whitespace = false
+
+# Images générées par scripts/icons.js : laissées telles quelles
+[assets/**]
+trim_trailing_whitespace = false
+insert_final_newline = unset
