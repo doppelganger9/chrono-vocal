@@ -13,6 +13,8 @@ module.exports = defineConfig({
     { name: 'iphone-paysage', use: { ...devices['iPhone 14 landscape'] } },
     { name: 'android-portrait', use: { ...devices['Pixel 7'] } },
     { name: 'android-paysage', use: { ...devices['Pixel 7 landscape'] } },
+    // Safari avec la barre d'adresse et les onglets : la page n'a plus que 280 px de haut en paysage
+    { name: 'iphone-paysage-safari', use: { ...devices['iPhone 14 landscape'], viewport: { width: 844, height: 280 } } },
   ],
   webServer: { command: `PORT=${port} node tests/server.js`, url: `http://localhost:${port}`, reuseExistingServer: true },
 });

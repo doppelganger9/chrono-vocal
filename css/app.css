@@ -130,3 +130,13 @@ body.paused #stops { color: var(--stop); font-weight: 700; }
 #shareUrl { width: 100%; margin-top: 8px; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font-size: 13px; }
 #importDiff table { width: 100%; border-collapse: collapse; font-size: 15px; }
 #importDiff th, #importDiff td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; }
+
+/* Paysage très bas : Safari sur iPhone avec la barre d'adresse et les onglets (recette du 18 octobre 2026) */
+@media (orientation: landscape) and (max-height: 320px) {
+  header { padding: 2px 0; }
+  main { gap: 0; }
+  #time { font-size: min(42vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
+  .controls { gap: 6px; padding-bottom: 4px; }
+  body[data-board="1"]:not([data-controls="shown"]) #time { font-size: min(46vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
+  .intro img { display: none; } /* écran titre : le texte et les boutons d'abord */
+}
