@@ -100,7 +100,7 @@ Ces chiffres sont **mesurés, pas estimés**, sauf le temps actif, qui est une a
 
 | Commande | Rôle |
 |---|---|
-| **`npm run verifier`** | Typage, tests unitaires, tests de bout en bout, avec **un résumé de quelques lignes** ; s'arrête au premier échec, avec la fin de sa sortie (#57). Avec `-- --complet` : en plus la couverture et la mutation (incrémentale). Mesures dans `reports/verifier.json` |
+| **`npm run verifier`** | Typage, tests unitaires, tests de bout en bout, avec **un résumé de quelques lignes** ; s'arrête au premier échec, avec la fin de sa sortie (#57). Avec `-- --complet` : en plus la couverture et la mutation (complète : l'incrémentale rendait des scores périmés quand seuls les tests changent). Mesures dans `reports/verifier.json` |
 | **`npm run pr-body`** | Description complète de la PR dans `reports/pr-body.md`, au modèle de § 4, avec les mesures remplies (tests avant → après, couverture, mutation et survivants des fichiers touchés, captures, performances, statistiques IA). Restent les parties « À ÉCRIRE ». `-- --visible` pour une PR qui se voit |
 | `npm test` | Typage, tests unitaires, puis de bout en bout |
 | `npm run typecheck` | Types JSDoc vérifiés par TypeScript en mode strict, sans compilation (`jsconfig.json`) |

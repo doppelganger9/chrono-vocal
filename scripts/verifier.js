@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Vérification d'une branche en une commande (#57), avec un résumé de quelques lignes.
 //   npm run verifier              typage, tests unitaires, tests de bout en bout
-//   npm run verifier -- --complet  en plus : couverture, et mutation (incrémentale : seuls les mutants touchés sont rejoués)
+//   npm run verifier -- --complet  en plus : couverture et mutation. Pas de mutation incrémentale : avec le lanceur de tests
+//   « commande », Stryker ne voit pas qu'un test a changé, et rendait des scores périmés (constaté sur #58)
 // S'arrête au premier échec, avec la fin de sa sortie, et un code de sortie non nul. Les mesures vont dans
 // reports/verifier.json, et aussi dans reports/verifier-<commit>.json tant que la branche n'a rien changé à main :
 // lancé au début d'une issue, ce fichier sert de point de départ (« avant ») à la description de PR (scripts/pr-body.js).
@@ -34,7 +35,7 @@ const steps = [
   ['Tests unitaires', 'npm run -s test:unit', out => { result.unit = M.parseNodeTest(out); return `${result.unit.pass} réussis`; }],
   ['Bout en bout', 'npx playwright test', out => {
     const e = (result.e2e = M.parsePlaywright(out));
-    return `${e.passed} réussis${e.skipped ? `, ${e.skipped} ignoré${e.skipped > 1 ? 's' : ''}` : ''}${e.flaky ? `, ${e.flaky} instable${e.flaky > 1 ? 's' : ''}` : ''} (${e.seconds} s)`;
+    return `${e.passed} réussis${e.skipped ? `, ${e.skipped} ignoré${e.skipped > 1 ? 's' : ''}` : ''}${e.flaky ? `, ${e.flaky} instable${e.flaky > 1 ? 's' : ''}` : ''} (${M.fr(e.seconds)} s)`;
   }],
 ];
 if (complet) steps.push(
@@ -42,7 +43,7 @@ if (complet) steps.push(
     const c = (result.coverage = M.parseCoverage(fs.readFileSync(path.join(root, 'coverage/coverage-summary.md'), 'utf8')));
     return `${M.fr(c.statements)} % des instructions, ${M.fr(c.branches)} % des branches`;
   }],
-  ['Mutation', 'npx stryker run --incremental', () => {
+  ['Mutation', 'npx stryker run', () => {
     const m = (result.mutation = M.mutationScore(JSON.parse(fs.readFileSync(path.join(root, 'reports/mutation/mutation.json'), 'utf8'))));
     return `${M.fr(m.total)} %, ${m.survivors.length} survivant${m.survivors.length > 1 ? 's' : ''}`;
   }],
