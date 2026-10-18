@@ -11,6 +11,8 @@ export const EVENT_LABELS = {
 };
 /** @param {Motif} e */
 export const eventLabel = e => EVENT_LABELS[e.type] + (e.detail ? ' (' + e.detail + ')' : '') + (e.color ? ' ' + e.color : '');
+/** « 1er rappel : Observation (retard à l'appel) bleu » @param {import('./types.js').SanctionEvent} e */
+export const rappelLabel = e => (e.rappel === 1 ? '1er' : e.rappel + 'e') + ' rappel : ' + eventLabel(e);
 /** @param {number} s */
 export const mmss = s => fmt(Math.round(s));
 /** @param {number} n @param {{ cfg: { rounds: number } | null }} b */
@@ -56,6 +58,7 @@ export function statsText(b, k) {
     const motifs = k.events.filter(e => e.stop === i).map(eventLabel).join(', ');
     lines.push(`  #${i + 1} reprise ${roundName(x.round, b)} à ${mmss(x.at)} : ${mmss(x.d)}${motifs ? ' — ' + motifs : ''}`);
   });
+  for (const e of k.events) if (e.rappel) lines.push(`Reprise ${roundName(e.round, b)} : ${rappelLabel(e)}`);
   for (const c of k.byColor) if (c.any) lines.push(`Tireur ${c.color || '(couleur non précisée)'} : ${c.observation} observation(s), ${c.penalite} pénalité(s), ${c.avertissement} avertissement(s), ${c.cartons} carton(s) — ${c.pts} point(s) à l'adversaire`);
   return lines.join('\n');
 }

@@ -46,6 +46,15 @@ test('minute de repos', async ({ app }, t) => {
   await shot(app, '5-repos', t);
 });
 
+test('repos : sous-titre de l\'arbitre', async ({ app }, t) => {
+  await app.configure({ sRound: '0:05' });
+  await app.hear('Allez');
+  await app.wait(5500);
+  await app.$('#skipBtn').click();
+  await app.wait(46_000);
+  await shot(app, '5c-repos-sous-titre', t);
+});
+
 test('statistiques', async ({ app }, t) => {
   await app.configure({ sRounds: '1', sRound: '0:20' });
   await app.hear('Allez');
@@ -56,6 +65,19 @@ test('statistiques', async ({ app }, t) => {
   await app.hear('Allez');
   await app.$('#statsBtn').click();
   await shot(app, '6-statistiques', t);
+});
+
+test('rappels à l\'appel', async ({ app }, t) => {
+  await app.configure({ sRound: '0:05' });
+  await app.hear('Allez');
+  await app.wait(5500);
+  await app.$('#skipBtn').click();
+  await app.wait(1500);
+  await app.hear('Rappel, tireur bleu');
+  await shot(app, '5b-rappel', t);
+  await app.$('#statsBtn').click();
+  await app.$('#statsBody').evaluate(el => el.lastElementChild?.scrollIntoView());
+  await shot(app, '6b-statistiques-rappel', t);
 });
 
 test('réglages', async ({ app }, t) => {

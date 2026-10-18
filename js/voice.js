@@ -1,5 +1,5 @@
 // Ce que l'arbitre dit → commandes du chrono, sanctions, réglages. ADR 0005 (mots courts) et 0006 (l'arbitre décide).
-import { parseCommand, parseMotif, parseReferee, isReadyCheck, phon, buildSentence } from './lang.js';
+import { parseCommand, parseRappel, parseMotif, parseReferee, isReadyCheck, phon, buildSentence } from './lang.js';
 import { EVENT_LABELS, eventLabel } from './stats.js';
 
 /** @typedef {import('./types.js').Config} Config @typedef {import('./types.js').CommandName} CommandName */
@@ -12,13 +12,14 @@ import { EVENT_LABELS, eventLabel } from './stats.js';
  * @param {(name: string, fn: () => unknown) => boolean} deps.command  exécute une action annulable
  * @param {Record<CommandName, () => boolean>} deps.commands  exécutent la commande, true si elle a eu un effet
  * @param {() => boolean} deps.endReprise
+ * @param {(color: string) => boolean} deps.rappel  rappel d'un tireur à l'appel de la reprise (C15)
  * @param {{ say: (text: string, opts?: { relisten?: boolean }) => void }} deps.speech
  * @param {{ showHeard: (t: string) => void, phaseText: () => string, render: () => void }} deps.ui
  * @param {(p: ReturnType<typeof parseReferee>) => void} deps.onReferee  réglages lus dans la phrase de l'arbitre
  * @param {() => number} [deps.now]
  * @param {{ add: (e: { alts: string[], final: boolean, phase: string, action: string }) => void }} [deps.journal]  journal vocal (#3)
  */
-export function createVoice({ getCfg, updateCfg, chrono, command, commands, endReprise, speech, ui, onReferee, now = () => Date.now(), journal }) {
+export function createVoice({ getCfg, updateCfg, chrono, command, commands, endReprise, rappel, speech, ui, onReferee, now = () => Date.now(), journal }) {
   /** Ce que l'app a fait de la dernière phrase, pour le journal vocal */
   let action = '';
   let lastEnGarde = 0;
@@ -58,6 +59,17 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
     // aucun commandement ignoré sans le dire
     if (commands[r.cmd]()) { action = r.cmd; ui.showHeard('🎙 ' + r.cmd + ' (« ' + text.trim() + ' »)'); }
     else { action = r.cmd + ' sans effet'; ui.showHeard(`🎙 ${r.cmd} entendu — sans effet : ${ui.phaseText()}`); }
+    return true;
+  }
+
+  // « Rappel, tireur bleu » : le texte affiché vient de deps.rappel
+  /** @param {string} text */
+  function tryRappel(text) {
+    const r = parseRappel(text, getCfg().colors);
+    if (!r) return false;
+    if (!r.color) { action = 'rappel sans tireur'; ui.showHeard(`🎙 Rappel entendu — quel tireur ? (${getCfg().colors.join(', ')})`); }
+    else if (rappel(r.color)) action = 'rappel ' + r.color;
+    else { action = 'rappel sans effet'; ui.showHeard(`🎙 Rappel entendu — sans effet : ${ui.phaseText()}`); }
     return true;
   }
 
@@ -118,7 +130,7 @@ export function createVoice({ getCfg, updateCfg, chrono, command, commands, endR
     if (heard === true) { firedFor.add(index); note(); return; }
     if (isFinal) {
       firedFor.add(index);
-      if (heard === 'engarde' || tryMotif(alts[0]) || tryReferee(alts[0])) { note(); return; }
+      if (heard === 'engarde' || tryRappel(alts[0]) || tryMotif(alts[0]) || tryReferee(alts[0])) { note(); return; }
       action = 'non reconnu'; note();
       ui.showHeard('… ' + alts[0]); noteUnheard(alts[0]);
     } else if (!heard) {

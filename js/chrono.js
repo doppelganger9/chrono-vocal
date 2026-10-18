@@ -13,6 +13,9 @@
 
 /** @typedef {import('./types.js').Config} Config @typedef {import('./types.js').ChronoState} ChronoState @typedef {import('./types.js').Bout} Bout @typedef {import('./types.js').Stop} Stop @typedef {import('./types.js').Motif} Motif @typedef {import('./types.js').SanctionEvent} SanctionEvent @typedef {import('./types.js').Clock} Clock @typedef {import('./types.js').Emit} Emit */
 
+/** Sanction du n-ième rappel d'un tireur à l'appel de la reprise (C15) @param {number} rank @returns {Motif} */
+export const rappelSanction = rank => rank === 1 ? { type: 'observation', pts: 0 } : rank === 2 ? { type: 'penalite', pts: 1 } : { type: 'carton-jaune', pts: 2 };
+
 /** @returns {Bout} */
 const newBout = () => ({ start: null, end: null, rounds: {}, stops: [], events: [], cfg: null });
 /** @param {number} remaining @returns {ChronoState} */
@@ -191,6 +194,23 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
     return ev;
   }
 
+  /** @param {string} color */
+  const rappelsOf = color => bout.events.filter(e => e.rappel && e.color === color).length;
+  /** Les rappels sont possibles pendant le repos et en « prêt » entre deux reprises */
+  const canRappel = () => !!bout.start && (st.phase === 'rest' || st.phase === 'ready');
+
+  // Retard à l'appel de la reprise (C15, I 4.2.13) : 1er rappel d'un tireur = observation, 2e = pénalité,
+  // 3e et suivants = carton jaune. Pendant le repos et en « prêt » entre deux reprises ; compté sur tout l'assaut.
+  /** @param {string} color @returns {SanctionEvent | null} */
+  function rappel(color) {
+    if (!color || !canRappel()) return null;
+    const rank = rappelsOf(color) + 1;
+    const ev = { ...rappelSanction(rank), detail: "retard à l'appel", color, rappel: rank,
+      round: st.phase === 'rest' ? st.round + 1 : st.round, t: clock.wall(), stop: null };
+    bout.events.push(ev);
+    return ev;
+  }
+
   /** Les réglages ont changé : le temps affiché suit avant le départ ; une reprise au-delà du nouveau total réinitialise */
   function configChanged() {
     if (st.phase === 'ready' && !st.running) st.remaining = roundDur();
@@ -201,7 +221,7 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
     get state() { return st; },
     get bout() { return bout; },
     totalRounds, isExtra, roundDur, curMax, elapsed, inPlay, overtime,
-    allez, stop, endReprise, endRest, extraRound, prolong, reset, tick, addEvent, configChanged,
+    allez, stop, endReprise, endRest, extraRound, prolong, reset, tick, addEvent, rappel, rappelsOf, canRappel, configChanged,
     // Annulation : l'échéance étant une heure absolue, un STOP annulé laisse le chrono avoir tourné entre-temps
     snapshot: () => structuredClone({ st, bout }),
     /** @param {{ st: ChronoState, bout: Bout }} snap */
