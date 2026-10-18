@@ -36,7 +36,7 @@ body.paused #time { color: var(--stop); animation: pulse 1s infinite; }
   border-radius: 999px; padding: 8px 16px; font-size: 16px; font-weight: 600; }
 body.paused #phaseLabel { color: var(--stop); }
 
-#heard { min-height: 1.4em; font-size: 15px; color: var(--muted); max-width: 640px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#heard { min-height: 1.4em; font-size: 15px; color: var(--muted); max-width: min(640px, 100%); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px 0 16px; }
 .controls button { border: 0; border-radius: 16px; font-size: 20px; font-weight: 700; padding: 18px 8px; color: var(--on-color); }
@@ -130,3 +130,19 @@ body.paused #stops { color: var(--stop); font-weight: 700; }
 #shareUrl { width: 100%; margin-top: 8px; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); font-size: 13px; }
 #importDiff table { width: 100%; border-collapse: collapse; font-size: 15px; }
 #importDiff th, #importDiff td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; }
+
+/* Rappels à l'appel de la reprise (#8) : un bouton par tireur, avec sa pastille, côte à côte */
+#rappels { display: flex; gap: 8px; justify-content: center; margin: 6px auto; width: 100%; max-width: 520px; }
+#rappels[hidden] { display: none; }
+#rappels button { flex: 1 1 0; min-width: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--text);
+  font-size: 15px; font-weight: 600; padding: 10px 8px; }
+#rappels small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); } /* la sanction que vaudrait ce rappel */
+@media (orientation: landscape) {
+  /* rappels (#8) : sur une ligne, et des chiffres un peu moins hauts tant qu'ils sont affichés.
+     Pas en portrait : la largeur ne suffit pas, le texte passerait à la ligne après « · » */
+  #rappels { margin: 2px auto; }
+  #rappels button { padding: clamp(4px, 1.6vh, 10px) 8px; font-size: clamp(12px, 3.6vh, 16px); }
+  #rappels small { display: inline; font-size: inherit; }
+  #rappels small span[hidden] { display: inline; }
+  main:has(#rappels:not([hidden])) #time { font-size: min(46vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
+}

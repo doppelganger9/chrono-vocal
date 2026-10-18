@@ -79,7 +79,18 @@ for (const name of Object.keys(SIZES)) {
     expect(await noScroll(page)).toBe(true);
     await app.hear('Allez');
     await app.configure({ sRound: '0:05' });
-    await app.hear('Stop, fin de la reprise'); await app.$('#skipBtn').click();
+    await app.hear('Stop, fin de la reprise');
+    await app.hear('Rappel, tireur bleu');                       // repos : boutons de rappel affichés (#8)
+    await expect(app.$('#rappels')).toBeVisible();
+    expect(await noScroll(page)).toBe(true);
+    const bottom = await app.$('.bar').evaluate(el => el.getBoundingClientRect().bottom);
+    expect(bottom, 'la barre de temps reste à l\'écran').toBeLessThanOrEqual(SIZES[name].height);
+    await app.wait(56_000);                                       // sous-titre le plus long (#43), à 5 s de la fin du repos
+    await expect(app.stops).toContainText('Chrono, prêt ?');
+    expect(await noScroll(page)).toBe(true);
+    const heardBottom = await app.heard.evaluate(el => el.getBoundingClientRect().bottom);
+    expect(heardBottom, 'le message entendu reste à l\'écran').toBeLessThanOrEqual(SIZES[name].height);
+    await app.$('#skipBtn').click();
     await app.hear('Allez'); await app.wait(9000);
     await expect(app.time).toHaveText('+0:04');                  // temps dépassé
     expect(await noScroll(page)).toBe(true);

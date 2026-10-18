@@ -71,7 +71,7 @@
  * @property {string | null} [detail]
  * @property {string | null} [color]
  *
- * @typedef {Motif & { round: number, t: number, stop: number | null }} SanctionEvent
+ * @typedef {Motif & { round: number, t: number, stop: number | null, rappel?: number }} SanctionEvent  rappel : rang du rappel à l'appel (C15)
  *
  * @typedef {object} Bout  journal de l'assaut
  * @property {number | null} start
