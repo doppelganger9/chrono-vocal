@@ -186,6 +186,14 @@ export function parseRappel(text, colors = []) {
   return { color: colors.find(c => c && new RegExp('\\b' + normalize(c) + '\\b').test(t)) || null };
 }
 
+/** Ce que le micro entend pendant une annonce est-il l'annonce elle-même ? Tous ses mots en font partie (#45)
+ * @param {string} heard @param {string} spoken */
+export function isEcho(heard, spoken) {
+  const words = (/** @type {string} */ t) => normalize(t).replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
+  const h = words(heard), s = new Set(words(spoken));
+  return h.length > 0 && h.every(w => s.has(w));
+}
+
 /**
  * Ce que l'app comprend d'une phrase, indépendamment de la phase (même ordre de décision que js/voice.js).
  * Sert au corpus de phrases réelles (tests/corpus) et au journal vocal.
