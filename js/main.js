@@ -16,7 +16,9 @@ import { applyTheme, watchSystemTheme } from './ui/theme.js';
 import { createIntro } from './ui/intro-dialog.js';
 import { createShare } from './ui/share-dialog.js';
 import { createJournal } from './journal.js';
-import { shareOrDownload } from './ui/download.js';
+import { createJournalPanel } from './ui/journal-panel.js';
+import { createControls } from './ui/controls.js';
+import { twoTap } from './ui/two-tap.js';
 import { createMicWatch } from './mic-watch.js';
 import { createMicIndicator } from './ui/mic-indicator.js';
 
@@ -122,20 +124,7 @@ const voice = createVoice({
 });
 createSettingsDialog({ getCfg: () => cfg, onSave: applyConfig, voice });
 
-// Journal vocal (#3) : affiché à l'ouverture des réglages, exportable, effaçable en deux appuis
-const showJournal = () => {
-  const n = journal.entries.filter(e => 'alts' in e).length; // les phrases ; les événements du micro ne comptent pas
-  $('journalCount').textContent = n ? `${n} phrase${n > 1 ? 's' : ''} notée${n > 1 ? 's' : ''}` : 'Aucune phrase notée';
-};
-$('settingsBtn').addEventListener('click', showJournal);
-$('journalExport').onclick = () => { const f = journal.exportFile(); shareOrDownload(f.name, f.text, 'Journal vocal Chrono Canne'); };
-/** @type {ReturnType<typeof setTimeout> | null} */
-let clearArmed = null;
-$('journalClear').onclick = () => {
-  if (clearArmed) { clearTimeout(clearArmed); clearArmed = null; journal.clear(); $('journalClear').textContent = 'Effacer'; showJournal(); return; }
-  $('journalClear').textContent = 'Confirmer ?';
-  clearArmed = setTimeout(() => { clearArmed = null; $('journalClear').textContent = 'Effacer'; }, 3000);
-};
+createJournalPanel({ journal });
 
 const annex = createAnnex({
   clock,
@@ -157,34 +146,13 @@ function mainAction() {
   else if (chrono.inPlay() || st.phase === 'rest') cmdStop();
   else if (st.phase === 'done') command('REPRISE SUPPL.', chrono.extraRound);
 }
-$button('mainBtn').onclick = mainAction;
-$button('undoBtn').onclick = undo;
-
-// Télécommande Bluetooth (télécommande de présentation, tourne-page) ou clavier :
-// touche « suivant » = bouton principal, touche « précédent » = annuler
-const NEXT_KEYS = [' ', 'Enter', 'PageDown', 'ArrowRight', 'ArrowDown', 'MediaPlayPause', 'MediaTrackNext'];
-const PREV_KEYS = ['PageUp', 'ArrowLeft', 'ArrowUp', 'Backspace', 'MediaTrackPrevious'];
-document.addEventListener('keydown', e => {
-  if (document.querySelector('dialog[open]') || /INPUT|SELECT|TEXTAREA/.test(/** @type {HTMLElement} */ (e.target).tagName)) return;
-  if (e.repeat) { e.preventDefault(); return; }
-  if (NEXT_KEYS.includes(e.key)) { e.preventDefault(); mainAction(); showHeard('⌨︎ ' + e.key); }
-  else if (PREV_KEYS.includes(e.key)) { e.preventDefault(); undo(); }
+createControls({ onMain: mainAction, onUndo: undo, onKey: key => showHeard('⌨︎ ' + key), isBoard: () => cfg.board });
+// réinitialiser : en deux appuis, sauf s'il n'y a rien à perdre (avant la 1re reprise)
+twoTap($('resetBtn'), {
+  label: 'Réinitialiser', armedClass: 'confirm',
+  skip: () => chrono.state.phase === 'ready' && chrono.state.round === 1,
+  onConfirm: () => { chrono.reset(); undoStack.length = 0; render(); },
 });
-// un bouton touché garde le focus : sans ça, Espace/Entrée le déclencherait une 2e fois
-document.addEventListener('click', e => { /** @type {HTMLElement} */ (e.target).closest('.controls button')?.closest('button')?.blur(); });
-// confirmation en deux appuis (confirm() est bloqué sur beaucoup de navigateurs mobiles)
-/** @type {ReturnType<typeof setTimeout> | null} */
-let resetArmed = null;
-$('resetBtn').onclick = () => {
-  const b = $('resetBtn');
-  const nothingToLose = chrono.state.phase === 'ready' && chrono.state.round === 1;
-  if (resetArmed || nothingToLose) {
-    if (resetArmed) clearTimeout(resetArmed); resetArmed = null; b.classList.remove('confirm'); b.textContent = 'Réinitialiser';
-    chrono.reset(); undoStack.length = 0; render(); return;
-  }
-  b.classList.add('confirm'); b.textContent = 'Confirmer ?';
-  resetArmed = setTimeout(() => { resetArmed = null; b.classList.remove('confirm'); b.textContent = 'Réinitialiser'; }, 3000);
-};
 // Rappel d'un tireur à l'appel de la reprise (C15) : la sanction suit le rang du rappel. false si hors repos et « prêt »
 /** @param {string} color */
 function rappel(color) {
@@ -258,16 +226,6 @@ let lastSlowRender = 0;
   else if (t - lastSlowRender > 250 && (st.halt || st.phase === 'ready' || st.prolongOffer)) { lastSlowRender = t; render(); } // compteur d'arrêt, « en garde »
   requestAnimationFrame(loop);
 })(0);
-
-// Mode tableau (#4) : un toucher sur le chrono affiche les boutons quelques secondes
-/** @type {ReturnType<typeof setTimeout> | undefined} */
-let controlsTimer;
-document.querySelector('main')?.addEventListener('click', () => {
-  if (!cfg.board) return;
-  document.body.dataset.controls = 'shown';
-  clearTimeout(controlsTimer);
-  controlsTimer = setTimeout(() => { delete document.body.dataset.controls; }, 8000);
-});
 
 applyTheme(cfg);
 watchSystemTheme(() => applyTheme(cfg));

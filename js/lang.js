@@ -94,10 +94,14 @@ export function parseReferee(raw) {
 }
 
 // ---------- Commandes vocales ----------
+/** Texte comparable : minuscules, sans accents ni ponctuation, nombres en chiffres @param {string} text */
+const plain = text => normalize(text).replace(/[^a-z0-9 ]/g, ' ');
+/** Les mots du texte comparable @param {string} text */
+const words = text => plain(text).split(/\s+/).filter(Boolean);
 // Comparaison « phonétique » grossière : « allez », « aller », « allé », « hallez », « à les », « à l'est »… → « ale »
 /** @param {string} text */
 export function phonWords(text) {
-  return normalize(text).replace(/[^a-z0-9 ]/g, ' ').trim().split(/\s+/).filter(Boolean).map(w => w
+  return words(text).map(w => w
     .replace(/h/g, '').replace(/(.)\1+/g, '$1')
     .replace(/(ez|er|ais|ait|ai|est|es|et|ey|e)$/, 'e'));
 }
@@ -115,13 +119,11 @@ export const COMMAND_PATTERNS = [
 export const EN_GARDE = /^(?:[ae]n|on|sans?)?gu?ard?e$/; // « en garde », « an garde », « en gare », « on garde », « sans garde », « garde » (#47)
 /** « Tireurs, en garde » : le mot qui précède parfois « en garde » (#47) */
 const TIREUR = /^tir(e|eur)?s?$/;
-// Découpe un commandement de l'arbitre : « en garde » éventuel, puis une commande courte, avec la fin
-// protocolaire « … fin de la reprise / fin de l'assaut » ignorée (I 3.2.2)
-// learned : variantes apprises par commande, ex. { ALLEZ: ['alo'] }
 // Mots de la fin protocolaire : « fin de la reprise », « fin de l'assaut », « … et de l'assaut » (après phonétique)
 export const END_WORDS = new Set(['fin', 'de', 'd', 'la', 'l', 'reprise', 'asaut', 'e']);
 // Découpe un commandement de l'arbitre : « en garde » éventuel, puis une commande courte, puis la fin
 // protocolaire éventuelle. end vaut 'reprise' ou 'assaut' quand l'arbitre termine la reprise (I 3.2.2).
+// learned : variantes apprises par commande, ex. { ALLEZ: ['alo'] }
 /**
  * @param {string} text
  * @param {Partial<Learned>} [learned]
@@ -152,14 +154,14 @@ export const isChronoCall = text => phon(text) === 'crono';
 export const isPretAlone = text => /^pre(ts)?$/.test(phon(text));
 // « Chrono, prêt ? » (contrôle des officiels avant chaque reprise)
 /** @param {string} text */
-export const isReadyCheck = text => /\bchrono\w*\b.*\bpret\b/.test(normalize(text).replace(/[^a-z0-9 ]/g, ' '));
+export const isReadyCheck = text => /\bchrono\w*\b.*\bpret\b/.test(plain(text));
 /** @param {string} s texte à chercher tel quel dans une expression régulière */
 const escapeRegExp = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 /** Couleur du tireur nommée dans la phrase, en mot entier. Les couleurs viennent des réglages, donc d'un lien partagé
  *  peut-être : ce sont du texte, pas des expressions régulières (#55)
  * @param {string} text @param {string[]} colors @returns {string | null} */
 export function findColor(text, colors) {
-  const t = normalize(text).replace(/[^a-z0-9 ]/g, ' ');
+  const t = plain(text);
   return colors.find(c => c && new RegExp('\\b' + escapeRegExp(normalize(c)) + '\\b').test(t)) || null;
 }
 const SORTIE = /sortie d? ?aire?\b/; // « sortie d'aire », « sortie d'air »
@@ -167,7 +169,7 @@ const LACHER = /lache\w* (de )?(la )?canne/;
 // Motif d'un arrêt annoncé par l'arbitre (I 4.2.8 à 4.2.13), avec la couleur du tireur concerné
 /** @param {string} text @param {string[]} [colors] @returns {Motif | null} */
 export function parseMotif(text, colors = []) {
-  const t = normalize(text).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ');
+  const t = plain(text).replace(/\s+/g, ' ');
   /** @type {Motif | null} */
   let e = null;
   if (/carton rouge/.test(t)) e = { type: 'carton-rouge', pts: 2 };
@@ -200,7 +202,7 @@ export function restCue(remaining) {
 /** « Rappel, tireur bleu » : retard d'un tireur à l'appel de la reprise (C15). null si ce n'est pas un rappel.
  * @param {string} text @param {string[]} [colors] @returns {{ color: string | null } | null} */
 export function parseRappel(text, colors = []) {
-  const t = normalize(text).replace(/[^a-z0-9 ]/g, ' ');
+  const t = plain(text);
   if (!/\brappels?\b/.test(t)) return null;
   return { color: findColor(t, colors) };
 }
@@ -208,7 +210,6 @@ export function parseRappel(text, colors = []) {
 /** Ce que le micro entend pendant une annonce est-il l'annonce elle-même ? Tous ses mots en font partie (#45)
  * @param {string} heard @param {string} spoken */
 export function isEcho(heard, spoken) {
-  const words = (/** @type {string} */ t) => normalize(t).replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
   const h = words(heard), s = new Set(words(spoken));
   return h.length > 0 && h.every(w => s.has(w));
 }
