@@ -20,7 +20,8 @@ main { flex: 1; display: flex; flex-direction: column; align-items: center; just
    (--chars, posé par js/ui/render.js). 0,7 em par caractère couvre aussi les polices larges (WebKit sous Linux). */
 main { container-type: inline-size; }
 #time { font-variant-numeric: tabular-nums; font-weight: 800; line-height: 1; white-space: nowrap;
-  font-size: min(260px, 30vw, calc(100cqw / (var(--chars, 4) * 0.7))); color: var(--text); }
+  --time-max: min(260px, 30vw); /* hauteur maximale des chiffres, ajustée selon le contexte (paysage, rappels, témoin…) */
+  font-size: min(var(--time-max), calc(100cqw / (var(--chars, 4) * 0.7))); color: var(--text); }
 #max { font-size: clamp(16px, 4.5vw, 24px); color: var(--muted); font-variant-numeric: tabular-nums; }
 .bar { width: 100%; max-width: 640px; height: 10px; background: var(--panel); border-radius: 999px; overflow: hidden; margin-top: 8px; }
 .bar > div { height: 100%; width: 0; background: var(--muted); transition: width .2s linear; }
@@ -99,7 +100,7 @@ body.paused #stops { color: var(--stop); font-weight: 700; }
   main { grid-column: 1; grid-row: 2; gap: 2px; }
   #roundLabel { font-size: clamp(16px, 5vh, 32px); }
   #phaseLabel { font-size: clamp(13px, 4vh, 22px); }
-  #time { font-size: min(55vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
+  #time { --time-max: 55vh; }
   #max, #stops, #heard { font-size: clamp(12px, 3.6vh, 20px); }
   .bar { margin-top: 2px; }
   .controls { grid-column: 2; grid-row: 2; grid-template-columns: 1fr; align-content: center; gap: 8px; padding: 0 0 8px; }
@@ -109,7 +110,7 @@ body.paused #stops { color: var(--stop); font-weight: 700; }
   /* Mode tableau (option) : le chrono seul, en très grand ; un toucher affiche les boutons quelques secondes */
   body[data-board="1"]:not([data-controls="shown"]) .controls { display: none; }
   body[data-board="1"]:not([data-controls="shown"]) main { grid-column: 1 / -1; }
-  body[data-board="1"]:not([data-controls="shown"]) #time { font-size: min(56vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
+  body[data-board="1"]:not([data-controls="shown"]) #time { --time-max: 56vh; }
 
   /* Fenêtres sur deux colonnes */
   dialog { width: min(900px, calc(100vw - 32px)); max-height: calc(100vh - 24px); }
@@ -151,18 +152,18 @@ body.paused #stops { color: var(--stop); font-weight: 700; }
   #rappels button { padding: clamp(4px, 1.6vh, 10px) 8px; font-size: clamp(12px, 3.6vh, 16px); }
   #rappels small { display: inline; font-size: inherit; }
   #rappels small span[hidden] { display: inline; }
-  main:has(#rappels:not([hidden])) #time { font-size: min(46vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
+  main:has(#rappels:not([hidden])) #time { --time-max: 46vh; }
 }
 
 /* Paysage très bas : Safari sur iPhone avec la barre d'adresse et les onglets (recette du 18 octobre 2026) */
 @media (orientation: landscape) and (max-height: 320px) {
   header { padding: 2px 0; }
   main { gap: 0; }
-  #time { font-size: min(42vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
+  #time { --time-max: 42vh; }
   .controls { gap: 6px; padding-bottom: 4px; }
-  body[data-board="1"]:not([data-controls="shown"]) #time { font-size: min(46vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
-  main:has(#rappels:not([hidden])) #time, main:has(#micStale:not([hidden])) #time { font-size: min(34vh, calc(100cqw / (var(--chars, 4) * 0.7))); } /* avec les rappels (#8) ou le témoin du micro (#56) */
-  main:has(#rappels:not([hidden])):has(#micStale:not([hidden])) #time { font-size: min(26vh, calc(100cqw / (var(--chars, 4) * 0.7))); }
+  body[data-board="1"]:not([data-controls="shown"]) #time { --time-max: 46vh; }
+  main:has(#rappels:not([hidden])) #time, main:has(#micStale:not([hidden])) #time { --time-max: 34vh; } /* avec les rappels (#8) ou le témoin du micro (#56) */
+  main:has(#rappels:not([hidden])):has(#micStale:not([hidden])) #time { --time-max: 26vh; }
   #micStale { padding: 2px 10px; font-size: 13px; }
   .intro img { display: none; } /* écran titre : le texte et les boutons d'abord */
 }
