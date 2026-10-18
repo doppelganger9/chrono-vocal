@@ -153,6 +153,15 @@ export const isPretAlone = text => /^pre(ts)?$/.test(phon(text));
 // « Chrono, prêt ? » (contrôle des officiels avant chaque reprise)
 /** @param {string} text */
 export const isReadyCheck = text => /\bchrono\w*\b.*\bpret\b/.test(normalize(text).replace(/[^a-z0-9 ]/g, ' '));
+/** @param {string} s texte à chercher tel quel dans une expression régulière */
+const escapeRegExp = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/** Couleur du tireur nommée dans la phrase, en mot entier. Les couleurs viennent des réglages, donc d'un lien partagé
+ *  peut-être : ce sont du texte, pas des expressions régulières (#55)
+ * @param {string} text @param {string[]} colors @returns {string | null} */
+export function findColor(text, colors) {
+  const t = normalize(text).replace(/[^a-z0-9 ]/g, ' ');
+  return colors.find(c => c && new RegExp('\\b' + escapeRegExp(normalize(c)) + '\\b').test(t)) || null;
+}
 const SORTIE = /sortie d? ?aire?\b/; // « sortie d'aire », « sortie d'air »
 const LACHER = /lache\w* (de )?(la )?canne/;
 // Motif d'un arrêt annoncé par l'arbitre (I 4.2.8 à 4.2.13), avec la couleur du tireur concerné
@@ -176,7 +185,7 @@ export function parseMotif(text, colors = []) {
   else if (/\bforfait\b/.test(t)) e = { type: 'forfait', pts: 0 };
   if (!e) return null;
   const tc = t.replace(/carton (jaune|rouge)/g, ''); // « carton jaune » n'est pas le tireur jaune
-  e.color = colors.find(c => c && new RegExp('\\b' + normalize(c) + '\\b').test(tc)) || null;
+  e.color = findColor(tc, colors);
   return e;
 }
 
@@ -193,7 +202,7 @@ export function restCue(remaining) {
 export function parseRappel(text, colors = []) {
   const t = normalize(text).replace(/[^a-z0-9 ]/g, ' ');
   if (!/\brappels?\b/.test(t)) return null;
-  return { color: colors.find(c => c && new RegExp('\\b' + normalize(c) + '\\b').test(t)) || null };
+  return { color: findColor(t, colors) };
 }
 
 /** Ce que le micro entend pendant une annonce est-il l'annonce elle-même ? Tous ses mots en font partie (#45)

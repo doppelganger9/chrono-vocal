@@ -9,7 +9,8 @@
     "js/chrono.js",
     "js/stats.js",
     "js/settings.js",
-    "js/annex.js"
+    "js/annex.js",
+    "js/html.js"
   ],
   "reporters": [
     "clear-text",

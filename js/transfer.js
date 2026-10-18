@@ -34,7 +34,7 @@ export function decodeSettings(text) {
   } catch { return { ok: false, error: 'Fichier ou lien illisible.' }; }
   if (!obj || obj.app !== APP) return { ok: false, error: 'Ce ne sont pas des réglages de Chrono Canne.' };
   if (!obj.cfg || typeof obj.cfg !== 'object' || Array.isArray(obj.cfg)) return { ok: false, error: 'Fichier ou lien illisible.' };
-  if ((obj.cfg.v ?? 0) > DEFAULTS.v) return { ok: false, error: 'Ces réglages viennent d\'une version plus récente de l\'app : mettez-la à jour.' };
+  if (typeof obj.cfg.v === 'number' && obj.cfg.v > DEFAULTS.v) return { ok: false, error: 'Ces réglages viennent d\'une version plus récente de l\'app : mettez-la à jour.' };
   return { ok: true, cfg: migrate(obj.cfg) };
 }
 

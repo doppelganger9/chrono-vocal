@@ -2,6 +2,7 @@
 import { $, $field, $button, $dialog } from './dom.js';
 import { encodeSettings, decodeSettings, diffSettings, exportFile } from '../transfer.js';
 import { shareOrDownload } from './download.js';
+import { esc } from '../html.js';
 
 const HASH = '#reglages=';
 
@@ -9,7 +10,6 @@ const HASH = '#reglages=';
 export function createShare({ getCfg, onApply }) {
   /** @type {import('../types.js').Config | null} */
   let pending = null;
-  const esc = (/** @type {string} */ t) => t.replace(/[&<>"]/g, c => (/** @type {Record<string, string>} */ ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }))[c]);
 
   /** @param {ReturnType<typeof decodeSettings>} r */
   function preview(r) {
