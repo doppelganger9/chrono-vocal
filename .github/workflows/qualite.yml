@@ -1,0 +1,56 @@
+# Preuves de qualité (CONTRIBUTING.md § 3) : couverture et score de mutation, dans le résumé de l'exécution.
+# Pas à chaque PR, pour garder la CI légère (environ 4 min) : chaque PR est déjà mesurée en local
+# (npm run verifier -- --complet, chiffres dans sa description). Ici :
+#   - chaque lundi sur main : si le score passe sous le seuil, une issue est ouverte ;
+#   - à la demande (onglet Actions → Qualité → Run workflow) ;
+#   - sur une PR qui porte l'étiquette « qualite ».
+# Un score de mutation sous 80 % fait échouer la tâche (thresholds.break de Stryker, #60).
+name: Qualité
+
+on:
+  schedule:
+    - cron: '43 5 * * 1' # le lundi à 5 h 43 (UTC)
+  workflow_dispatch:
+  pull_request:
+    types: [labeled, synchronize]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  qualite:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'qualite')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Couverture
+        run: npm run coverage && cat coverage/coverage-summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Tests de mutation
+        run: |
+          status=0; npm run mutation || status=$?   # le résumé s'affiche même sous le seuil
+          node -e "const f=require('./reports/mutation/mutation.json').files; let k=0,t=0; for (const [n,x] of Object.entries(f)) { const m=x.mutants; const kk=m.filter(z=>['Killed','Timeout'].includes(z.status)).length; const tt=m.filter(z=>!['Ignored','CompileError','RuntimeError'].includes(z.status)).length; k+=kk; t+=tt; console.log('| '+n+' | '+(100*kk/tt).toFixed(1)+' % | '+kk+' / '+tt+' |'); } console.log('| **Total** | **'+(100*k/t).toFixed(1)+' %** | '+k+' / '+t+' |');" > mutation.md
+          { echo '### Score de mutation'; echo; echo '| Fichier | Score | Tués / total |'; echo '|---|---|---|'; cat mutation.md; } >> "$GITHUB_STEP_SUMMARY"
+          exit $status
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: rapports-qualite
+          path: |
+            coverage/
+            reports/mutation/
+          retention-days: 14
+      - name: Issue si la passe du lundi échoue
+        if: failure() && github.event_name == 'schedule'
+        run: |
+          gh issue create --repo "$GITHUB_REPOSITORY" --label technique \
+            --title "Qualité : la passe hebdomadaire a échoué ($(date -u +%Y-%m-%d))" \
+            --body "La passe hebdomadaire de couverture et de mutation sur main a échoué : $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Score de mutation sous 80 % ou tests en échec : voir le résumé de l'exécution."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
