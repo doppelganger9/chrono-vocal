@@ -1,6 +1,7 @@
 # Montées de version des dépendances (#17) : une PR groupée par mois, des versions publiées depuis au moins
 # 7 jours (« cooldown » : évite les versions retirées ou incomplètes), fusion automatique si « Tests » passe.
-# Les alertes et correctifs de sécurité, eux, ne suivent pas ce calendrier.
+# Les correctifs de sécurité ne suivent pas ce calendrier (ils partent dès qu'une faille est connue), mais sont
+# eux aussi groupés : une seule PR pour tous les correctifs du moment, plutôt qu'une par dépendance.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -11,7 +12,11 @@ updates:
       default-days: 7
     groups:
       outils-de-developpement:
+        applies-to: version-updates
         dependency-type: development
+        patterns: ["*"]
+      correctifs-de-securite:
+        applies-to: security-updates
         patterns: ["*"]
     open-pull-requests-limit: 2
     labels: [technique]
@@ -25,6 +30,10 @@ updates:
       default-days: 7
     groups:
       actions-github:
+        applies-to: version-updates
+        patterns: ["*"]
+      correctifs-de-securite-actions:
+        applies-to: security-updates
         patterns: ["*"]
     labels: [technique]
     commit-message:
