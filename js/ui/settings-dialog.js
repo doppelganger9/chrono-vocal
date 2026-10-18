@@ -4,6 +4,7 @@ import { fmt, parseMmSs, buildSentence, COMMAND_PATTERNS } from '../lang.js';
 import { PRESETS } from '../settings.js';
 import { PALETTE_KEYS, PALETTE_LABELS, THEMES, resolveTheme, contrastWarnings } from '../colors.js';
 import { prefersLight } from './theme.js';
+import { esc } from '../html.js';
 
 /** @typedef {import('../types.js').Config} Config */
 
@@ -91,7 +92,6 @@ export function createSettingsDialog({ getCfg, onSave, voice }) {
   ['sRounds', 'sRound', 'sRest', 'sCalls', 'sRelayBase', 'sRelayCount'].forEach(id => $field(id).addEventListener('input', updatePreview));
 
   // Mots entendus non reconnus, et variantes apprises
-  const esc = (/** @type {string} */ t) => t.replace(/[&<>"]/g, c => (/** @type {Record<string, string>} */ ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }))[c]);
   function renderLearn() {
     const unheard = voice.unheard, learned = getCfg().learned;
     $('unheardList').innerHTML = unheard.length ? unheard.map((u, i) => `<div class="learn-row"><span>« ${esc(u)} »</span>
