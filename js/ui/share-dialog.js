@@ -1,6 +1,7 @@
 // Partage des réglages (#15) : lien, fichier, et aperçu des différences avant d'importer.
 import { $, $field, $button, $dialog } from './dom.js';
 import { encodeSettings, decodeSettings, diffSettings, exportFile } from '../transfer.js';
+import { shareOrDownload } from './download.js';
 
 const HASH = '#reglages=';
 
@@ -29,12 +30,7 @@ export function createShare({ getCfg, onApply }) {
     field.value = url; field.hidden = false; field.select();
     try { await navigator.clipboard.writeText(url); $('shareLink').textContent = 'Lien copié ✓'; } catch {}
   };
-  $('exportFileBtn').onclick = async () => {
-    const f = exportFile(getCfg());
-    const file = new File([f.text], f.name, { type: 'application/json' });
-    try { if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: 'Réglages Chrono Canne' }); return; } } catch { return; }
-    const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = f.name; a.click(); URL.revokeObjectURL(a.href);
-  };
+  $('exportFileBtn').onclick = () => { const f = exportFile(getCfg()); shareOrDownload(f.name, f.text, 'Réglages Chrono Canne'); };
   $field('importFile').addEventListener('change', async e => {
     const input = /** @type {HTMLInputElement} */ (e.target), file = input.files?.[0];
     if (file) preview(decodeSettings(await file.text()));

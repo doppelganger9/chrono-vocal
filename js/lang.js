@@ -169,3 +169,21 @@ export function parseMotif(text, colors = []) {
   e.color = colors.find(c => c && new RegExp('\\b' + normalize(c) + '\\b').test(tc)) || null;
   return e;
 }
+
+/**
+ * Ce que l'app comprend d'une phrase, indépendamment de la phase (même ordre de décision que js/voice.js).
+ * Sert au corpus de phrases réelles (tests/corpus) et au journal vocal.
+ * @param {string} text @param {Partial<Learned>} [learned] @param {string[]} [colors]
+ * @returns {{ kind: 'ready' } | { kind: 'engarde' } | { kind: 'command', cmd: CommandName, enGarde: boolean, end: 'reprise' | 'assaut' | null }
+ *   | ({ kind: 'motif' } & Motif) | ({ kind: 'referee' } & ReturnType<typeof parseReferee>) | { kind: 'none' }}
+ */
+export function classify(text, learned = {}, colors = []) {
+  if (isReadyCheck(text)) return { kind: 'ready' };
+  const c = parseCommand(text, learned);
+  if (c) return c.cmd ? { kind: 'command', cmd: c.cmd, enGarde: c.enGarde, end: c.end } : { kind: 'engarde' };
+  const m = parseMotif(text, colors);
+  if (m) return { kind: 'motif', ...m };
+  const r = parseReferee(text);
+  if (r.rounds || r.roundSec || r.tooMany) return { kind: 'referee', ...r };
+  return { kind: 'none' };
+}

@@ -1,0 +1,18 @@
+{
+  "source": "Exemples de départ, tirés des essais d'octobre 2026 (« allez » prononcé vite, commandements, sanctions). Les journaux vocaux exportés en salle viennent compléter ce dossier (voir docs/recette.md).",
+  "colors": ["rouge", "bleu"],
+  "phrases": [
+    { "text": "Allez", "expect": { "kind": "command", "cmd": "ALLEZ" } },
+    { "text": "à les", "expect": { "kind": "command", "cmd": "ALLEZ" } },
+    { "text": "À l'est", "expect": { "kind": "command", "cmd": "ALLEZ" } },
+    { "text": "aller", "expect": { "kind": "command", "cmd": "ALLEZ" } },
+    { "text": "En garde, allez", "expect": { "kind": "command", "cmd": "ALLEZ", "enGarde": true } },
+    { "text": "Stop", "expect": { "kind": "command", "cmd": "STOP", "end": null } },
+    { "text": "Stop, fin de la reprise", "expect": { "kind": "command", "cmd": "STOP", "end": "reprise" } },
+    { "text": "Stop, fin de l'assaut", "expect": { "kind": "command", "cmd": "STOP", "end": "assaut" } },
+    { "text": "Chrono, prêt ?", "expect": { "kind": "ready" } },
+    { "text": "Pénalité pour sortie d'aire, tireur bleu", "expect": { "kind": "motif", "type": "penalite", "color": "bleu" } },
+    { "text": "Avertissement prononcé, tireur rouge", "expect": { "kind": "motif", "type": "avertissement", "color": "rouge" } },
+    { "text": "Pour un assaut en 3 reprises d'une minute trente, avec 1 minute de repos", "expect": { "kind": "referee", "rounds": 3, "roundSec": 90, "restSec": 60 } }
+  ]
+}
