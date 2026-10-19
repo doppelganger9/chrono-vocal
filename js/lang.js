@@ -190,6 +190,12 @@ export const COMMAND_PATTERNS = [
 export const EN_GARDE = /^(?:[ae]n|on|sans?)?gu?ard?e$/; // « en garde », « an garde », « en gare », « on garde », « sans garde », « garde » (#47)
 /** « Tireurs, en garde » : le mot qui précède parfois « en garde » (#47) */
 const TIREUR = /^tir(e|eur)?s?$/;
+/** « hangar » : « en garde » mal entendu, téléphone loin de l'arbitre (recette du 19 octobre, #79) */
+const HANGAR = /^angar$/;
+/** Ce que l'arbitre dit avant « en garde » dans le protocole : « Tireurs au centre », « Deuxième reprise » (#79).
+ *  Seulement ces mots : une sanction suivie de « en garde, allez » reste une sanction */
+const PREAMBULE =
+  /^(au|centre|a|la|premiere|deuxieme|troisieme|quatrieme|derniere|reprise|suplementaire)$/;
 // Mots de la fin protocolaire : « fin de la reprise », « fin de l'assaut », « … et de l'assaut » (après phonétique)
 export const END_WORDS = new Set([
   "fin",
@@ -222,11 +228,18 @@ export function parseCommand(text, learned = {}) {
     ws = ws.slice(0, f);
   }
   let enGarde = false;
+  // « Tireurs au centre, tireurs en garde, allez » : le préambule du protocole avant « en garde » est ignoré (#79)
+  const g = ws.findIndex(
+    (w, i) =>
+      EN_GARDE.test(w) || EN_GARDE.test(w + ws[i + 1]) || HANGAR.test(w),
+  );
+  if (g > 0 && ws.slice(0, g).every((w) => TIREUR.test(w) || PREAMBULE.test(w)))
+    ws = ws.slice(g);
   if (TIREUR.test(ws[0])) ws = ws.slice(1);
   if (ws.length >= 2 && EN_GARDE.test(ws[0] + ws[1])) {
     enGarde = true;
     ws = ws.slice(2);
-  } else if (ws.length >= 1 && EN_GARDE.test(ws[0])) {
+  } else if (ws.length >= 1 && (EN_GARDE.test(ws[0]) || HANGAR.test(ws[0]))) {
     enGarde = true;
     ws = ws.slice(1);
   }

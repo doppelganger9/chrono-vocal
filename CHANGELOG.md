@@ -4,6 +4,10 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : **mineure** (1.**1*
 
 Les nouveautés importantes reviennent dans « Quoi de neuf », sur l'écran titre (`js/intro.js`), avec les mêmes mots qu'ici.
 
+## [1.1.1] · 2026-10-19
+
+- Reconnaissance : « Tireurs au centre, tireurs en garde, allez » et « Deuxième reprise, tireurs en garde » sont compris ; « hangar », « en garde » mal entendu de loin, aussi (#79).
+
 ## [1.1.0] · 2026-10-19
 
 - L'app s'ouvre aussi sans réseau, une fois ouverte une première fois : les boutons, la télécommande et les annonces marchent ; la reconnaissance vocale peut demander le réseau, selon le téléphone (#40).
