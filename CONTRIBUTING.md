@@ -40,7 +40,8 @@ Le développement est piloté par les tests, sans dogmatisme sur la taille des c
 9. **Un fichier de tests par fonctionnalité** (`tests/unit/<module>-<sujet>.test.js`, `tests/e2e/<sujet>.spec.js`) plutôt qu'à la fin d'un gros fichier : deux PR parallèles qui ajoutent des tests au même endroit se gênent à chaque fusion.
 10. **Toute donnée venue de l'extérieur** (lien ou fichier partagé, stockage du navigateur, journal importé) **a des tests avec des valeurs hostiles** : types faux, hors bornes, HTML, caractères spéciaux.
 11. **Un test se juge à son code de sortie**, jamais à une sortie filtrée (`grep`) : un filtre peut cacher un échec.
-12. **Les mises en page se testent dans le pire cas** : plusieurs formats d'écran (iPhone SE, iPhone Pro Max, Android, en portrait et en paysage, et **Safari avec sa barre d'adresse et ses onglets**, qui ne laisse que 280 px de haut en paysage) et une **police large** forcée. Sur GitHub, WebKit tourne sous Linux, sans la police d'Apple : un débordement invisible sur le Mac y apparaît.
+12. **Accessibilité** (#38) : `tests/e2e/accessibilite.spec.js` passe [axe-core](https://github.com/dequelabs/axe-core) sur chaque écran, en thème jour et nuit, et n'admet **aucune violation « serious » ou « critical »** (contrastes, libellés, fenêtres). **Un nouvel écran ou une nouvelle fenêtre s'y ajoute.** `AXE_DETAIL=1` donne les contrastes mesurés. Au clavier, un bouton atteint par Tab s'active avec Entrée ou Espace ; ailleurs, ces touches restent celles de la télécommande.
+13. **Les mises en page se testent dans le pire cas** : plusieurs formats d'écran (iPhone SE, iPhone Pro Max, Android, en portrait et en paysage, et **Safari avec sa barre d'adresse et ses onglets**, qui ne laisse que 280 px de haut en paysage) et une **police large** forcée. Sur GitHub, WebKit tourne sous Linux, sans la police d'Apple : un débordement invisible sur le Mac y apparaît.
 
 ## 3. Prouver la qualité
 
