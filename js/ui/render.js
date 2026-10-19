@@ -9,6 +9,8 @@ import { esc } from '../html.js';
 const NEXT = { observation: 'observation', penalite: 'pénalité', 'carton-jaune': 'carton jaune' };
 /** @type {Record<import('../types.js').Phase, string>} */
 const LABELS = { ready: 'Prêt — en garde', round: 'Assaut', overtime: 'Temps dépassé', rest: 'Minute de repos', done: "Fin de l'assaut" };
+/** Classe du corps de la page selon la phase @type {Record<import('../types.js').Phase, string>} */
+const BODY_CLASS = { ready: 'ready', round: 'round', overtime: 'over', rest: 'rest', done: 'done' };
 
 /**
  * @param {object} p
@@ -53,7 +55,7 @@ export function render({ chrono, cfg, lastEnGarde, undoTop, now = Date.now(), bo
   }
   $('barFill').style.width = (st.phase === 'done' || st.phase === 'overtime' ? 100 : 100 * (1 - st.remaining / max)) + '%';
   const paused = st.halt;
-  body.className = (/** @type {Partial<Record<string, string>>} */ ({ rest: 'rest', round: 'round', overtime: 'over' })[st.phase] || st.phase) + (paused ? ' paused' : '');
+  body.className = BODY_CLASS[st.phase] + (paused ? ' paused' : '');
   let label = paused ? (st.phase === 'rest' ? 'Repos arrêté' : 'Arrêt') : LABELS[st.phase];
   if (st.phase === 'ready' && now - lastEnGarde < 10000) label = 'En garde';
   $('phaseLabel').textContent = label;
