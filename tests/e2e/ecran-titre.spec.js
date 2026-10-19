@@ -1,5 +1,6 @@
 // Écran titre au premier lancement (#6)
 const { test, expect } = require("./fixtures");
+const { version } = require("../../package.json");
 
 test.describe("premier lancement", () => {
   test.use({ introSeen: false });
@@ -29,22 +30,57 @@ test.describe("premier lancement", () => {
   });
 });
 
-test.describe("nouveauté importante depuis la dernière visite", () => {
-  test.use({ introSeen: 1 });
-  test("l'écran titre revient une fois, avec « Quoi de neuf »", async ({
+test.describe("nouvelle version depuis la dernière visite (#84)", () => {
+  test.use({ introSeen: "1.1.0" });
+  test("l'écran titre revient une fois, avec les notes des versions plus récentes", async ({
     app,
     page,
   }) => {
+    const news = page.locator("#introNews");
     await expect(page.locator("#intro")).toBeVisible();
-    await expect(page.locator("#introNews")).toContainText("Quoi de neuf");
+    await expect(news).toContainText("Quoi de neuf");
+    await expect(news.locator("h4").first()).toHaveText(
+      `Version ${version} · 19 octobre 2026`,
+    );
+    await expect(news).not.toContainText("Version 1.1.0");
+    await expect(news).not.toContainText("(#"); // pas de numéros d'issue
+    await page.locator("#introSkip").click();
+    expect(
+      await page.evaluate(() => localStorage.getItem("chrono-canne-intro")),
+    ).toBe(version);
   });
 });
 
-test("accessible à nouveau depuis les réglages", async ({ app, page }) => {
+test.describe("valeur enregistrée avant #84 (numéro de présentation)", () => {
+  test.use({ introSeen: 2 });
+  test("vue avec la 1.0.0 : « Quoi de neuf » depuis la 1.1.0", async ({
+    app,
+    page,
+  }) => {
+    await expect(page.locator("#introNews")).toContainText("Version 1.1.0");
+    await expect(page.locator("#introNews")).not.toContainText("Version 1.0.0");
+  });
+});
+
+test("« À propos », dans les réglages : la présentation, la version et toutes les notes (#84)", async ({
+  app,
+  page,
+}) => {
   await app.$("#settingsBtn").click();
+  await expect(page.locator("#introAgain")).toHaveText(
+    `À propos · version ${version}`,
+  );
   await page.locator("#introAgain").click();
   await expect(page.locator("#intro")).toBeVisible();
-  await expect(page.locator("#introNews")).toBeHidden();
+  await expect(page.locator("#introVersion")).toHaveText(`Version ${version}`);
+  const news = page.locator("#introNews");
+  await expect(news).toContainText("Notes de version");
+  await expect(news.locator("h4").last()).toHaveText(
+    "Version 1.0.0 · 19 octobre 2026",
+  );
+  await expect(news.locator("h5").first()).toHaveText("Le chrono");
+  // les boutons restent à l'écran : la liste des notes défile
+  await expect(page.locator("#introStart")).toBeInViewport();
 });
 
 test.describe("stockage indisponible (navigation privée stricte)", () => {

@@ -1,0 +1,87 @@
+// Généré par « npm run notes » depuis CHANGELOG.md : ne pas modifier à la main (#84).
+/** @type {import('./types.js').Release[]} */
+export const NOTES = [
+  {
+    version: "1.3.0",
+    date: "2026-10-19",
+    sections: [
+      {
+        title: "",
+        items: [
+          "« Fin de l'assaut » termine l'assaut à tout moment : en reprise, en temps dépassé, pendant la minute de repos ou avant la reprise suivante. « Annuler » revient en arrière.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.2.0",
+    date: "2026-10-19",
+    sections: [
+      {
+        title: "",
+        items: [
+          "À chaque nouvelle version, l'écran titre revient une fois avec ce qui a changé.",
+          "Dans les réglages, « À propos » donne la version et toutes les notes de version.",
+          "Sur iPhone, une nouvelle version est prise à l'ouverture suivante de l'app, même si Safari a gardé l'onglet.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.1.0",
+    date: "2026-10-19",
+    sections: [
+      {
+        title: "",
+        items: [
+          "L'app s'ouvre aussi sans réseau, une fois ouverte une première fois : les boutons, la télécommande et les annonces marchent ; la reconnaissance vocale peut demander le réseau, selon le téléphone.",
+          "Une nouvelle version se télécharge en arrière-plan, et elle est prise au prochain lancement de l'app : jamais pendant un assaut.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.0.0",
+    date: "2026-10-19",
+    sections: [
+      {
+        title: "Le chrono",
+        items: [
+          "Reprises, minute de repos, reprises supplémentaires et prolongation de 30 s, selon le règlement (cahier n°10), avec les préréglages par catégorie et phase.",
+          "L'arbitre décide : après « temps », la reprise continue jusqu'à « Stop, fin de la reprise »",
+          "Arrêts décomptés ou non, comptés et chronométrés ; annulation d'une commande parasite.",
+          "Rappels à l'appel de la reprise, avec la sanction qui suit le rang du rappel.",
+          "Pendant la minute de repos, ce que l'arbitre doit dire, sous le chrono.",
+          "Chronomètre annexe : pour un retard, pénalité chaque minute et disqualification à 3 minutes ; pour un second exclu qui refuse de sortir, carton rouge à son tireur au bout d'une minute.",
+          "Mode relais par équipes.",
+          "Statistiques de l'assaut : arrêts, sanctions et points par tireur.",
+        ],
+      },
+      {
+        title: "La voix",
+        items: [
+          "Commandes à la voix de l'arbitre (« en garde, allez », « stop »…), sanctions reconnues avec la couleur du tireur, format de l'assaut dicté.",
+          "Annonces vocales du repos, audibles pendant que le micro écoute ; réponse « Prêt » à « Chrono, prêt ? ».",
+          "Micro relancé tout seul sur iPhone ; témoin « micro silencieux » et journal vocal exportable.",
+        ],
+      },
+      {
+        title: "L'écran",
+        items: [
+          "Thème jour / nuit automatique, et couleurs personnalisables",
+          "En paysage, des chiffres plus grands ; et un mode tableau pour poser le téléphone face à l'aire",
+          "Écran titre au premier lancement, et « Quoi de neuf » après une nouveauté importante.",
+          "Télécommande Bluetooth : « suivant » = bouton principal, « précédent » = annuler.",
+          "Réglages partagés par lien ou par fichier, vérifiés à l'import.",
+          "Contrastes vérifiés dans les deux thèmes (chiffres en arrêt, boutons bleus la nuit), et boutons utilisables au clavier.",
+        ],
+      },
+      {
+        title: "Sécurité",
+        items: [
+          "Politique de sécurité du contenu : rien d'autre que les fichiers du site ne peut se charger ni s'exécuter.",
+        ],
+      },
+    ],
+  },
+];

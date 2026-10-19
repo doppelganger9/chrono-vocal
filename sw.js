@@ -1,9 +1,10 @@
 // Service worker : l'app s'ouvre sans réseau, dans un gymnase (#40).
 // À chaque version (#39), ce fichier change (VERSION) : le navigateur installe le nouveau service worker, qui
-// télécharge tous les fichiers dans un nouveau cache, en arrière-plan. Il n'est activé qu'au prochain lancement,
-// une fois l'app fermée : jamais au milieu d'un assaut (décision de David, 19 octobre 2026). D'où l'absence de
-// skipWaiting et de clients.claim (tests/unit/sw.test.js le vérifie).
-const VERSION = "1.2.0";
+// télécharge tous les fichiers dans un nouveau cache, en arrière-plan. Il n'est activé qu'au prochain lancement :
+// jamais au milieu d'un assaut (décision de David, 19 octobre 2026). Safari sur iPhone garde l'onglet ouvert, et
+// le prochain lancement n'arrivait jamais : la page, à son ouverture (rien en cours), demande l'activation (#84).
+// Jamais de clients.claim, ni de skipWaiting ailleurs (tests/unit/sw.test.js le vérifie).
+const VERSION = "1.3.0";
 const CACHE = "chrono-canne-" + VERSION;
 // tous les fichiers de l'app (tests/unit/sw.test.js vérifie qu'il n'en manque aucun)
 const FILES = [
@@ -16,6 +17,7 @@ const FILES = [
   "css/themes.css",
   "js/annex.js",
   "js/audio.js",
+  "js/changelog.js",
   "js/chrono.js",
   "js/colors.js",
   "js/html.js",
@@ -24,6 +26,7 @@ const FILES = [
   "js/lang.js",
   "js/main.js",
   "js/mic-watch.js",
+  "js/notes.js",
   "js/settings.js",
   "js/speech.js",
   "js/stats.js",
@@ -56,6 +59,11 @@ self.addEventListener("install", (e) => {
         c.addAll(FILES.map((f) => new Request(f, { cache: "reload" }))),
       ),
   );
+});
+
+// Demandée par la page à son ouverture seulement (js/main.js)
+self.addEventListener("message", (e) => {
+  if (e.data === "activer") self.skipWaiting();
 });
 
 // Activation (au lancement qui suit) : les caches des versions précédentes sont effacés
