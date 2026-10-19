@@ -1,0 +1,6 @@
+# Prettier (#36) : réglages par défaut. Il suit aussi .gitignore.
+# Markdown laissé tel quel : Prettier aligne les tableaux, et chaque ligne d'un tableau changerait à la moindre retouche
+*.md
+package-lock.json
+# images générées par scripts/icons.js
+assets/

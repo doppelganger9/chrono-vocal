@@ -9,7 +9,7 @@ name: Qualité
 
 on:
   schedule:
-    - cron: '43 5 * * 1' # le lundi à 5 h 43 (UTC)
+    - cron: "43 5 * * 1" # le lundi à 5 h 43 (UTC)
   workflow_dispatch:
   pull_request:
     types: [labeled, synchronize]

@@ -11,10 +11,12 @@ export function createMicWatch({ now, thresholdMs = 30_000 }) {
   let last = now();
   return {
     /** la reconnaissance a donné signe de vie : résultat, démarrage, fin, erreur */
-    activity() { last = now(); },
+    activity() {
+      last = now();
+    },
     /** temps écoulé depuis le dernier signe de vie, en ms */
     silentMs: () => now() - last,
     /** @param {boolean} listening le micro est censé écouter */
-    isSilent: listening => listening && now() - last >= thresholdMs,
+    isSilent: (listening) => listening && now() - last >= thresholdMs,
   };
 }

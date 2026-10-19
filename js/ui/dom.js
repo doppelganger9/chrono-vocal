@@ -7,10 +7,11 @@ function get(id) {
   return el;
 }
 /** @param {string} id @returns {HTMLElement} */
-export const $ = id => get(id);
+export const $ = (id) => get(id);
 /** Champ de réglage (saisie ou liste) @param {string} id @returns {HTMLInputElement | HTMLSelectElement} */
-export const $field = id => /** @type {HTMLInputElement | HTMLSelectElement} */ (get(id));
+export const $field = (id) =>
+  /** @type {HTMLInputElement | HTMLSelectElement} */ (get(id));
 /** @param {string} id @returns {HTMLButtonElement} */
-export const $button = id => /** @type {HTMLButtonElement} */ (get(id));
+export const $button = (id) => /** @type {HTMLButtonElement} */ (get(id));
 /** @param {string} id @returns {HTMLDialogElement} */
-export const $dialog = id => /** @type {HTMLDialogElement} */ (get(id));
+export const $dialog = (id) => /** @type {HTMLDialogElement} */ (get(id));

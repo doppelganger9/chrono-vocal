@@ -20,6 +20,9 @@ jobs:
         run: npm audit --audit-level=high
       - name: Typage (JSDoc vérifié par TypeScript)
         run: npm run typecheck
+      # ESLint, puis Prettier en mode vérification (#36) : npm run format corrige
+      - name: Lint et format
+        run: npm run lint
       - name: Tests unitaires
         run: npm run test:unit
       - name: Navigateurs de test (Chromium, WebKit)
