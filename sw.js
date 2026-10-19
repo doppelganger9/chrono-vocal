@@ -3,7 +3,7 @@
 // télécharge tous les fichiers dans un nouveau cache, en arrière-plan. Il n'est activé qu'au prochain lancement,
 // une fois l'app fermée : jamais au milieu d'un assaut (décision de David, 19 octobre 2026). D'où l'absence de
 // skipWaiting et de clients.claim (tests/unit/sw.test.js le vérifie).
-const VERSION = "1.1.0";
+const VERSION = "1.2.0";
 const CACHE = "chrono-canne-" + VERSION;
 // tous les fichiers de l'app (tests/unit/sw.test.js vérifie qu'il n'en manque aucun)
 const FILES = [

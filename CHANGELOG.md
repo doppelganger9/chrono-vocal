@@ -4,6 +4,10 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : **mineure** (1.**1*
 
 Les nouveautés importantes reviennent dans « Quoi de neuf », sur l'écran titre (`js/intro.js`), avec les mêmes mots qu'ici.
 
+## [1.2.0] · 2026-10-19
+
+- « Fin de l'assaut » termine l'assaut à tout moment : en reprise, en temps dépassé, pendant la minute de repos ou avant la reprise suivante. « Annuler » revient en arrière (#77).
+
 ## [1.1.0] · 2026-10-19
 
 - L'app s'ouvre aussi sans réseau, une fois ouverte une première fois : les boutons, la télécommande et les annonces marchent ; la reconnaissance vocale peut demander le réseau, selon le téléphone (#40).
