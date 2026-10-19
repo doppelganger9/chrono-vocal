@@ -262,6 +262,29 @@ dialog {
   line-height: 1.4;
   margin: 0 0 10px;
 }
+.annex-modes {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+.annex-modes[hidden] {
+  display: none;
+}
+.annex-modes button {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 6px;
+  font-size: 16px;
+  font-weight: 600;
+  background: var(--panel);
+  color: var(--text);
+}
+.annex-modes button[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-color);
+}
 .annex-time {
   font-size: 84px;
   font-weight: 800;
@@ -707,4 +730,11 @@ body.paused #stops {
   .intro img {
     display: none;
   } /* écran titre : le texte et les boutons d'abord */
+  .annex-time {
+    font-size: 48px;
+    margin: 0;
+  } /* chronomètre annexe : ses boutons visibles sans défiler */
+  .annex-modes button {
+    padding: 6px;
+  }
 }

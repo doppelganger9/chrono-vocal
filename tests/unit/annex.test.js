@@ -1,7 +1,7 @@
 // Chronomètre annexe des retards (js/annex.js) : I 4.2.13
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createAnnex } from "../../js/annex.js";
+import { createAnnex, annexAnnouncement, annexLimit } from "../../js/annex.js";
 
 const setup = () => {
   const clock = {
@@ -28,7 +28,9 @@ test("compte le retard, avec une annonce à 1, 2 et 3 minutes", () => {
   const h = setup();
   h.annex.toggle();
   h.advance(60_000);
-  assert.deepEqual(h.events, [{ type: "annex-minute", minute: 1 }]);
+  assert.deepEqual(h.events, [
+    { type: "annex-minute", minute: 1, mode: "retard", color: null },
+  ]);
   h.advance(120_000);
   assert.deepEqual(
     h.events.map((e) => e.minute),
@@ -62,4 +64,80 @@ test("arrêter, reprendre, remettre à zéro", () => {
     2,
     "les annonces repartent après remise à zéro",
   );
+});
+
+// Second exclu qui refuse de sortir : carton rouge au tireur au bout d'une minute (I 4.2.5.4, #9)
+test("second exclu : une seule annonce, à 1 minute", () => {
+  const h = setup();
+  assert.equal(h.annex.mode, "retard", "retard par défaut");
+  h.annex.setMode("second");
+  assert.equal(h.annex.mode, "second");
+  h.annex.toggle();
+  h.advance(59_750);
+  assert.equal(h.events.length, 0);
+  h.advance(250);
+  assert.deepEqual(h.events, [
+    { type: "annex-minute", minute: 1, mode: "second", color: null },
+  ]);
+  h.advance(180_000);
+  assert.equal(h.events.length, 1, "rien après la première minute");
+  assert.equal(h.annex.elapsed(), 240, "le temps continue de compter");
+});
+
+test("changer de mode remet le chronomètre annexe à zéro", () => {
+  const h = setup();
+  h.annex.toggle();
+  h.advance(60_000);
+  assert.deepEqual(h.events, [
+    { type: "annex-minute", minute: 1, mode: "retard", color: null },
+  ]);
+  h.annex.setMode("second");
+  assert.equal(h.annex.elapsed(), 0);
+  assert.equal(h.annex.running, false);
+  h.annex.toggle();
+  h.advance(60_000);
+  assert.deepEqual(
+    h.events.map((e) => e.mode),
+    ["retard", "second"],
+    "la minute est annoncée à nouveau",
+  );
+  h.annex.setMode("retard");
+  h.annex.toggle();
+  h.advance(60_000);
+  assert.equal(h.events.length, 3);
+});
+
+test("annonces du chronomètre annexe", () => {
+  assert.equal(annexAnnouncement("retard", 1), "une minute. Pénalité");
+  assert.equal(annexAnnouncement("retard", 2), "deux minutes. Pénalité");
+  assert.equal(
+    annexAnnouncement("retard", 3),
+    "Trois minutes. Disqualification",
+  );
+  assert.equal(annexAnnouncement("second", 1), "Une minute. Carton rouge");
+});
+
+test("limite du chronomètre annexe : 3 minutes pour un retard, 1 minute pour un second exclu", () => {
+  assert.equal(annexLimit("retard"), 180);
+  assert.equal(annexLimit("second"), 60);
+});
+
+test("second exclu : le tireur choisi accompagne l'annonce, et un changement d'usage l'oublie", () => {
+  const h = setup();
+  assert.equal(h.annex.color, null, "aucun tireur par défaut");
+  h.annex.setMode("second");
+  h.annex.setColor("bleu");
+  assert.equal(h.annex.color, "bleu");
+  h.annex.toggle();
+  h.advance(60_000);
+  assert.deepEqual(h.events, [
+    { type: "annex-minute", minute: 1, mode: "second", color: "bleu" },
+  ]);
+  h.annex.reset();
+  assert.equal(h.annex.color, "bleu", "remettre à zéro garde le tireur");
+  h.annex.setColor(null);
+  assert.equal(h.annex.color, null);
+  h.annex.setColor("rouge");
+  h.annex.setMode("retard");
+  assert.equal(h.annex.color, null);
 });

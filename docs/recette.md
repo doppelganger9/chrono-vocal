@@ -25,6 +25,7 @@ Ce que les tests automatiques ne peuvent pas vérifier : la **vraie** reconnaiss
 - [ ] Tourner le téléphone pendant une reprise : passage portrait / paysage sans à-coup. Essayer le mode tableau.
 - [ ] Thème : passer le téléphone en mode clair puis sombre, et vérifier la lisibilité du thème jour en salle.
 - [ ] Télécommande Bluetooth, si utilisée : « suivant » = bouton principal, « précédent » = annuler.
+- [ ] Chronomètre annexe (⏱) → « Second exclu » → choisir le tireur → Démarrer : à 1 minute, « Une minute. Carton rouge », et le carton apparaît dans les statistiques si l'assaut a commencé (#9).
 
 ## Après la séance : nourrir le corpus de tests
 
