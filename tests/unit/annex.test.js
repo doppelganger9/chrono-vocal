@@ -29,7 +29,7 @@ test("compte le retard, avec une annonce à 1, 2 et 3 minutes", () => {
   h.annex.toggle();
   h.advance(60_000);
   assert.deepEqual(h.events, [
-    { type: "annex-minute", minute: 1, mode: "retard" },
+    { type: "annex-minute", minute: 1, mode: "retard", color: null },
   ]);
   h.advance(120_000);
   assert.deepEqual(
@@ -77,7 +77,7 @@ test("second exclu : une seule annonce, à 1 minute", () => {
   assert.equal(h.events.length, 0);
   h.advance(250);
   assert.deepEqual(h.events, [
-    { type: "annex-minute", minute: 1, mode: "second" },
+    { type: "annex-minute", minute: 1, mode: "second", color: null },
   ]);
   h.advance(180_000);
   assert.equal(h.events.length, 1, "rien après la première minute");
@@ -89,7 +89,7 @@ test("changer de mode remet le chronomètre annexe à zéro", () => {
   h.annex.toggle();
   h.advance(60_000);
   assert.deepEqual(h.events, [
-    { type: "annex-minute", minute: 1, mode: "retard" },
+    { type: "annex-minute", minute: 1, mode: "retard", color: null },
   ]);
   h.annex.setMode("second");
   assert.equal(h.annex.elapsed(), 0);
@@ -120,4 +120,24 @@ test("annonces du chronomètre annexe", () => {
 test("limite du chronomètre annexe : 3 minutes pour un retard, 1 minute pour un second exclu", () => {
   assert.equal(annexLimit("retard"), 180);
   assert.equal(annexLimit("second"), 60);
+});
+
+test("second exclu : le tireur choisi accompagne l'annonce, et un changement d'usage l'oublie", () => {
+  const h = setup();
+  assert.equal(h.annex.color, null, "aucun tireur par défaut");
+  h.annex.setMode("second");
+  h.annex.setColor("bleu");
+  assert.equal(h.annex.color, "bleu");
+  h.annex.toggle();
+  h.advance(60_000);
+  assert.deepEqual(h.events, [
+    { type: "annex-minute", minute: 1, mode: "second", color: "bleu" },
+  ]);
+  h.annex.reset();
+  assert.equal(h.annex.color, "bleu", "remettre à zéro garde le tireur");
+  h.annex.setColor(null);
+  assert.equal(h.annex.color, null);
+  h.annex.setColor("rouge");
+  h.annex.setMode("retard");
+  assert.equal(h.annex.color, null);
 });

@@ -261,6 +261,9 @@ dialog {
   gap: 8px;
   margin: 0 0 10px;
 }
+.annex-modes[hidden] {
+  display: none;
+}
 .annex-modes button {
   flex: 1;
   border: 1px solid var(--line);

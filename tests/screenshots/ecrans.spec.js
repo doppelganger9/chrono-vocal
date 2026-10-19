@@ -104,6 +104,7 @@ test("chronomètre annexe", async ({ app }, t) => {
   await app.wait(65_000);
   await shot(app, "7b-annexe", t);
   await app.$("#annexSecond").click(); // second exclu (#9) : absent des anciennes versions
+  await app.$('#annexTireurs button[data-color="bleu"]').click();
   await app.$("#annexStart").click();
   await app.wait(65_000);
   await shot(app, "7c-annexe-second", t);

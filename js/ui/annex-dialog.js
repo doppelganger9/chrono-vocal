@@ -2,6 +2,8 @@
 import { $, $dialog } from "./dom.js";
 import { fmt } from "../lang.js";
 import { annexLimit } from "../annex.js";
+import { esc } from "../html.js";
+import { dotHtml, paintDots } from "./dots.js";
 
 /** @type {Record<import('../annex.js').AnnexMode, string>} */
 const NOTES = {
@@ -11,9 +13,36 @@ const NOTES = {
     "Second exclu qui refuse de sortir : carton rouge à son tireur au bout d'une minute.",
 };
 
-/** @param {{ annex: ReturnType<typeof import('../annex.js').createAnnex>, onStart: () => void }} deps */
-export function createAnnexDialog({ annex, onStart }) {
+/** @param {{ annex: ReturnType<typeof import('../annex.js').createAnnex>, getColors: () => string[], onStart: () => void }} deps */
+export function createAnnexDialog({ annex, getColors, onStart }) {
+  // Second exclu : le tireur dont le second refuse de sortir, pour noter son carton (#9). Un toucher le choisit,
+  // un second toucher l'enlève
+  const tireurs = $("annexTireurs");
+  function renderTireurs() {
+    tireurs.hidden = annex.mode !== "second";
+    if (tireurs.hidden) return;
+    const html = getColors()
+      .filter((c) => c)
+      .map(
+        (c) =>
+          `<button data-color="${esc(c)}" aria-pressed="${annex.color === c}">${dotHtml(c)}Tireur ${esc(c)}</button>`,
+      )
+      .join("");
+    if (tireurs.dataset.html !== html) {
+      tireurs.innerHTML = html;
+      tireurs.dataset.html = html;
+      paintDots(tireurs);
+    }
+  }
+  tireurs.onclick = (e) => {
+    const c = /** @type {HTMLElement} */ (e.target).closest("button")?.dataset
+      .color;
+    if (!c) return;
+    annex.setColor(annex.color === c ? null : c);
+    render();
+  };
   function render() {
+    renderTireurs();
     const e = annex.elapsed();
     $("annexRetard").setAttribute(
       "aria-pressed",

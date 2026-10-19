@@ -18,7 +18,7 @@ export function annexAnnouncement(mode, minute) {
 /**
  * @param {object} deps
  * @param {Pick<import('./types.js').Clock, 'wall'>} deps.clock
- * @param {import('./types.js').Emit} deps.emit  'annex-minute' { minute, mode } à chaque minute jusqu'à la limite du mode
+ * @param {import('./types.js').Emit} deps.emit  'annex-minute' { minute, mode, color } à chaque minute jusqu'à la limite du mode
  */
 export function createAnnex({ clock, emit }) {
   let running = false,
@@ -27,6 +27,8 @@ export function createAnnex({ clock, emit }) {
     called = new Set();
   /** @type {AnnexMode} */
   let mode = "retard";
+  /** Tireur du second exclu, pour noter son carton (#9) @type {string | null} */
+  let color = null;
   const elapsed = () => acc + (running ? (clock.wall() - t0) / 1000 : 0);
   const reset = () => {
     running = false;
@@ -39,6 +41,9 @@ export function createAnnex({ clock, emit }) {
     },
     get mode() {
       return mode;
+    },
+    get color() {
+      return color;
     },
     elapsed,
     toggle() {
@@ -54,7 +59,12 @@ export function createAnnex({ clock, emit }) {
     /** Change d'usage, et repart de zéro @param {AnnexMode} m */
     setMode(m) {
       mode = m;
+      color = null;
       reset();
+    },
+    /** @param {string | null} c */
+    setColor(c) {
+      color = c;
     },
     tick() {
       if (!running) return;
@@ -62,7 +72,7 @@ export function createAnnex({ clock, emit }) {
       for (let m = 1; m <= annexLimit(mode) / 60; m++) {
         if (e >= m * 60 && !called.has(m)) {
           called.add(m);
-          emit("annex-minute", { minute: m, mode });
+          emit("annex-minute", { minute: m, mode, color });
         }
       }
     },

@@ -216,7 +216,7 @@ createJournalPanel({ journal });
 
 const annex = createAnnex({
   clock,
-  emit: (_type, { minute, mode }) => {
+  emit: (_type, { minute, mode, color }) => {
     audio.beep(900, 0.15);
     audio.beep(900, 0.15, 0.25);
     const text = annexAnnouncement(mode, minute);
@@ -227,7 +227,7 @@ const annex = createAnnex({
         type: /** @type {const} */ ("carton-rouge"),
         pts: 2,
         detail: "second exclu",
-        color: null,
+        color,
       };
       let label = "";
       command("CARTON ROUGE", () => {
@@ -239,6 +239,7 @@ const annex = createAnnex({
 });
 const annexDialog = createAnnexDialog({
   annex,
+  getColors: () => cfg.colors,
   onStart: () => {
     unlock();
     keepAwake();

@@ -49,3 +49,28 @@ test("changer d'usage remet le chronomètre annexe à zéro", async ({ app }) =>
   await app.$("#annexRetard").click();
   await expect(app.$("#annexNote")).toContainText("disqualification");
 });
+
+test("second exclu : le carton est noté pour le tireur choisi", async ({
+  app,
+}) => {
+  await app.hear("Allez");
+  await app.wait(2000);
+  await app.hear("Stop");
+  await app.$("#annexBtn").click();
+  await expect(app.$("#annexTireurs")).toBeHidden(); // seulement pour un second exclu
+  await app.$("#annexSecond").click();
+  const bleu = app.$('#annexTireurs button[data-color="bleu"]');
+  const rouge = app.$('#annexTireurs button[data-color="rouge"]');
+  await expect(bleu).toHaveAttribute("aria-pressed", "false");
+  await rouge.click();
+  await bleu.click(); // un seul tireur à la fois
+  await expect(bleu).toHaveAttribute("aria-pressed", "true");
+  await expect(rouge).toHaveAttribute("aria-pressed", "false");
+  await app.$("#annexStart").click();
+  await app.wait(60_500);
+  await app.$("#annexClose").click();
+  await expect(app.heard).toHaveText("📝 Carton rouge (second exclu) bleu");
+  await app.$("#statsBtn").click();
+  const row = app.$('#statsBody tr:has-text("bleu")');
+  await expect(row.locator("td").last()).toHaveText("2"); // 2 points à l'adversaire
+});
