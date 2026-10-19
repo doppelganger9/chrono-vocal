@@ -262,6 +262,12 @@ dialog {
   line-height: 1.4;
   margin: 0 0 10px;
 }
+/* version (#39), discrète */
+#introVersion,
+#settingsVersion {
+  margin: 14px 0 0;
+  font-size: 13px;
+}
 .annex-modes {
   display: flex;
   gap: 8px;

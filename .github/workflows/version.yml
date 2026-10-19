@@ -1,0 +1,28 @@
+# Étiquette et publication de chaque version (#39) : quand la version de package.json arrive sur main sans étiquette
+# vX.Y.Z, la CI pose l'étiquette et publie une « release » GitHub avec la partie de CHANGELOG.md de cette version.
+name: Version
+
+on:
+  push:
+    branches: [main]
+    paths: [package.json]
+
+permissions:
+  contents: write
+
+jobs:
+  etiquette:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Étiquette et release de la nouvelle version
+        run: |
+          v="v$(node -p 'require("./package.json").version')"
+          if git ls-remote --exit-code --tags origin "refs/tags/$v" >/dev/null; then
+            echo "$v existe déjà"; exit 0
+          fi
+          # la partie du journal de cette version : de son titre au titre suivant
+          awk -v v="${v#v}" '/^## \[/ { on = index($0, "[" v "]") > 0; next } on' CHANGELOG.md > notes.md
+          gh release create "$v" --target "$GITHUB_SHA" --title "$v" --notes-file notes.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -21,6 +21,7 @@ import { createControls } from "./ui/controls.js";
 import { twoTap } from "./ui/two-tap.js";
 import { createMicWatch } from "./mic-watch.js";
 import { createMicIndicator } from "./ui/mic-indicator.js";
+import { VERSION } from "./version.js";
 
 const storage = (() => {
   try {
@@ -372,6 +373,9 @@ $("micBtn").onclick = () => {
   }
   startMic();
 };
+// Version (#39) : dans les réglages et sur l'écran titre
+$("settingsVersion").textContent = "Chrono Canne " + VERSION;
+$("introVersion").textContent = "Version " + VERSION;
 // Écran titre : au premier lancement, puis une fois par nouveauté importante (#6)
 createIntro({
   storage,

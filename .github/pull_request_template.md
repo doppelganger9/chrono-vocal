@@ -4,6 +4,8 @@ Closes #
 
 ## Ce qui change pour l'utilisateur
 
+<!-- Si c'est visible : nouvelle version et lignes en tête de CHANGELOG.md (CONTRIBUTING § 6). -->
+
 -
 
 ## Captures avant / après
