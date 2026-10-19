@@ -4,9 +4,13 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : **mineure** (1.**1*
 
 Ces notes s'affichent dans l'app : « Quoi de neuf » sur l'écran titre, à la première ouverture d'une nouvelle version, et toutes dans « À propos ». Les lignes sont écrites pour l'arbitre ; les numéros d'issue et la mise en forme ne s'affichent pas. Après chaque modification, `npm run notes` les recopie dans `js/notes.js`.
 
-## [1.3.1] · 2026-10-19
+## [1.3.2] · 2026-10-19
 
 - Reconnaissance : « Tireurs au centre, tireurs en garde, allez » et « Deuxième reprise, tireurs en garde » sont compris ; « hangar », « en garde » mal entendu de loin, aussi (#79).
+
+## [1.3.1] · 2026-10-19
+
+- Temps dépassé : après le premier « Temps », les rappels toutes les 5 s sont des bips, sans voix. Sur iPhone, chaque annonce coupait le micro un instant, et une phrase de l'arbitre dite à ce moment se perdait (#78).
 
 ## [1.3.0] · 2026-10-19
 

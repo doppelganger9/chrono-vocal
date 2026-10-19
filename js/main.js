@@ -89,10 +89,11 @@ const effects = {
           command("Fin de reprise", chrono.endReprise);
       }, 4000);
   },
+  // Rappels du temps dépassé : un bip seulement. Sur iPhone, chaque annonce coupe un instant la reconnaissance,
+  // et une phrase de l'arbitre dite à ce moment se perdait (#78). Le premier « Temps » reste dit (effet temps)
   "overtime-call": ({ over }) => {
     audio.beep(660, 0.25);
-    speech.say("Temps");
-    showHeard("🔊 Temps (+" + fmt(Math.floor(over)) + ")");
+    showHeard("🔔 Temps (+" + fmt(Math.floor(over)) + ")");
   },
   "rest-call": ({ sec }) => {
     speech.say(durationFr(sec));
