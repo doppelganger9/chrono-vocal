@@ -2,6 +2,12 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
+    <!-- Politique de sécurité du contenu (#37) : seulement ce que sert le site, rien en ligne, aucune connexion.
+         En balise meta : GitHub Pages ne permet pas les en-têtes HTTP. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'"
+    />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
@@ -36,7 +42,7 @@
       <button id="micBtn" class="mic">
         <span class="dot"></span><span id="micText">Micro coupé</span>
       </button>
-      <div style="display: flex; gap: 6px">
+      <div class="header-actions">
         <button id="annexBtn" class="icon-btn" title="Chronomètre annexe">
           ⏱
         </button>
@@ -267,8 +273,8 @@
           ></label
         >
         <span
-          ><input id="sColor1" style="width: 62px" placeholder="rouge" />
-          <input id="sColor2" style="width: 62px" placeholder="bleu"
+          ><input id="sColor1" class="color-name" placeholder="rouge" />
+          <input id="sColor2" class="color-name" placeholder="bleu"
         /></span>
       </div>
       <div class="field">

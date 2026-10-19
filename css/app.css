@@ -26,6 +26,10 @@ header {
   padding: 12px 0;
   gap: 8px;
 }
+.header-actions {
+  display: flex;
+  gap: 6px;
+}
 .mic {
   display: flex;
   align-items: center;
@@ -296,6 +300,9 @@ dialog h2 {
   width: 130px;
   text-align: center;
 }
+.field input.color-name {
+  width: 62px;
+}
 #stops {
   font-size: clamp(15px, 4vw, 20px);
   color: var(--muted);
@@ -316,6 +323,9 @@ body.paused #stops {
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 10px 12px;
+}
+.tile.wide {
+  grid-column: 1 / -1;
 }
 .tile b {
   display: block;

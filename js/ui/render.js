@@ -2,7 +2,7 @@
 import { $, $button } from "./dom.js";
 import { fmt, restCue } from "../lang.js";
 import { rappelSanction } from "../chrono.js";
-import { tireurColor } from "../colors.js";
+import { dotHtml, paintDots } from "./dots.js";
 import { esc } from "../html.js";
 
 /** @type {Partial<Record<import('../types.js').SanctionType, string>>} */
@@ -100,14 +100,12 @@ export function render({
       .filter((c) => c)
       .map((c) => {
         const next = rappelSanction(chrono.rappelsOf(c) + 1).type;
-        const dot = tireurColor(c)
-          ? `<span class="tireur-dot" style="background:${tireurColor(c)}"></span>`
-          : "";
-        return `<button data-color="${esc(c)}">${dot}Rappel ${esc(c)}<small><span hidden> · </span>${NEXT[next]}</small></button>`;
+        return `<button data-color="${esc(c)}">${dotHtml(c)}Rappel ${esc(c)}<small><span hidden> · </span>${NEXT[next]}</small></button>`;
       })
       .join("");
     if (rappels.dataset.html !== html) {
       rappels.innerHTML = html;
+      paintDots(rappels);
       rappels.dataset.html = html;
     } // pas à chaque image : le bouton touché serait remplacé
   }

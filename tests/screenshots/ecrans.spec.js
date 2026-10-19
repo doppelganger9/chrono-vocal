@@ -13,8 +13,7 @@ test.beforeEach(async ({ page }) => {
 });
 // animations figées (clignotements, transitions) : deux versions identiques donnent des captures identiques
 const shot = async (app, name, testInfo) => {
-  if (process.env.SHOT_CSS)
-    await app.page.addStyleTag({ content: process.env.SHOT_CSS });
+  if (process.env.SHOT_CSS) await app.addStyle(process.env.SHOT_CSS);
   return app.page.screenshot({
     path: path.join(dir, `${testInfo.project.name}--${name}.png`),
     animations: "disabled",

@@ -178,6 +178,15 @@ class App {
       window.__sounds.length = 0;
     });
   }
+  /** Ajoute des styles à la page (police large…). Une feuille construite par le DOM : la politique de sécurité
+   * du contenu (#37) refuse les styles en ligne, comme ceux de page.addStyleTag */
+  async addStyle(css) {
+    await this.page.evaluate((css) => {
+      const sheet = new CSSStyleSheet();
+      sheet.replaceSync(css);
+      document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+    }, css);
+  }
 
   /** Ouvre les réglages, applique les valeurs { idDuChamp: valeur } puis enregistre */
   async configure(values) {
@@ -209,6 +218,16 @@ const test = base.extend({
     // toute erreur JavaScript de la page fait échouer le test
     const pageErrors = [];
     page.on("pageerror", (e) => pageErrors.push(e.message));
+    // et toute violation de la politique de sécurité du contenu (#37), rendue en erreur de la page
+    await page.addInitScript(() =>
+      document.addEventListener("securitypolicyviolation", (e) =>
+        setTimeout(() => {
+          throw new Error(
+            `CSP : ${e.violatedDirective} bloque ${e.blockedURI || "un élément en ligne"}`,
+          );
+        }),
+      ),
+    );
     const coverage = COVERAGE_DIR && browserName === "chromium";
     if (coverage)
       await page.coverage.startJSCoverage({ resetOnNavigation: false });

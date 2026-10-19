@@ -98,10 +98,9 @@ for (const size of [
     page,
   }) => {
     await page.setViewportSize(size);
-    await page.addStyleTag({
-      content:
-        'html, body { font-family: Verdana, "DejaVu Sans", sans-serif !important; }',
-    });
+    await app.addStyle(
+      'html, body { font-family: Verdana, "DejaVu Sans", sans-serif !important; }',
+    );
     await app.configure({ sRound: "0:05", sCalls: "" }); // sans annonces : sur iPhone, chacune relance l'écoute
     await app.hear("Allez");
     await app.wait(5000);
