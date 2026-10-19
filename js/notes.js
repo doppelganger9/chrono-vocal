@@ -2,13 +2,25 @@
 /** @type {import('./types.js').Release[]} */
 export const NOTES = [
   {
-    version: "1.2.1",
+    version: "1.3.1",
     date: "2026-10-19",
     sections: [
       {
         title: "",
         items: [
           "Temps dépassé : après le premier « Temps », les rappels toutes les 5 s sont des bips, sans voix. Sur iPhone, chaque annonce coupait le micro un instant, et une phrase de l'arbitre dite à ce moment se perdait.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.3.0",
+    date: "2026-10-19",
+    sections: [
+      {
+        title: "",
+        items: [
+          "« Fin de l'assaut » termine l'assaut à tout moment : en reprise, en temps dépassé, pendant la minute de repos ou avant la reprise suivante. « Annuler » revient en arrière.",
         ],
       },
     ],

@@ -70,10 +70,10 @@ export function createVoice({
       return "engarde";
     }
     if (c.enGarde) lastEnGarde = now();
-    // « Stop, fin de la reprise / de l'assaut » : l'arbitre termine la reprise
+    // « Stop, fin de la reprise » : l'arbitre termine la reprise ; « fin de l'assaut » : tout l'assaut, à tout moment (#77)
     if (c.end) {
       const name = c.end === "assaut" ? "FIN DE L'ASSAUT" : "FIN DE REPRISE";
-      if (command(name, endReprise)) {
+      if (command(name, c.end === "assaut" ? chrono.endBout : endReprise)) {
         action = name;
         ui.showHeard("🎙 " + name + " (« " + text.trim() + " »)");
       } else {

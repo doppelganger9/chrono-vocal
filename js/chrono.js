@@ -202,6 +202,18 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
     emit("reprise-end");
     return true;
   }
+  // « Fin de l'assaut » : l'arbitre termine l'assaut à tout moment une fois commencé, en reprise, au repos ou en
+  // attente de la reprise suivante (#77). L'arbitre décide ; « Annuler » revient en arrière
+  function endBout() {
+    if (!bout.start || st.phase === "done") return false;
+    if (inPlay()) {
+      if (st.running) tick();
+      const r = bout.rounds[st.round];
+      if (r) r.over = overtime();
+    }
+    finishBout();
+    return true;
+  }
   function startRest() {
     Object.assign(st, {
       phase: "rest",
@@ -357,6 +369,7 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
     allez,
     stop,
     endReprise,
+    endBout,
     endRest,
     extraRound,
     prolong,
