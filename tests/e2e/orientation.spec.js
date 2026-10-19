@@ -118,10 +118,9 @@ for (const name of Object.keys(SIZES)) {
     page,
   }) => {
     await page.setViewportSize(SIZES[name]);
-    await page.addStyleTag({
-      content:
-        'html, body { font-family: Verdana, "DejaVu Sans", sans-serif !important; }',
-    });
+    await app.addStyle(
+      'html, body { font-family: Verdana, "DejaVu Sans", sans-serif !important; }',
+    );
     await app.configure({ sRound: "10:00" });
     await expect(app.time).toHaveText("10:00"); // 5 caractères
     expect(await noScroll(page)).toBe(true);

@@ -8,14 +8,8 @@ import {
   roundName,
   mmss,
 } from "../stats.js";
-import { tireurColor } from "../colors.js";
 import { esc } from "../html.js";
-
-/** Pastille de couleur devant le nom d'un tireur @param {string | null} name */
-const dot = (name) => {
-  const c = tireurColor(name);
-  return c ? `<span class="tireur-dot" style="background:${c}"></span>` : "";
-};
+import { dotHtml, paintDots } from "./dots.js";
 
 export const LAST_BOUT_KEY = "chrono-canne-last";
 
@@ -52,7 +46,7 @@ export function createStatsDialog({ getBout, storage }) {
           <div class="tile"><b>${mmss(k.total)}</b><span>temps d'arrêt total</span></div>
           <div class="tile"><b>${mmss(k.avg)}</b><span>arrêt moyen</span></div>
           <div class="tile"><b>${mmss(k.max)}</b><span>arrêt le plus long</span></div>
-          <div class="tile" style="grid-column:1/-1"><b>${mmss(k.bout)}</b><span>durée réelle de l'assaut (arrêts et repos compris)${k.prolongations ? ` — ${k.prolongations} prolongation(s) de 30 s` : ""}</span></div>
+          <div class="tile wide"><b>${mmss(k.bout)}</b><span>durée réelle de l'assaut (arrêts et repos compris)${k.prolongations ? ` — ${k.prolongations} prolongation(s) de 30 s` : ""}</span></div>
         </div>
         <h3>Par reprise</h3>
         <table><tr><th>Reprise</th><th>Arrêts</th><th>Temps arrêté</th><th>Durée réelle</th></tr>
@@ -80,7 +74,7 @@ export function createStatsDialog({ getBout, storage }) {
           k.events.length
             ? `<h3>Sanctions par tireur</h3>
         <table><tr><th>Tireur</th><th>Obs.</th><th>Pén.</th><th>Avert.</th><th>Cartons</th><th>Pts adv.</th></tr>
-          ${k.byColor.map((c) => `<tr><td>${dot(c.color)}${esc(c.color || "?")}</td><td>${c.observation}</td><td>${c.penalite}</td><td>${c.avertissement}</td><td>${c.cartons}</td><td>${c.pts}</td></tr>`).join("")}
+          ${k.byColor.map((c) => `<tr><td>${dotHtml(c.color)}${esc(c.color || "?")}</td><td>${c.observation}</td><td>${c.penalite}</td><td>${c.avertissement}</td><td>${c.cartons}</td><td>${c.pts}</td></tr>`).join("")}
         </table>`
             : ""
         }
@@ -95,6 +89,7 @@ export function createStatsDialog({ getBout, storage }) {
                 .join("")}</ul>`
             : ""
         }`;
+      paintDots($("statsBody"));
     }
     if (!$dialog("statsDlg").open) $dialog("statsDlg").showModal();
   }
