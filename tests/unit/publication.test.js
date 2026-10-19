@@ -48,6 +48,7 @@ test("une note invalide est refusée, avec le nom du fichier et la raison", () =
   refus("---\ntype: correctif\n---\n\n", /aucune ligne/);
   refus("---\ntype: correctif\n---\n- A\nTexte libre\n", /« Texte libre »/);
   refus("---\ntype: correctif\n---\n-collée\n", /« -collée »/);
+  refus("---\ntype: correctif\n---\nx- A\n", /« x- A »/);
   refus("---\ntype: correctif\n---\n- \n", /« - »/);
   refus("---\ntype: correctif\n---\n## [9.9.9] · 2026-01-01\n- A\n", /« ## /);
 });
@@ -61,6 +62,9 @@ test("version suivante : mineure s'il y a une nouveauté, correctif sinon, rien 
   assert.equal(P.nextVersion("1.3.2", [c, n, c]), "1.4.0");
   assert.equal(P.nextVersion("2.19.9", [c]), "2.19.10");
   assert.equal(P.nextVersion("2.19.9", [n]), "2.20.0");
+  assert.equal(P.nextVersion("10.3.19", [c]), "10.3.20");
+  assert.equal(P.nextVersion("10.3.19", [n]), "10.4.0");
+  assert.throws(() => P.nextVersion("v1.3.2", [c]), /« v1\.3\.2 »/);
   assert.equal(P.nextVersion("1.3.2", []), null);
   assert.throws(() => P.nextVersion("1.3", [c]), /« 1\.3 »/);
   assert.throws(() => P.nextVersion("1.3.2-beta", [c]), /SemVer/);
@@ -152,6 +156,13 @@ test("journal sans version : la première s'ajoute à la fin", () => {
   assert.equal(
     P.addRelease("# Journal", "1.0.0", "2026-10-20", ["- A"]),
     "# Journal\n\n## [1.0.0] · 2026-10-20\n\n- A\n",
+  );
+});
+
+test("journal qui commence par une version : la nouvelle passe devant", () => {
+  assert.equal(
+    P.addRelease("## [1.0.0] · x\n", "1.0.1", "d", ["- A"]),
+    "## [1.0.1] · d\n\n- A\n\n## [1.0.0] · x\n",
   );
 });
 

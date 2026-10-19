@@ -19,7 +19,7 @@ function parseNote(name, text) {
   const fail = (/** @type {string} */ why) => {
     throw new Error(`changements/${name} : ${why}`);
   };
-  const m = text.replace(/\r/g, "").match(/^---\ntype:(.*)\n---\n([^]*)$/);
+  const m = text.replace(/\r/g, "").match(/^---\ntype:(.*)\n---\n([^]*)/);
   if (!m) return fail(HEADER);
   const type = m[1].trim();
   if (!TYPES.includes(type))
