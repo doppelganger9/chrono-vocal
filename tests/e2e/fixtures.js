@@ -207,8 +207,8 @@ const test = base.extend({
   // témoin « micro silencieux » (#56) : la fausse reconnaissance ne transmet rien d'elle-même, il est donc coupé (0)
   // sauf dans les tests qui le concernent
   micSilentMs: [0, { option: true }],
-  // écran titre déjà vu (version), pour ne pas gêner les autres tests ; false : premier lancement
-  introSeen: [99, { option: true }],
+  // écran titre déjà vu pour cette version (#84), pour ne pas gêner les autres tests ; false : premier lancement
+  introSeen: [require("../../package.json").version, { option: true }],
   // stockage du navigateur indisponible (navigation privée stricte)
   blockStorage: [false, { option: true }],
   app: async (

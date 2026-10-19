@@ -2,7 +2,13 @@
 
 Les versions suivent [SemVer](https://semver.org/lang/fr/) : **mineure** (1.**1**.0) pour une nouveauté visible, **correctif** (1.0.**1**) pour une correction visible ; les changements sans effet pour l'utilisateur (outillage, tests) ne changent pas la version. La version est affichée dans les réglages et sur l'écran titre ; chaque version a son étiquette git (`v1.0.0`), posée par la CI quand elle arrive sur `main`.
 
-Les nouveautés importantes reviennent dans « Quoi de neuf », sur l'écran titre (`js/intro.js`), avec les mêmes mots qu'ici.
+Ces notes s'affichent dans l'app : « Quoi de neuf » sur l'écran titre, à la première ouverture d'une nouvelle version, et toutes dans « À propos ». Les lignes sont écrites pour l'arbitre ; les numéros d'issue et la mise en forme ne s'affichent pas. Après chaque modification, `npm run notes` les recopie dans `js/notes.js`.
+
+## [1.2.0] · 2026-10-19
+
+- À chaque nouvelle version, l'écran titre revient une fois avec ce qui a changé (#84).
+- Dans les réglages, « À propos » donne la version et toutes les notes de version (#84).
+- Sur iPhone, une nouvelle version est prise à l'ouverture suivante de l'app, même si Safari a gardé l'onglet (#84).
 
 ## [1.1.0] · 2026-10-19
 

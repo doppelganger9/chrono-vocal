@@ -289,10 +289,9 @@
       </div>
       <div class="dlg-actions">
         <button id="introAgain" class="secondary" type="button">
-          Revoir la présentation
+          À propos
         </button>
       </div>
-      <p id="settingsVersion" class="note"></p>
       <h3>Journal vocal</h3>
       <p class="note">
         Ce que la reconnaissance a entendu, et ce que l'app en a fait : à
@@ -358,11 +357,16 @@
         <li>Les boutons et une télécommande Bluetooth marchent aussi.</li>
       </ul>
       <div id="introNews" hidden>
-        <h3>Quoi de neuf</h3>
-        <ul id="introNewsList"></ul>
+        <h3 id="introNewsTitle">Quoi de neuf</h3>
+        <div
+          id="introNewsList"
+          tabindex="0"
+          role="region"
+          aria-labelledby="introNewsTitle"
+        ></div>
       </div>
       <div class="dlg-actions">
-        <button id="introStart">Commencer</button>
+        <button id="introStart" autofocus>Commencer</button>
         <button id="introSkip" class="secondary">Sans la voix</button>
       </div>
       <p id="introVersion" class="note"></p>

@@ -373,13 +373,26 @@ $("micBtn").onclick = () => {
   }
   startMic();
 };
-// Hors ligne (#40) : le service worker garde l'app en cache. Une nouvelle version est prise au prochain lancement
+// Hors ligne (#40) : le service worker garde l'app en cache. Une nouvelle version est prise au prochain lancement.
+// Safari sur iPhone garde l'onglet ouvert : la version en attente est donc prise à l'ouverture de la page, quand rien
+// n'est en cours, puis la page se recharge (#84). Jamais plus tard : pas au milieu d'un assaut
 if ("serviceWorker" in navigator)
-  navigator.serviceWorker.register("sw.js").catch(() => {});
-// Version (#39) : dans les réglages et sur l'écran titre
-$("settingsVersion").textContent = "Chrono Canne " + VERSION;
+  navigator.serviceWorker
+    .register("sw.js")
+    .then((reg) => {
+      if (!reg.waiting || !navigator.serviceWorker.controller) return;
+      navigator.serviceWorker.addEventListener(
+        "controllerchange",
+        () => location.reload(),
+        { once: true },
+      );
+      reg.waiting.postMessage("activer");
+    })
+    .catch(() => {});
+// Version (#39) : sur l'écran titre, ouvert aussi depuis « À propos » dans les réglages (#84)
+$("introAgain").textContent = "À propos · version " + VERSION;
 $("introVersion").textContent = "Version " + VERSION;
-// Écran titre : au premier lancement, puis une fois par nouveauté importante (#6)
+// Écran titre : au premier lancement, puis une fois par nouvelle version, avec ses notes (#6, #84)
 createIntro({
   storage,
   onStart: () => {
