@@ -140,8 +140,8 @@ test.describe("l'arbitre décide de la fin de la reprise", () => {
     await expect(app.time).toHaveText("+0:02"); // arrêt décompté : le dépassement est figé
     await app.hear("Allez");
     await expect(app.phase).toHaveText("Temps dépassé");
-    await app.hear("Stop, fin de l'assaut"); // les deux formules terminent la reprise
-    await expect(app.phase).toHaveText("Minute de repos");
+    await app.hear("Stop, fin de l'assaut"); // termine l'assaut entier, même avant la dernière reprise (#77)
+    await expect(app.phase).toHaveText("Fin de l'assaut");
   });
 
   test("« stop » juste avant « temps » : « fin de la reprise » termine quand même la reprise", async ({

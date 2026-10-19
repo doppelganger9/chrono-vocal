@@ -2,13 +2,25 @@
 /** @type {import('./types.js').Release[]} */
 export const NOTES = [
   {
-    version: "1.2.1",
+    version: "1.3.1",
     date: "2026-10-19",
     sections: [
       {
         title: "",
         items: [
           "Reconnaissance : « Tireurs au centre, tireurs en garde, allez » et « Deuxième reprise, tireurs en garde » sont compris ; « hangar », « en garde » mal entendu de loin, aussi.",
+        ],
+      },
+    ],
+  },
+  {
+    version: "1.3.0",
+    date: "2026-10-19",
+    sections: [
+      {
+        title: "",
+        items: [
+          "« Fin de l'assaut » termine l'assaut à tout moment : en reprise, en temps dépassé, pendant la minute de repos ou avant la reprise suivante. « Annuler » revient en arrière.",
         ],
       },
     ],
