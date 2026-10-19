@@ -36,6 +36,10 @@ const SCREENS = {
     await app.$("#skipBtn").click();
     await app.wait(1500);
   },
+  // le bouton seul, affiché à la main : la version téléchargée est simulée dans mise-a-jour.spec.js (#96)
+  "mise à jour disponible": async (app) => {
+    await app.$("#updateBtn").evaluate((b) => (b.hidden = false));
+  },
   réglages: async (app) => {
     await app.$("#settingsBtn").click();
   },
