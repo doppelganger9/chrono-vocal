@@ -150,7 +150,13 @@ body.over .bar > div {
 }
 body.paused #time {
   color: var(--stop);
-  animation: pulse 1s infinite;
+  animation: pulse-time 1s infinite;
+}
+/* chiffres en arrêt : ils battent sans passer sous un contraste de 3:1, dans les deux thèmes (#38) */
+@keyframes pulse-time {
+  50% {
+    opacity: 0.7;
+  }
 }
 #prolongBtn {
   margin-top: 6px;
@@ -445,7 +451,8 @@ body.paused #stops {
   font-size: 16px;
   font-weight: 600;
   background: var(--accent);
-  color: #fff;
+  /* blanc sur le bleu du jour, sombre sur le bleu clair de la nuit (contraste, #38) */
+  color: var(--on-color);
 }
 .dlg-actions button.secondary {
   flex: 1;
