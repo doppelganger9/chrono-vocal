@@ -2,7 +2,7 @@
 // Captures et mesures avant / après pour une PR (CONTRIBUTING.md § 4).
 //   npm run avant-apres -- main     → screenshots/{avant,apres}/*.png, screenshots/perf.md
 // « avant » est la version <ref> extraite dans un dossier temporaire (git worktree), « après » la copie de travail.
-const { execSync, spawn } = require("node:child_process");
+const { execSync, execFileSync, spawn } = require("node:child_process");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -32,7 +32,8 @@ const serve = (dir, port) =>
 
 (async () => {
   const before = fs.mkdtempSync(path.join(os.tmpdir(), "chrono-avant-"));
-  execSync(`git worktree add --detach ${JSON.stringify(before)} ${ref}`, {
+  // sans shell : le chemin et la référence restent de simples arguments (alerte CodeQL)
+  execFileSync("git", ["worktree", "add", "--detach", before, ref], {
     cwd: root,
     stdio: "ignore",
   });
@@ -56,7 +57,7 @@ const serve = (dir, port) =>
     console.log("\n" + perf);
   } finally {
     servers.forEach((s) => s.kill());
-    execSync(`git worktree remove --force ${JSON.stringify(before)}`, {
+    execFileSync("git", ["worktree", "remove", "--force", before], {
       cwd: root,
       stdio: "ignore",
     });
