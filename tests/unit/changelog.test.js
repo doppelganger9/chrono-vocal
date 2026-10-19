@@ -65,6 +65,22 @@ test("seules les lignes « - » au début comptent", () => {
   assert.deepEqual(r.sections, [{ title: "", items: ["vraie"] }]);
 });
 
+test("numéros d'issue collés ou sans espace, lignes et rubriques à espaces, titres mal placés", () => {
+  const r = parseChangelog(
+    "x## [9.9.9] · 2026-01-01\n## [1.0.0] · 2026-10-19\n-   Ligne(#3,#4)  \nx### Pas une rubrique\n- Suite\n### Rubrique \n- Autre\n",
+  );
+  assert.deepEqual(r, [
+    {
+      version: "1.0.0",
+      date: "2026-10-19",
+      sections: [
+        { title: "", items: ["Ligne", "Suite"] },
+        { title: "Rubrique", items: ["Autre"] },
+      ],
+    },
+  ]);
+});
+
 test("un « (#…) » qui n'est pas une liste d'issues reste", () => {
   const [r] = parseChangelog(
     "## [1.0.0] · 2026-10-19\n- Couleur (#fff) et (# 3) et (#3 et #4)\n",

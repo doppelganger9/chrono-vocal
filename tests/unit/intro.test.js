@@ -60,7 +60,14 @@ test("« Quoi de neuf » : les notes des versions plus récentes que la dernièr
 test("date des notes en français", () => {
   assert.equal(frenchDate("2026-10-19"), "19 octobre 2026");
   assert.equal(frenchDate("2027-01-05"), "5 janvier 2027");
-  assert.equal(frenchDate("2027-12-31"), "31 décembre 2027");
+  const months =
+    "janvier février mars avril mai juin juillet août septembre octobre novembre décembre";
+  assert.deepEqual(
+    months
+      .split(" ")
+      .map((_, i) => frenchDate(`2027-${i + 1}-1`).split(" ")[1]),
+    months.split(" "),
+  );
 });
 
 test("version vue : enregistrée, relue, et aucune si le stockage est indisponible", () => {
@@ -84,6 +91,8 @@ test("version vue : enregistrée, relue, et aucune si le stockage est indisponib
       },
     }),
   );
+  assert.equal(INTRO_KEY, "chrono-canne-intro"); // la clé déjà utilisée sur les téléphones
+  assert.equal(readSeen(memory({ [INTRO_KEY]: "10.20.30" })), "10.20.30");
   assert.equal(readSeen(memory({ [INTRO_KEY]: "abc" })), "");
   assert.equal(readSeen(memory({ [INTRO_KEY]: "1.2" })), "");
   assert.equal(readSeen(memory({ [INTRO_KEY]: "x1.2.0" })), "");
@@ -92,6 +101,7 @@ test("version vue : enregistrée, relue, et aucune si le stockage est indisponib
 
 test("ancienne valeur (numéro de présentation, avant #84) : vue avec la 1.0.0", () => {
   assert.equal(readSeen(memory({ [INTRO_KEY]: "2" })), "1.0.0");
+  assert.equal(readSeen(memory({ [INTRO_KEY]: "12" })), "1.0.0");
   assert.equal(readSeen(memory({ [INTRO_KEY]: "2a" })), "");
   assert.equal(readSeen(memory({ [INTRO_KEY]: "a2" })), "");
 });
