@@ -361,6 +361,9 @@ $("micBtn").onclick = () => {
   }
   startMic();
 };
+// Hors ligne (#40) : le service worker garde l'app en cache. Une nouvelle version est prise au prochain lancement
+if ("serviceWorker" in navigator)
+  navigator.serviceWorker.register("sw.js").catch(() => {});
 // Version (#39) : dans les réglages et sur l'écran titre
 $("settingsVersion").textContent = "Chrono Canne " + VERSION;
 $("introVersion").textContent = "Version " + VERSION;
