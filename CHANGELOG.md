@@ -32,6 +32,7 @@ Première version numérotée : tout ce que fait l'app au 19 octobre 2026.
 - Écran titre au premier lancement, et « Quoi de neuf » après une nouveauté importante (#6).
 - Télécommande Bluetooth : « suivant » = bouton principal, « précédent » = annuler.
 - Réglages partagés par lien ou par fichier, vérifiés à l'import (#15, #55).
+- Contrastes vérifiés dans les deux thèmes (chiffres en arrêt, boutons bleus la nuit), et boutons utilisables au clavier (#38).
 
 ### Sécurité
 
