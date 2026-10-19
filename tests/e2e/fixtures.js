@@ -1,9 +1,9 @@
 // Banc d'essai : la page est chargée avec des doublures à la place de la voix du navigateur,
 // et une horloge simulée qu'on avance à la main (une reprise de 2 minutes se joue en quelques ms).
-const { test: base, expect } = require('@playwright/test');
-const fs = require('node:fs');
-const path = require('node:path');
-const crypto = require('node:crypto');
+const { test: base, expect } = require("@playwright/test");
+const fs = require("node:fs");
+const path = require("node:path");
+const crypto = require("node:crypto");
 
 // npm run coverage : couverture JavaScript de la page (Chromium seulement, WebKit ne la fournit pas)
 const COVERAGE_DIR = process.env.COVERAGE_E2E_DIR;
@@ -16,24 +16,52 @@ function installFakes() {
   // ou au bout de window.__speechMs millisecondes (horloge simulée), pour parler pendant une annonce
   window.__spoken = [];
   window.__speechMs = 0;
-  window.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
-  Object.defineProperty(window, 'speechSynthesis', {
+  window.SpeechSynthesisUtterance = class {
+    constructor(text) {
+      this.text = text;
+    }
+  };
+  Object.defineProperty(window, "speechSynthesis", {
     configurable: true,
     value: {
-      speaking: false, pending: false, onvoiceschanged: null,
-      getVoices: () => [], cancel() {}, resume() {},
-      speak(u) { window.__spoken.push(u.text); if (window.__speechMs) setTimeout(() => u.onend?.(), window.__speechMs); else u.onend?.(); },
+      speaking: false,
+      pending: false,
+      onvoiceschanged: null,
+      getVoices: () => [],
+      cancel() {},
+      resume() {},
+      speak(u) {
+        window.__spoken.push(u.text);
+        if (window.__speechMs) setTimeout(() => u.onend?.(), window.__speechMs);
+        else u.onend?.();
+      },
     },
   });
   // Sons (bips, gong) : moteur audio muet, on enregistre la fréquence de chaque son joué
   window.__sounds = [];
-  const node = () => ({ connect: next => next });
+  const node = () => ({ connect: (next) => next });
   class FakeAudioContext {
-    constructor() { this.state = 'running'; this.currentTime = 0; this.destination = node(); }
-    resume() { return Promise.resolve(); }
-    createGain() { return { ...node(), gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} } }; }
+    constructor() {
+      this.state = "running";
+      this.currentTime = 0;
+      this.destination = node();
+    }
+    resume() {
+      return Promise.resolve();
+    }
+    createGain() {
+      return {
+        ...node(),
+        gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} },
+      };
+    }
     createOscillator() {
-      const o = { ...node(), type: 'sine', frequency: { value: 440 }, stop() {} };
+      const o = {
+        ...node(),
+        type: "sine",
+        frequency: { value: 440 },
+        stop() {},
+      };
       o.start = () => window.__sounds.push(o.frequency.value);
       return o;
     }
@@ -41,23 +69,42 @@ function installFakes() {
   window.AudioContext = window.webkitAudioContext = FakeAudioContext;
   // Partage de fichiers (feuille de partage du téléphone) : on enregistre ce que l'app partage
   window.__shared = [];
-  Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true });
-  Object.defineProperty(navigator, 'share', { configurable: true, value: async d => {
-    for (const f of d.files || []) window.__shared.push({ name: f.name, text: await f.text() });
-  } });
+  Object.defineProperty(navigator, "canShare", {
+    configurable: true,
+    value: () => true,
+  });
+  Object.defineProperty(navigator, "share", {
+    configurable: true,
+    value: async (d) => {
+      for (const f of d.files || [])
+        window.__shared.push({ name: f.name, text: await f.text() });
+    },
+  });
   // Reconnaissance vocale : le test « parle » avec window.__hear. Comme dans le navigateur, chaque start() ouvre
   // une nouvelle écoute (résultats remis à zéro), et stop() la termine (onend) ; window.__recLog garde la trace.
   window.__recLog = [];
   class FakeRecognition {
-    constructor() { window.__rec = this; this.results = []; window.__recLog.push('new'); }
-    start() { window.__recLog.push('start'); this.results = []; }
-    stop() { window.__recLog.push('stop'); setTimeout(() => this.onend?.(), 0); }
-    abort() { this.stop(); }
+    constructor() {
+      window.__rec = this;
+      this.results = [];
+      window.__recLog.push("new");
+    }
+    start() {
+      window.__recLog.push("start");
+      this.results = [];
+    }
+    stop() {
+      window.__recLog.push("stop");
+      setTimeout(() => this.onend?.(), 0);
+    }
+    abort() {
+      this.stop();
+    }
   }
   window.SpeechRecognition = window.webkitSpeechRecognition = FakeRecognition;
   window.__hear = (alternatives, isFinal) => {
     const rec = window.__rec;
-    const result = alternatives.map(transcript => ({ transcript }));
+    const result = alternatives.map((transcript) => ({ transcript }));
     result.isFinal = isFinal;
     rec.results.push(result);
     rec.onresult({ resultIndex: rec.results.length - 1, results: rec.results });
@@ -65,45 +112,83 @@ function installFakes() {
 }
 
 class App {
-  constructor(page) { this.page = page; }
-  $(sel) { return this.page.locator(sel); }
-  get time() { return this.$('#time'); }
-  get max() { return this.$('#max'); }
-  get round() { return this.$('#roundLabel'); }
-  get phase() { return this.$('#phaseLabel'); }
-  get main() { return this.$('#mainBtn'); }
-  get heard() { return this.$('#heard'); }
-  get stops() { return this.$('#stops'); }
+  constructor(page) {
+    this.page = page;
+  }
+  $(sel) {
+    return this.page.locator(sel);
+  }
+  get time() {
+    return this.$("#time");
+  }
+  get max() {
+    return this.$("#max");
+  }
+  get round() {
+    return this.$("#roundLabel");
+  }
+  get phase() {
+    return this.$("#phaseLabel");
+  }
+  get main() {
+    return this.$("#mainBtn");
+  }
+  get heard() {
+    return this.$("#heard");
+  }
+  get stops() {
+    return this.$("#stops");
+  }
 
   /** Avance l'horloge simulée, par pas de 500 ms : chaque minuterie échue s'exécute une fois par pas
    *  (assez fin pour les annonces du repos, bien plus rapide que de jouer chaque image d'animation) */
   async wait(ms) {
-    for (let left = ms; left > 0; left -= 500) await this.page.clock.fastForward(Math.min(500, left));
+    for (let left = ms; left > 0; left -= 500)
+      await this.page.clock.fastForward(Math.min(500, left));
   }
-  async micOn() { await this.$('#micBtn').click(); }
+  async micOn() {
+    await this.$("#micBtn").click();
+  }
   /** L'arbitre parle (résultat final de la reconnaissance ; plusieurs alternatives possibles) */
   async hear(text, { final = true } = {}) {
     const alts = Array.isArray(text) ? text : [text];
     await this.page.evaluate(([a, f]) => window.__hear(a, f), [alts, final]);
   }
-  async spoken() { return this.page.evaluate(() => window.__spoken.slice()); }
+  async spoken() {
+    return this.page.evaluate(() => window.__spoken.slice());
+  }
   /** Fichiers partagés par l'app (feuille de partage simulée) */
-  async shared() { return this.page.evaluate(() => window.__shared.slice()); }
-  async clearSpoken() { await this.page.evaluate(() => { window.__spoken.length = 0; }); }
-  async expectSpoken(text) { await expect.poll(() => this.spoken()).toContain(text); }
+  async shared() {
+    return this.page.evaluate(() => window.__shared.slice());
+  }
+  async clearSpoken() {
+    await this.page.evaluate(() => {
+      window.__spoken.length = 0;
+    });
+  }
+  async expectSpoken(text) {
+    await expect.poll(() => this.spoken()).toContain(text);
+  }
   /** Fréquences des sons joués (bips, gong) */
-  async sounds() { return this.page.evaluate(() => window.__sounds.slice()); }
-  async clearSounds() { await this.page.evaluate(() => { window.__sounds.length = 0; }); }
+  async sounds() {
+    return this.page.evaluate(() => window.__sounds.slice());
+  }
+  async clearSounds() {
+    await this.page.evaluate(() => {
+      window.__sounds.length = 0;
+    });
+  }
 
   /** Ouvre les réglages, applique les valeurs { idDuChamp: valeur } puis enregistre */
   async configure(values) {
-    await this.$('#settingsBtn').click();
+    await this.$("#settingsBtn").click();
     for (const [id, value] of Object.entries(values)) {
-      const el = this.$('#' + id);
-      if (await el.evaluate(e => e.tagName) === 'SELECT') await el.selectOption(String(value));
+      const el = this.$("#" + id);
+      if ((await el.evaluate((e) => e.tagName)) === "SELECT")
+        await el.selectOption(String(value));
       else await el.fill(String(value));
     }
-    await this.$('#saveBtn').click();
+    await this.$("#saveBtn").click();
   }
 }
 
@@ -117,33 +202,58 @@ const test = base.extend({
   introSeen: [99, { option: true }],
   // stockage du navigateur indisponible (navigation privée stricte)
   blockStorage: [false, { option: true }],
-  app: async ({ page, savedSettings, introSeen, blockStorage, micSilentMs, browserName }, use) => {
+  app: async (
+    { page, savedSettings, introSeen, blockStorage, micSilentMs, browserName },
+    use,
+  ) => {
     // toute erreur JavaScript de la page fait échouer le test
     const pageErrors = [];
-    page.on('pageerror', e => pageErrors.push(e.message));
-    const coverage = COVERAGE_DIR && browserName === 'chromium';
-    if (coverage) await page.coverage.startJSCoverage({ resetOnNavigation: false });
+    page.on("pageerror", (e) => pageErrors.push(e.message));
+    const coverage = COVERAGE_DIR && browserName === "chromium";
+    if (coverage)
+      await page.coverage.startJSCoverage({ resetOnNavigation: false });
     await page.addInitScript(installFakes);
-    await page.addInitScript(ms => { window.__chronoEnv.micSilentMs = ms; }, micSilentMs);
+    await page.addInitScript((ms) => {
+      window.__chronoEnv.micSilentMs = ms;
+    }, micSilentMs);
     // (les scripts d'initialisation tournent aussi sur about:blank, où le stockage est interdit)
-    if (introSeen) await page.addInitScript(v => { try { localStorage.setItem('chrono-canne-intro', String(v)); } catch {} }, introSeen);
-    if (blockStorage) await page.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('bloqué', 'SecurityError'); } }));
+    if (introSeen)
+      await page.addInitScript((v) => {
+        try {
+          localStorage.setItem("chrono-canne-intro", String(v));
+        } catch {}
+      }, introSeen);
+    if (blockStorage)
+      await page.addInitScript(() =>
+        Object.defineProperty(window, "localStorage", {
+          get() {
+            throw new DOMException("bloqué", "SecurityError");
+          },
+        }),
+      );
     if (savedSettings) {
-      await page.addInitScript(s => { try { localStorage.setItem('chrono-canne', JSON.stringify(s)); } catch {} }, savedSettings);
+      await page.addInitScript((s) => {
+        try {
+          localStorage.setItem("chrono-canne", JSON.stringify(s));
+        } catch {}
+      }, savedSettings);
     }
-    await page.clock.install({ time: new Date('2026-10-17T10:00:00') });
-    await page.goto('/');
+    await page.clock.install({ time: new Date("2026-10-17T10:00:00") });
+    await page.goto("/");
     // pause juste après l'heure de la page : sur une machine chargée, le chargement peut durer plus d'une seconde, et une
     // heure fixe (10:00:01) serait déjà passée (« Cannot fast-forward to the past »)
     const pageNow = await page.evaluate(() => Date.now());
     await page.clock.pauseAt(new Date(pageNow + 100));
     const app = new App(page);
-    if (!(await page.locator('#intro').isVisible())) await app.micOn(); // écran titre : c'est « Commencer » qui active le micro
+    if (!(await page.locator("#intro").isVisible())) await app.micOn(); // écran titre : c'est « Commencer » qui active le micro
     await use(app);
-    expect(pageErrors, 'erreurs JavaScript dans la page').toEqual([]);
+    expect(pageErrors, "erreurs JavaScript dans la page").toEqual([]);
     if (coverage) {
       fs.mkdirSync(COVERAGE_DIR, { recursive: true });
-      fs.writeFileSync(path.join(COVERAGE_DIR, crypto.randomUUID() + '.json'), JSON.stringify(await page.coverage.stopJSCoverage()));
+      fs.writeFileSync(
+        path.join(COVERAGE_DIR, crypto.randomUUID() + ".json"),
+        JSON.stringify(await page.coverage.stopJSCoverage()),
+      );
     }
   },
 });

@@ -1,6 +1,7 @@
 /* Thèmes de l'app (#5). Le thème est choisi par js/ui/theme.js (« automatique » : selon le téléphone).
    Les mêmes couleurs sont dans js/colors.js : un test vérifie qu'elles concordent. */
-:root[data-theme="nuit"], :root:not([data-theme]) {
+:root[data-theme="nuit"],
+:root:not([data-theme]) {
   --bg: #0d0f12;
   --panel: #171a1f;
   --line: #2a2f37;

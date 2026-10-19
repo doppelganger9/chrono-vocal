@@ -1,5 +1,5 @@
 // Voix du navigateur : synthèse (annonces) et reconnaissance (commandements de l'arbitre). ADR 0002.
-import { isEcho } from './lang.js';
+import { isEcho } from "./lang.js";
 //
 // window.__chronoEnv.echoGuardMs : délai pendant lequel l'app filtre sa propre voix après avoir parlé (400 ms par défaut).
 // Les tests le mettent à 0. Seul ce qui ressemble à l'annonce est ignoré : l'arbitre peut parler en même temps (#45).
@@ -29,41 +29,63 @@ export function createSpeech(win = window) {
   const echoGuardMs = win.__chronoEnv?.echoGuardMs ?? 400;
   /** @type {SpeechSynthesisVoice | null} */
   let frVoice = null;
-  let speakingUntil = 0, unlocked = false, lastSpoken = '';
+  let speakingUntil = 0,
+    unlocked = false,
+    lastSpoken = "";
   // iPhone et iPad (y compris un iPad qui se présente comme un Mac) : la reconnaissance peut s'y figer après une annonce
   const nav = win.navigator;
-  const ios = /iP(hone|ad|od)/.test(nav.userAgent) || (/Macintosh/.test(nav.userAgent) && nav.maxTouchPoints > 1);
+  const ios =
+    /iP(hone|ad|od)/.test(nav.userAgent) ||
+    (/Macintosh/.test(nav.userAgent) && nav.maxTouchPoints > 1);
   const pending = new Set(); // garde une référence : Chrome perd les annonces dont l'objet est libéré par le ramasse-miettes
 
   function pickVoice() {
     const vs = synth ? synth.getVoices() : [];
-    frVoice = vs.find(v => v.lang === 'fr-FR' && v.localService) || vs.find(v => v.lang.startsWith('fr')) || null;
+    frVoice =
+      vs.find((v) => v.lang === "fr-FR" && v.localService) ||
+      vs.find((v) => v.lang.startsWith("fr")) ||
+      null;
   }
-  if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
+  if (synth) {
+    pickVoice();
+    synth.onvoiceschanged = pickVoice;
+  }
 
   /** @param {string} text @param {{ relisten?: boolean }} [opts]  relisten : relancer l'écoute une fois l'annonce finie,
    *  même hors d'iOS (#30) */
   function say(text, { relisten = false } = {}) {
     if (!synth) return;
     const u = new win.SpeechSynthesisUtterance(text);
-    u.lang = 'fr-FR'; u.rate = 1.05; if (frVoice) u.voice = frVoice;
-    speakingUntil = Date.now() + 600 + text.length * 90; lastSpoken = text;
+    u.lang = "fr-FR";
+    u.rate = 1.05;
+    if (frVoice) u.voice = frVoice;
+    speakingUntil = Date.now() + 600 + text.length * 90;
+    lastSpoken = text;
     u.onend = u.onerror = () => {
-      pending.delete(u); speakingUntil = Date.now() + echoGuardMs;
+      pending.delete(u);
+      speakingUntil = Date.now() + echoGuardMs;
       // iOS peut laisser la reconnaissance figée après une annonce (voyant allumé, plus aucun résultat, #30 et #45) :
       // on repart sur une reconnaissance neuve. Pas ailleurs : sur Android, chaque démarrage fait un bip
       if (relisten || ios) relistenSoon();
     };
     pending.add(u);
     // cancel() suivi immédiatement de speak() fait perdre l'annonce sur Chrome : on attend un peu
-    const go = () => { synth.resume(); synth.speak(u); };
-    if (synth.speaking || synth.pending) { synth.cancel(); setTimeout(go, 120); } else go();
+    const go = () => {
+      synth.resume();
+      synth.speak(u);
+    };
+    if (synth.speaking || synth.pending) {
+      synth.cancel();
+      setTimeout(go, 120);
+    } else go();
   }
   // iOS / Safari n'autorisent la synthèse vocale qu'après une première annonce déclenchée par un toucher
   function unlock() {
     if (unlocked || !synth) return;
     unlocked = true;
-    const u = new win.SpeechSynthesisUtterance(' '); u.volume = 0; u.lang = 'fr-FR';
+    const u = new win.SpeechSynthesisUtterance(" ");
+    u.volume = 0;
+    u.lang = "fr-FR";
     synth.speak(u);
   }
 
@@ -83,31 +105,53 @@ export function createSpeech(win = window) {
     if (!SR) return;
     const r = new SR();
     rec = r;
-    r.lang = 'fr-FR'; r.continuous = true; r.interimResults = true; r.maxAlternatives = 3;
-    r.onresult = e => {
-      handlers.onEvent('result');
+    r.lang = "fr-FR";
+    r.continuous = true;
+    r.interimResults = true;
+    r.maxAlternatives = 3;
+    r.onresult = (e) => {
+      handlers.onEvent("result");
       for (let i = e.resultIndex; i < e.results.length; i++) {
-        const alts = Array.from(e.results[i]).map(a => a.transcript);
+        const alts = Array.from(e.results[i]).map((a) => a.transcript);
         if (Date.now() < speakingUntil && isEcho(alts[0], lastSpoken)) continue; // notre propre voix
         inPhrase = !e.results[i].isFinal;
         handlers.onResult(alts, e.results[i].isFinal, i);
       }
     };
-    r.onerror = e => {
-      handlers.onEvent('error', e.error);
-      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { listening = false; handlers.onDenied(); }
+    r.onerror = (e) => {
+      handlers.onEvent("error", e.error);
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+        listening = false;
+        handlers.onDenied();
+      }
     };
     r.onend = () => {
-      inPhrase = false; handlers.onRestart();
-      if (listening) { handlers.onEvent('restart'); try { r.start(); } catch {} }
+      inPhrase = false;
+      handlers.onRestart();
+      if (listening) {
+        handlers.onEvent("restart");
+        try {
+          r.start();
+        } catch {}
+      }
     };
-    try { r.start(); } catch {}
+    try {
+      r.start();
+    } catch {}
   }
   /** Repartir sur une reconnaissance neuve @param {string} event @param {string} [detail] */
   function renew(event, detail) {
     const old = rec;
-    if (old) { old.onresult = old.onerror = old.onend = null; try { (old.abort || old.stop).call(old); } catch {} }
-    inPhrase = false; handlers.onEvent(event, detail); handlers.onRestart(); start();
+    if (old) {
+      old.onresult = old.onerror = old.onend = null;
+      try {
+        (old.abort || old.stop).call(old);
+      } catch {}
+    }
+    inPhrase = false;
+    handlers.onEvent(event, detail);
+    handlers.onRestart();
+    start();
   }
   // Nouvelle reconnaissance, une fois la phrase en cours de l'arbitre terminée (5 s au plus)
   function relistenSoon() {
@@ -116,8 +160,12 @@ export function createSpeech(win = window) {
     const attempt = () => {
       relistenTimer = null;
       if (!listening) return;
-      if (inPhrase && waited < 5000) { waited += 250; relistenTimer = setTimeout(attempt, 250); return; }
-      renew('relisten', lastSpoken);
+      if (inPhrase && waited < 5000) {
+        waited += 250;
+        relistenTimer = setTimeout(attempt, 250);
+        return;
+      }
+      renew("relisten", lastSpoken);
     };
     relistenTimer = setTimeout(attempt, 0);
   }
@@ -130,21 +178,41 @@ export function createSpeech(win = window) {
    * @param {() => void} h.onDenied
    * @param {MicEvent} [h.onEvent]
    */
-  function listen({ onResult, onRestart = () => {}, onDenied, onEvent = () => {} }) {
+  function listen({
+    onResult,
+    onRestart = () => {},
+    onDenied,
+    onEvent = () => {},
+  }) {
     if (!SR) return;
     handlers = { onResult, onRestart, onDenied, onEvent };
     listening = true;
-    onEvent('start');
+    onEvent("start");
     start();
   }
-  function stopListening() { listening = false; handlers.onEvent('stop'); try { rec && rec.stop(); } catch {} }
+  function stopListening() {
+    listening = false;
+    handlers.onEvent("stop");
+    try {
+      rec && rec.stop();
+    } catch {}
+  }
 
   return {
     canListen: !!SR,
-    get listening() { return listening; },
-    say, unlock, listen, stopListening,
+    get listening() {
+      return listening;
+    },
+    say,
+    unlock,
+    listen,
+    stopListening,
     /** Relance à la main, quand le micro semble figé (#56) */
-    relaunch() { if (listening) renew('relaunch', 'toucher'); },
-    cancel() { if (synth) synth.cancel(); },
+    relaunch() {
+      if (listening) renew("relaunch", "toucher");
+    },
+    cancel() {
+      if (synth) synth.cancel();
+    },
   };
 }

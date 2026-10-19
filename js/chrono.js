@@ -14,13 +14,37 @@
 /** @typedef {import('./types.js').Config} Config @typedef {import('./types.js').ChronoState} ChronoState @typedef {import('./types.js').Bout} Bout @typedef {import('./types.js').Stop} Stop @typedef {import('./types.js').Motif} Motif @typedef {import('./types.js').SanctionEvent} SanctionEvent @typedef {import('./types.js').Clock} Clock @typedef {import('./types.js').Emit} Emit */
 
 /** Sanction du n-ième rappel d'un tireur à l'appel de la reprise (C15) @param {number} rank @returns {Motif} */
-export const rappelSanction = rank => rank === 1 ? { type: 'observation', pts: 0 } : rank === 2 ? { type: 'penalite', pts: 1 } : { type: 'carton-jaune', pts: 2 };
+export const rappelSanction = (rank) =>
+  rank === 1
+    ? { type: "observation", pts: 0 }
+    : rank === 2
+      ? { type: "penalite", pts: 1 }
+      : { type: "carton-jaune", pts: 2 };
 
 /** @returns {Bout} */
-const newBout = () => ({ start: null, end: null, rounds: {}, stops: [], events: [], cfg: null });
+const newBout = () => ({
+  start: null,
+  end: null,
+  rounds: {},
+  stops: [],
+  events: [],
+  cfg: null,
+});
 /** @param {number} remaining @returns {ChronoState} */
-const initialState = remaining => ({ phase: 'ready', round: 1, running: false, halt: false, remaining, deadline: 0,
-  called: new Set(), extra: 0, bonus: 0, prolonged: false, prolongOffer: 0, relayUntil: null });
+const initialState = (remaining) => ({
+  phase: "ready",
+  round: 1,
+  running: false,
+  halt: false,
+  remaining,
+  deadline: 0,
+  called: new Set(),
+  extra: 0,
+  bonus: 0,
+  prolonged: false,
+  prolongOffer: 0,
+  relayUntil: null,
+});
 
 /**
  * @param {object} deps
@@ -36,43 +60,80 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
 
   const totalRounds = () => cfg().rounds + st.extra;
   const isExtra = (n = st.round) => n > cfg().rounds;
-  const roundDur = (n = st.round) => isExtra(n) ? cfg().extraSec : cfg().roundSec;
-  const curMax = () => st.phase === 'rest' ? cfg().restSec : roundDur() + st.bonus;
+  const roundDur = (n = st.round) =>
+    isExtra(n) ? cfg().extraSec : cfg().roundSec;
+  const curMax = () =>
+    st.phase === "rest" ? cfg().restSec : roundDur() + st.bonus;
   const elapsed = () => curMax() - st.remaining;
-  const inPlay = () => st.phase === 'round' || st.phase === 'overtime';
-  const overtime = () => st.phase === 'overtime' ? Math.max(0, -st.remaining) : 0;
+  const inPlay = () => st.phase === "round" || st.phase === "overtime";
+  const overtime = () =>
+    st.phase === "overtime" ? Math.max(0, -st.remaining) : 0;
 
   function openStop() {
-    bout.stops.push({ round: st.round, at: elapsed(), t0: clock.wall(), dur: null });
+    bout.stops.push({
+      round: st.round,
+      at: elapsed(),
+      t0: clock.wall(),
+      dur: null,
+    });
   }
   /** @returns {Stop | null} */
   function closeStop() {
     const s = bout.stops[bout.stops.length - 1];
-    if (s && s.dur === null) { s.dur = (clock.wall() - s.t0) / 1000; return s; }
+    if (s && s.dur === null) {
+      s.dur = (clock.wall() - s.t0) / 1000;
+      return s;
+    }
     return null;
   }
   function closeRound() {
-    closeStop(); st.halt = false;
+    closeStop();
+    st.halt = false;
     const r = bout.rounds[st.round];
     if (r && !r.end) r.end = clock.wall();
   }
-  function startClock() { st.deadline = clock.now() + st.remaining * 1000; st.running = true; }
-  function pauseClock() { tick(); st.running = false; }
+  function startClock() {
+    st.deadline = clock.now() + st.remaining * 1000;
+    st.running = true;
+  }
+  function pauseClock() {
+    tick();
+    st.running = false;
+  }
 
   function allez() {
-    if (st.phase === 'ready') {
-      if (st.round === 1) { bout = newBout(); bout.start = clock.wall(); bout.cfg = { ...cfg() }; }
-      bout.rounds[st.round] = { start: clock.wall(), end: null, prolonged: false, over: 0 };
-      Object.assign(st, { phase: 'round', halt: false, bonus: 0, prolonged: false, prolongOffer: 0, called: new Set(), relayUntil: null });
-      st.remaining = roundDur(); startClock();
-      emit('allez', { resume: false });
-    } else if ((inPlay() || st.phase === 'rest') && st.halt) {
+    if (st.phase === "ready") {
+      if (st.round === 1) {
+        bout = newBout();
+        bout.start = clock.wall();
+        bout.cfg = { ...cfg() };
+      }
+      bout.rounds[st.round] = {
+        start: clock.wall(),
+        end: null,
+        prolonged: false,
+        over: 0,
+      };
+      Object.assign(st, {
+        phase: "round",
+        halt: false,
+        bonus: 0,
+        prolonged: false,
+        prolongOffer: 0,
+        called: new Set(),
+        relayUntil: null,
+      });
+      st.remaining = roundDur();
+      startClock();
+      emit("allez", { resume: false });
+    } else if ((inPlay() || st.phase === "rest") && st.halt) {
       if (inPlay()) checkProlongation(closeStop());
       st.halt = false;
       if (!st.running) startClock();
-      emit('allez', { resume: true });
+      emit("allez", { resume: true });
     } else return false;
-    emit('change'); return true;
+    emit("change");
+    return true;
   }
 
   // Un arrêt de plus de 30 s prolonge la reprise de 30 s, une fois par reprise (I 2.2). Seulement quand les arrêts
@@ -80,27 +141,46 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
   /** @param {Stop | null} s l'arrêt qui vient de se terminer */
   function checkProlongation(s) {
     const c = cfg();
-    if (!s || c.countStops || c.prolong === 'off' || c.mode === 'relais' || st.prolonged || (s.dur ?? 0) <= 30) return;
-    if (c.prolong === 'auto') prolong();
-    else { st.prolongOffer = clock.wall() + 15000; emit('prolongation-offer'); }
+    if (
+      !s ||
+      c.countStops ||
+      c.prolong === "off" ||
+      c.mode === "relais" ||
+      st.prolonged ||
+      (s.dur ?? 0) <= 30
+    )
+      return;
+    if (c.prolong === "auto") prolong();
+    else {
+      st.prolongOffer = clock.wall() + 15000;
+      emit("prolongation-offer");
+    }
   }
   function prolong() {
     if (!inPlay() || st.prolonged) return false;
     if (st.running) tick();
-    st.prolonged = true; st.prolongOffer = 0; st.bonus = 30; st.deadline += 30000; st.remaining += 30;
-    if (st.phase === 'overtime' && st.remaining > 0) st.phase = 'round';
+    st.prolonged = true;
+    st.prolongOffer = 0;
+    st.bonus = 30;
+    st.deadline += 30000;
+    st.remaining += 30;
+    if (st.phase === "overtime" && st.remaining > 0) st.phase = "round";
     bout.rounds[st.round].prolonged = true;
     const s = bout.stops[bout.stops.length - 1];
     if (s) s.prolongation = true;
-    emit('prolongation'); emit('change'); return true;
+    emit("prolongation");
+    emit("change");
+    return true;
   }
 
   function stop() {
-    if ((inPlay() || st.phase === 'rest') && !st.halt) {
+    if ((inPlay() || st.phase === "rest") && !st.halt) {
       st.halt = true;
-      if (st.phase === 'rest' || cfg().countStops) pauseClock();
+      if (st.phase === "rest" || cfg().countStops) pauseClock();
       if (inPlay()) openStop();
-      emit('stop'); emit('change'); return true;
+      emit("stop");
+      emit("change");
+      return true;
     }
     return false;
   }
@@ -112,59 +192,87 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
     if (st.running) tick();
     const r = bout.rounds[st.round];
     if (r) r.over = overtime();
-    st.running = false; closeRound();
-    if (st.round >= totalRounds()) { finishBout(); return true; }
-    startRest(); emit('reprise-end');
+    st.running = false;
+    closeRound();
+    if (st.round >= totalRounds()) {
+      finishBout();
+      return true;
+    }
+    startRest();
+    emit("reprise-end");
     return true;
   }
   function startRest() {
-    Object.assign(st, { phase: 'rest', running: false, halt: false, prolongOffer: 0, called: new Set() });
-    st.remaining = cfg().restSec; startClock(); emit('change');
+    Object.assign(st, {
+      phase: "rest",
+      running: false,
+      halt: false,
+      prolongOffer: 0,
+      called: new Set(),
+    });
+    st.remaining = cfg().restSec;
+    startClock();
+    emit("change");
   }
   // Fin du temps de reprise : « temps ». La reprise continue (temps dépassé, compté) jusqu'à la décision de l'arbitre.
   function timeUp() {
-    st.phase = 'overtime';
-    emit('temps'); emit('time-up'); emit('change');
+    st.phase = "overtime";
+    emit("temps");
+    emit("time-up");
+    emit("change");
   }
   function finishBout() {
     closeRound();
-    st.phase = 'done'; st.running = false; st.remaining = 0; bout.end = clock.wall();
-    emit('finish'); emit('change');
+    st.phase = "done";
+    st.running = false;
+    st.remaining = 0;
+    bout.end = clock.wall();
+    emit("finish");
+    emit("change");
   }
   // Égalité : reprise supplémentaire, de même durée, après une minute de repos (I 2.3.1)
   function extraRound() {
-    if (st.phase !== 'done' || st.extra >= cfg().extraMax) return false;
-    st.extra++; bout.end = null;
-    startRest(); emit('extra');
+    if (st.phase !== "done" || st.extra >= cfg().extraMax) return false;
+    st.extra++;
+    bout.end = null;
+    startRest();
+    emit("extra");
     return true;
   }
   function endRest() {
-    if (st.phase !== 'rest') return false;
-    st.running = false; st.halt = false; st.round++; st.phase = 'ready'; st.remaining = roundDur();
-    emit('temps'); emit('change');
+    if (st.phase !== "rest") return false;
+    st.running = false;
+    st.halt = false;
+    st.round++;
+    st.phase = "ready";
+    st.remaining = roundDur();
+    emit("temps");
+    emit("change");
     return true;
   }
   function reset() {
-    st = initialState(0); st.remaining = roundDur();
+    st = initialState(0);
+    st.remaining = roundDur();
     bout = newBout();
-    emit('change');
+    emit("change");
   }
 
   function tick() {
     if (!st.running) return;
     st.remaining = (st.deadline - clock.now()) / 1000;
-    if (st.phase !== 'overtime') st.remaining = Math.max(0, st.remaining); // en temps dépassé, le compte devient négatif
-    if (st.phase === 'rest') restCalls();
-    if (st.phase === 'round' && cfg().mode === 'relais') relayCalls();
-    if (st.phase === 'overtime') overtimeCalls();
-    if (st.remaining <= 0 && st.phase === 'round') timeUp();
-    else if (st.remaining <= 0 && st.phase === 'rest') endRest();
+    if (st.phase !== "overtime") st.remaining = Math.max(0, st.remaining); // en temps dépassé, le compte devient négatif
+    if (st.phase === "rest") restCalls();
+    if (st.phase === "round" && cfg().mode === "relais") relayCalls();
+    if (st.phase === "overtime") overtimeCalls();
+    if (st.remaining <= 0 && st.phase === "round") timeUp();
+    else if (st.remaining <= 0 && st.phase === "rest") endRest();
   }
   // Temps dépassé : « Temps » répété toutes les 5 s, sauf pendant un arrêt
   function overtimeCalls() {
     const k = Math.floor(overtime() / 5);
-    if (k >= 1 && !st.halt && !st.called.has('temps' + k)) {
-      st.called.add('temps' + k); emit('overtime-call', { over: overtime() });
+    if (k >= 1 && !st.halt && !st.called.has("temps" + k)) {
+      st.called.add("temps" + k);
+      emit("overtime-call", { over: overtime() });
     }
   }
   // Annonces du repos (« 30 secondes »…), seulement si on n'a pas dépassé le moment de plus de 1,5 s
@@ -172,7 +280,7 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
     for (const c of cfg().calls) {
       if (!st.called.has(c) && st.remaining <= c && c < cfg().restSec) {
         st.called.add(c);
-        if (st.remaining > c - 1.5) emit('rest-call', { sec: c });
+        if (st.remaining > c - 1.5) emit("rest-call", { sec: c });
       }
     }
   }
@@ -180,8 +288,9 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
   function relayCalls() {
     const k = Math.floor(elapsed() / 60);
     if (k >= 1 && !st.called.has(k) && st.remaining > 2) {
-      st.called.add(k); st.relayUntil = k * 60 + 10;
-      emit('relay');
+      st.called.add(k);
+      st.relayUntil = k * 60 + 10;
+      emit("relay");
     }
   }
 
@@ -189,15 +298,22 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
   /** @param {Motif} e @returns {SanctionEvent} */
   function addEvent(e) {
     const i = bout.stops.length - 1;
-    const ev = { ...e, round: st.round, t: clock.wall(), stop: i >= 0 && bout.stops[i].round === st.round ? i : null };
+    const ev = {
+      ...e,
+      round: st.round,
+      t: clock.wall(),
+      stop: i >= 0 && bout.stops[i].round === st.round ? i : null,
+    };
     bout.events.push(ev);
     return ev;
   }
 
   /** @param {string} color */
-  const rappelsOf = color => bout.events.filter(e => e.rappel && e.color === color).length;
+  const rappelsOf = (color) =>
+    bout.events.filter((e) => e.rappel && e.color === color).length;
   /** Les rappels sont possibles pendant le repos et en « prêt » entre deux reprises */
-  const canRappel = () => !!bout.start && (st.phase === 'rest' || st.phase === 'ready');
+  const canRappel = () =>
+    !!bout.start && (st.phase === "rest" || st.phase === "ready");
 
   // Retard à l'appel de la reprise (C15, I 4.2.13) : 1er rappel d'un tireur = observation, 2e = pénalité,
   // 3e et suivants = carton jaune. Pendant le repos et en « prêt » entre deux reprises ; compté sur tout l'assaut.
@@ -205,26 +321,59 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
   function rappel(color) {
     if (!color || !canRappel()) return null;
     const rank = rappelsOf(color) + 1;
-    const ev = { ...rappelSanction(rank), detail: "retard à l'appel", color, rappel: rank,
-      round: st.phase === 'rest' ? st.round + 1 : st.round, t: clock.wall(), stop: null };
+    const ev = {
+      ...rappelSanction(rank),
+      detail: "retard à l'appel",
+      color,
+      rappel: rank,
+      round: st.phase === "rest" ? st.round + 1 : st.round,
+      t: clock.wall(),
+      stop: null,
+    };
     bout.events.push(ev);
     return ev;
   }
 
   /** Les réglages ont changé : le temps affiché suit avant le départ ; une reprise au-delà du nouveau total réinitialise */
   function configChanged() {
-    if (st.phase === 'ready' && !st.running) st.remaining = roundDur();
+    if (st.phase === "ready" && !st.running) st.remaining = roundDur();
     if (st.round > totalRounds()) reset();
   }
 
   return {
-    get state() { return st; },
-    get bout() { return bout; },
-    totalRounds, isExtra, roundDur, curMax, elapsed, inPlay, overtime,
-    allez, stop, endReprise, endRest, extraRound, prolong, reset, tick, addEvent, rappel, rappelsOf, canRappel, configChanged,
+    get state() {
+      return st;
+    },
+    get bout() {
+      return bout;
+    },
+    totalRounds,
+    isExtra,
+    roundDur,
+    curMax,
+    elapsed,
+    inPlay,
+    overtime,
+    allez,
+    stop,
+    endReprise,
+    endRest,
+    extraRound,
+    prolong,
+    reset,
+    tick,
+    addEvent,
+    rappel,
+    rappelsOf,
+    canRappel,
+    configChanged,
     // Annulation : l'échéance étant une heure absolue, un STOP annulé laisse le chrono avoir tourné entre-temps
     snapshot: () => structuredClone({ st, bout }),
     /** @param {{ st: ChronoState, bout: Bout }} snap */
-    restore(snap) { st = structuredClone(snap.st); bout = structuredClone(snap.bout); emit('change'); },
+    restore(snap) {
+      st = structuredClone(snap.st);
+      bout = structuredClone(snap.bout);
+      emit("change");
+    },
   };
 }

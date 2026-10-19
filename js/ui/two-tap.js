@@ -10,7 +10,10 @@
  * @param {string} [opts.armedClass]  classe pendant l'attente de confirmation
  * @param {number} [opts.ms]
  */
-export function twoTap(button, { label, onConfirm, skip = () => false, armedClass, ms = 3000 }) {
+export function twoTap(
+  button,
+  { label, onConfirm, skip = () => false, armedClass, ms = 3000 },
+) {
   /** @type {ReturnType<typeof setTimeout> | null} */
   let armed = null;
   const disarm = () => {
@@ -20,9 +23,13 @@ export function twoTap(button, { label, onConfirm, skip = () => false, armedClas
     button.textContent = label;
   };
   button.onclick = () => {
-    if (armed || skip()) { disarm(); onConfirm(); return; }
+    if (armed || skip()) {
+      disarm();
+      onConfirm();
+      return;
+    }
     if (armedClass) button.classList.add(armedClass);
-    button.textContent = 'Confirmer ?';
+    button.textContent = "Confirmer ?";
     armed = setTimeout(disarm, ms);
   };
 }
