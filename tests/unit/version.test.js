@@ -3,7 +3,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { VERSION } from "../../js/version.js";
-import { NEWS } from "../../js/intro.js";
+import { NOTES } from "../../js/notes.js";
+import { parseChangelog } from "../../js/changelog.js";
 
 const read = (f) =>
   fs.readFileSync(new URL(`../../${f}`, import.meta.url), "utf8");
@@ -39,7 +40,11 @@ test("les versions du journal sont datées et vont en décroissant", () => {
   );
 });
 
-test("« Quoi de neuf » reprend des lignes du journal des changements", () => {
-  for (const item of NEWS.flatMap((n) => n.items))
-    assert.ok(changelog.includes(item), `absent de CHANGELOG.md : ${item}`);
+test("les notes de version de l'app sont celles du journal des changements (#84)", () => {
+  assert.deepEqual(
+    NOTES,
+    parseChangelog(changelog),
+    "js/notes.js en retard sur CHANGELOG.md : lancer « npm run notes »",
+  );
+  assert.equal(NOTES[0].version, VERSION);
 });

@@ -2,9 +2,13 @@
 const { test, expect } = require("./fixtures");
 const { version } = require("../../package.json");
 
-test("la version est affichée dans les réglages", async ({ app }) => {
+test("la version est affichée dans les réglages, sur le bouton « À propos » (#84)", async ({
+  app,
+}) => {
   await app.$("#settingsBtn").click();
-  await expect(app.$("#settingsVersion")).toHaveText(`Chrono Canne ${version}`);
+  await expect(app.$("#introAgain")).toHaveText(
+    `À propos · version ${version}`,
+  );
 });
 
 test.describe("premier lancement", () => {
