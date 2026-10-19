@@ -1,28 +1,82 @@
-# Étiquette et publication de chaque version (#39) : quand la version de package.json arrive sur main sans étiquette
-# vX.Y.Z, la CI pose l'étiquette et publie une « release » GitHub avec la partie de CHANGELOG.md de cette version.
+# Publication de chaque version (#91, #39). Quand des notes de changements/ arrivent sur main, la CI en fait une
+# version : CHANGELOG.md, numéro recopié partout, js/notes.js (scripts/publier.js). Ce commit passe par « Tests »
+# comme toute PR, ce qu'exige la protection de main, puis il est ajouté à main ; enfin l'étiquette vX.Y.Z et la
+# « release » GitHub, avec la partie du journal de cette version.
+# Pas de boucle : un push fait avec GITHUB_TOKEN ne relance aucun workflow, et sans note il n'y a rien à publier.
 name: Version
 
 on:
   push:
     branches: [main]
-    paths: [package.json]
+    paths: ["changements/**"]
+  workflow_dispatch:
+
+# une publication à la fois : la suivante repart du main laissé par la précédente
+concurrency:
+  group: version
+  cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: write # commit de version, étiquette, release
+  actions: write # lancer « Tests » sur le commit de version
+  pages: write # remettre le site en ligne avec la nouvelle version
 
 jobs:
-  etiquette:
+  publication:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Étiquette et release de la nouvelle version
+        with:
+          ref: main
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Version, passée par « Tests », puis ajoutée à main
+        id: v
         run: |
-          v="v$(node -p 'require("./package.json").version')"
-          if git ls-remote --exit-code --tags origin "refs/tags/$v" >/dev/null; then
-            echo "$v existe déjà"; exit 0
-          fi
-          # la partie du journal de cette version : de son titre au titre suivant
-          awk -v v="${v#v}" '/^## \[/ { on = index($0, "[" v "]") > 0; next } on' CHANGELOG.md > notes.md
-          gh release create "$v" --target "$GITHUB_SHA" --title "$v" --notes-file notes.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # main a pu avancer pendant les tests (une PR fusionnée) : on repart alors de lui, trois fois au plus
+          for essai in 1 2 3; do
+            git fetch -q origin main && git reset -q --hard origin/main
+            node scripts/publier.js
+            [ -n "$(git status --porcelain)" ] || { echo "Rien à publier"; exit 0; }
+            v="$(node -p 'require("./package.json").version')"
+            git add -A && git commit -q -m "Version $v"
+            sha="$(git rev-parse HEAD)"
+            git push -q -f origin HEAD:refs/heads/publication
+            gh workflow run tests.yml --ref publication
+            run=""
+            for i in $(seq 30); do
+              run="$(gh run list --workflow tests.yml --commit "$sha" --event workflow_dispatch --json databaseId -q '.[0].databaseId')"
+              [ -n "$run" ] && break
+              sleep 5
+            done
+            [ -n "$run" ] || { echo "::error::« Tests » n'a pas démarré sur $sha"; exit 1; }
+            gh run watch "$run" --exit-status --interval 30 > /dev/null || { echo "::error::« Tests » échoue sur la version $v : https://github.com/$GITHUB_REPOSITORY/actions/runs/$run"; exit 1; }
+            if git push -q origin "$sha:refs/heads/main"; then
+              git push -q origin --delete publication
+              echo "version=$v" >> "$GITHUB_OUTPUT"
+              echo "sha=$sha" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "main a avancé : nouvel essai"
+          done
+          echo "::error::main avance trop vite : relancer « Version » (Actions → Version → Run workflow)"
+          exit 1
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Étiquette et release
+        if: steps.v.outputs.version
+        run: |
+          # la partie du journal de cette version : de son titre au titre suivant
+          awk -v v="$V" '/^## \[/ { on = index($0, "[" v "]") > 0; next } on' CHANGELOG.md > notes.md
+          gh release create "v$V" --target "$SHA" --title "v$V" --notes-file notes.md
+          # un push fait avec GITHUB_TOKEN peut ne pas remettre le site en ligne : on le demande
+          gh api -X POST "repos/$GITHUB_REPOSITORY/pages/builds" > /dev/null || echo "::warning::GitHub Pages : mise en ligne non demandée"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          V: ${{ steps.v.outputs.version }}
+          SHA: ${{ steps.v.outputs.sha }}

@@ -14,7 +14,8 @@
     "js/journal.js",
     "js/mic-watch.js",
     "js/voice.js",
-    "js/speech.js"
+    "js/speech.js",
+    "scripts/lib/publication.js"
   ],
   "reporters": ["clear-text", "progress", "html", "json"],
   "htmlReporter": {
