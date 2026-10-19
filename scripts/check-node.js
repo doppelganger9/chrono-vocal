@@ -5,11 +5,19 @@
 var MIN_NODE = 20;
 
 /** @param {string} version « 22.1.0 » */
-function tooOld(version) { return Number(String(version).split('.')[0]) < MIN_NODE; }
+function tooOld(version) {
+  return Number(String(version).split(".")[0]) < MIN_NODE;
+}
 
 if (require.main === module && tooOld(process.versions.node)) {
-  console.error('Node ' + process.versions.node + ' est trop ancien : il faut Node ' + MIN_NODE + ' ou plus récent.\n' +
-    'Avec nvm : nvm use (la version est dans .nvmrc). Avec Homebrew : PATH=/opt/homebrew/bin:$PATH npm test');
+  console.error(
+    "Node " +
+      process.versions.node +
+      " est trop ancien : il faut Node " +
+      MIN_NODE +
+      " ou plus récent.\n" +
+      "Avec nvm : nvm use (la version est dans .nvmrc). Avec Homebrew : PATH=/opt/homebrew/bin:$PATH npm test",
+  );
   process.exit(1);
 }
 

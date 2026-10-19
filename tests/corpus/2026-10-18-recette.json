@@ -9,10 +9,30 @@
     { "text": "Sans garde", "expect": { "kind": "engarde" } },
     { "text": "Tireur en garde", "expect": { "kind": "engarde" } },
     { "text": "Tire en garde", "expect": { "kind": "engarde" } },
-    { "text": "Tireurs en garde, allez", "expect": { "kind": "command", "cmd": "ALLEZ", "enGarde": true } },
-    { "text": "On garde aller", "expect": { "kind": "command", "cmd": "ALLEZ", "enGarde": true } },
-    { "text": "Avertissement prononcé", "expect": { "kind": "motif", "type": "avertissement", "color": null } },
-    { "text": "Pour sortie d'air tir en bleu", "expect": { "kind": "motif", "type": "penalite", "detail": "sortie d'aire", "color": "bleu" } },
-    { "text": "Observations–rouge défaut de priorité tireur en garde", "expect": { "kind": "motif", "type": "observation", "color": "rouge" } }
+    {
+      "text": "Tireurs en garde, allez",
+      "expect": { "kind": "command", "cmd": "ALLEZ", "enGarde": true }
+    },
+    {
+      "text": "On garde aller",
+      "expect": { "kind": "command", "cmd": "ALLEZ", "enGarde": true }
+    },
+    {
+      "text": "Avertissement prononcé",
+      "expect": { "kind": "motif", "type": "avertissement", "color": null }
+    },
+    {
+      "text": "Pour sortie d'air tir en bleu",
+      "expect": {
+        "kind": "motif",
+        "type": "penalite",
+        "detail": "sortie d'aire",
+        "color": "bleu"
+      }
+    },
+    {
+      "text": "Observations–rouge défaut de priorité tireur en garde",
+      "expect": { "kind": "motif", "type": "observation", "color": "rouge" }
+    }
   ]
 }

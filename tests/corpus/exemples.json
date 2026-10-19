@@ -6,14 +6,43 @@
     { "text": "à les", "expect": { "kind": "command", "cmd": "ALLEZ" } },
     { "text": "À l'est", "expect": { "kind": "command", "cmd": "ALLEZ" } },
     { "text": "aller", "expect": { "kind": "command", "cmd": "ALLEZ" } },
-    { "text": "En garde, allez", "expect": { "kind": "command", "cmd": "ALLEZ", "enGarde": true } },
-    { "text": "Stop", "expect": { "kind": "command", "cmd": "STOP", "end": null } },
-    { "text": "Stop, fin de la reprise", "expect": { "kind": "command", "cmd": "STOP", "end": "reprise" } },
-    { "text": "Stop, fin de l'assaut", "expect": { "kind": "command", "cmd": "STOP", "end": "assaut" } },
+    {
+      "text": "En garde, allez",
+      "expect": { "kind": "command", "cmd": "ALLEZ", "enGarde": true }
+    },
+    {
+      "text": "Stop",
+      "expect": { "kind": "command", "cmd": "STOP", "end": null }
+    },
+    {
+      "text": "Stop, fin de la reprise",
+      "expect": { "kind": "command", "cmd": "STOP", "end": "reprise" }
+    },
+    {
+      "text": "Stop, fin de l'assaut",
+      "expect": { "kind": "command", "cmd": "STOP", "end": "assaut" }
+    },
     { "text": "Chrono, prêt ?", "expect": { "kind": "ready" } },
-    { "text": "Pénalité pour sortie d'aire, tireur bleu", "expect": { "kind": "motif", "type": "penalite", "color": "bleu" } },
-    { "text": "Avertissement prononcé, tireur rouge", "expect": { "kind": "motif", "type": "avertissement", "color": "rouge" } },
-    { "text": "Pour un assaut en 3 reprises d'une minute trente, avec 1 minute de repos", "expect": { "kind": "referee", "rounds": 3, "roundSec": 90, "restSec": 60 } },
-    { "text": "Rappel, tireur bleu", "expect": { "kind": "rappel", "color": "bleu" } }
+    {
+      "text": "Pénalité pour sortie d'aire, tireur bleu",
+      "expect": { "kind": "motif", "type": "penalite", "color": "bleu" }
+    },
+    {
+      "text": "Avertissement prononcé, tireur rouge",
+      "expect": { "kind": "motif", "type": "avertissement", "color": "rouge" }
+    },
+    {
+      "text": "Pour un assaut en 3 reprises d'une minute trente, avec 1 minute de repos",
+      "expect": {
+        "kind": "referee",
+        "rounds": 3,
+        "roundSec": 90,
+        "restSec": 60
+      }
+    },
+    {
+      "text": "Rappel, tireur bleu",
+      "expect": { "kind": "rappel", "color": "bleu" }
+    }
   ]
 }
