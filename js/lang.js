@@ -47,7 +47,7 @@ export function buildSentence(c) {
 // ---------- Analyse de la phrase de l'arbitre ----------
 /** @param {string} t */
 export function normalize(t) {
-  t = t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’'\-]/g, ' ');
+  t = t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’'-]/g, ' ');
   const words = { 'quarante cinq': 45, 'trente cinq': 35, 'vingt cinq': 25, 'cinquante': 50, 'quarante': 40, 'trente': 30,
     'vingt': 20, 'quinze': 15, 'dix': 10, 'neuf': 9, 'huit': 8, 'sept': 7, 'six': 6, 'cinq': 5, 'quatre': 4,
     'trois': 3, 'deux': 2, 'une': 1, 'un': 1 };

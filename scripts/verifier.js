@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Vérification d'une branche en une commande (#57), avec un résumé de quelques lignes.
-//   npm run verifier              typage, tests unitaires, tests de bout en bout
+//   npm run verifier              typage, lint et format, tests unitaires, tests de bout en bout
 //   npm run verifier -- --complet  en plus : couverture et mutation. Pas de mutation incrémentale : avec le lanceur de tests
 //   « commande », Stryker ne voit pas qu'un test a changé, et rendait des scores périmés (constaté sur #58)
 // S'arrête au premier échec, avec la fin de sa sortie, et un code de sortie non nul. Les mesures vont dans
@@ -32,6 +32,7 @@ try { atBase = git('rev-parse HEAD') === git('merge-base HEAD origin/main') && g
 /** @type {[string, string, (out: string) => string][]} */
 const steps = [
   ['Typage', 'npm run -s typecheck', () => '0 erreur'],
+  ['Lint et format', 'npm run -s lint', () => 'ESLint et Prettier sans remarque'],
   ['Tests unitaires', 'npm run -s test:unit', out => { result.unit = M.parseNodeTest(out); return `${result.unit.pass} réussis`; }],
   ['Bout en bout', 'npx playwright test', out => {
     const e = (result.e2e = M.parsePlaywright(out));

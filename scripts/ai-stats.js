@@ -73,7 +73,7 @@ function computeStats(entries, { since, until } = {}) {
 }
 
 const plural = (k, word) => `${k} ${word}${k > 1 ? 's' : ''}`;
-const n = x => x.toLocaleString('fr-FR').replace(/ | /g, ' ');
+const n = x => x.toLocaleString('fr-FR').replace(/\u202f|\u00a0/g, ' ');
 function formatMarkdown(s) {
   const tools = Object.entries(s.tools).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .map(([k, v]) => `${k} ${v}`).join(', ');

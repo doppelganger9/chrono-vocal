@@ -3,8 +3,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { setup } from './helpers.js';
 
-const near = (actual, expected, msg) => assert.ok(Math.abs(actual - expected) < 0.11, `${msg ?? ''} ${actual} ≈ ${expected}`);
-
 test('C13 : relais, annonce à chaque minute et fenêtre de 10 s', () => {
   const h = setup({ mode: 'relais', relayBase: 60, relayCount: 2, rounds: 1, roundSec: 240, extraSec: 120 });
   h.chrono.allez(); h.advance(59_900);

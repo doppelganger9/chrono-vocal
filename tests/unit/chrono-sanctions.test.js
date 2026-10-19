@@ -3,8 +3,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { setup } from './helpers.js';
 
-const near = (actual, expected, msg) => assert.ok(Math.abs(actual - expected) < 0.11, `${msg ?? ''} ${actual} ≈ ${expected}`);
-
 const restAfterRound1 = () => {
   const h = setup({ rounds: 3, roundSec: 60, restSec: 60 });
   h.chrono.allez(); h.advance(60_000); h.chrono.endReprise();
