@@ -157,6 +157,7 @@ Tous les écarts relevés ont été corrigés.
 ### Hypothèses prises
 
 - **Prolongation (C11) seulement quand les arrêts ne sont pas décomptés.** Quand ils le sont, le chrono est déjà figé pendant l'arrêt, et ajouter 30 s compterait ce temps deux fois. Les 30 s s'ajoutent au « allez » qui termine l'arrêt.
+- **« Fin de l'assaut »** termine l'assaut à tout moment une fois commencé : en reprise, en temps dépassé, pendant la minute de repos ou avant la reprise suivante (#77). L'arbitre décide ; « Annuler » revient en arrière. « Fin de la reprise » ne termine que la reprise.
 - **« Stop » pendant la minute de repos** fige le repos. Le règlement ne le prévoit pas, mais c'est utile en pratique.
 - **Points à l'adversaire** : pénalité 1, avertissement prononcé 2, carton jaune ou rouge 2. Une demande d'avertissement, un avertissement refusé ou une observation valent 0. C'est une aide, pas une feuille de marque officielle : les touches sont comptées par les juges.
 - **Rappels (C15)** : comptés par tireur sur tout l'assaut, pas reprise par reprise. Au-delà du 3e, chaque rappel vaut à nouveau un carton jaune ; le règlement ne dit rien de plus, l'arbitre décide de la suite. Un rappel pendant le repos compte pour la reprise appelée.

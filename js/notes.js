@@ -2,6 +2,18 @@
 /** @type {import('./types.js').Release[]} */
 export const NOTES = [
   {
+    version: "1.3.0",
+    date: "2026-10-19",
+    sections: [
+      {
+        title: "",
+        items: [
+          "« Fin de l'assaut » termine l'assaut à tout moment : en reprise, en temps dépassé, pendant la minute de repos ou avant la reprise suivante. « Annuler » revient en arrière.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.2.0",
     date: "2026-10-19",
     sections: [

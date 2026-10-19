@@ -100,7 +100,7 @@ test("aucun commandement ignoré sans le dire : « sans effet » avec la phase",
   assert.equal(v.journal.at(-1).action, "STOP sans effet");
 });
 
-test("« Stop, fin de la reprise » termine la reprise ; « fin de l'assaut » aussi, sans effet hors reprise", () => {
+test("« Stop, fin de la reprise » termine la reprise, sans effet hors reprise ; « fin de l'assaut » termine l'assaut", () => {
   const v = voiceSetup();
   v.hear("Stop, fin de la reprise");
   assert.equal(v.last(), "🎙 FIN DE REPRISE entendu — sans effet : PHASE");
@@ -350,4 +350,23 @@ test("cas limites relevés par les tests de mutation", () => {
     4,
     "avant l'assaut, une phrase de sanction peut porter le format",
   );
+});
+
+test("« Fin de l'assaut » termine l'assaut à tout moment : en reprise, au repos, avant la reprise suivante (#77)", () => {
+  const v = voiceSetup({ rounds: 3 });
+  v.hear("Fin de l'assaut");
+  assert.equal(v.last(), "🎙 FIN DE L'ASSAUT entendu — sans effet : PHASE");
+  assert.equal(v.journal.at(-1).action, "FIN DE L'ASSAUT sans effet");
+  v.hear("Allez");
+  v.hear("Stop, fin de la reprise");
+  assert.equal(v.h.st.phase, "rest");
+  v.hear("Fin de l'assaut"); // recette du 19 octobre : « sans effet » au repos
+  assert.equal(v.h.st.phase, "done");
+  assert.equal(v.last(), "🎙 FIN DE L'ASSAUT (« Fin de l'assaut »)");
+  assert.deepEqual(v.done.slice(-1), ["FIN DE L'ASSAUT"]);
+
+  const w = voiceSetup({ rounds: 3 });
+  w.hear("Allez");
+  w.hear("Stop, fin de l'assaut"); // 1re reprise sur 3
+  assert.equal(w.h.st.phase, "done");
 });
