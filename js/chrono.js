@@ -267,7 +267,7 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
     if (st.remaining <= 0 && st.phase === "round") timeUp();
     else if (st.remaining <= 0 && st.phase === "rest") endRest();
   }
-  // Temps dépassé : « Temps » répété toutes les 5 s, sauf pendant un arrêt
+  // Temps dépassé : un rappel toutes les 5 s (un bip, #78), sauf pendant un arrêt
   function overtimeCalls() {
     const k = Math.floor(overtime() / 5);
     if (k >= 1 && !st.halt && !st.called.has("temps" + k)) {

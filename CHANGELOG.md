@@ -4,6 +4,10 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : **mineure** (1.**1*
 
 Les nouveautés importantes reviennent dans « Quoi de neuf », sur l'écran titre (`js/intro.js`), avec les mêmes mots qu'ici.
 
+## [1.1.1] · 2026-10-19
+
+- Temps dépassé : après le premier « Temps », les rappels toutes les 5 s sont des bips, sans voix. Sur iPhone, chaque annonce coupait le micro un instant, et une phrase de l'arbitre dite à ce moment se perdait (#78).
+
 ## [1.1.0] · 2026-10-19
 
 - L'app s'ouvre aussi sans réseau, une fois ouverte une première fois : les boutons, la télécommande et les annonces marchent ; la reconnaissance vocale peut demander le réseau, selon le téléphone (#40).

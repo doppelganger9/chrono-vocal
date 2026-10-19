@@ -128,7 +128,7 @@ Tous les écarts relevés ont été corrigés.
 | Sujet | Avant | Maintenant | Réf. |
 |---|---|---|---|
 | Vocabulaire | « Round », « Pause » | *Reprise*, *minute de repos* | glossaire |
-| Fin de reprise | Bips + « Fin du round N » | Gong puis « Temps ». La reprise continue en **temps dépassé** (compté, « Temps » répété toutes les 5 s) jusqu'à la décision de l'arbitre | C5, R1 |
+| Fin de reprise | Bips + « Fin du round N » | Gong puis « Temps ». La reprise continue en **temps dépassé** (compté, un bip toutes les 5 s, #78) jusqu'à la décision de l'arbitre | C5, R1 |
 | Départ du repos | Bouton ou « REPOS » seulement | **« Stop, fin de la reprise »** ou **« … fin de l'assaut »** termine la reprise et démarre la minute de repos, à tout moment. Un « stop » seul reste un arrêt. « REPOS » et le bouton restent possibles. | C4, C6, R1 |
 | Annonces de repos | 15, 10 et 5 s | **30, 15 et 5 s** par défaut, puis gong + « Temps » | C7 |
 | Fin du repos | « Round N. En garde » | Gong + « Temps », puis attente du « allez » | C7, C8 |

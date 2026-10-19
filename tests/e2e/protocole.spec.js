@@ -109,19 +109,23 @@ test.describe("l'arbitre décide de la fin de la reprise", () => {
     await app.hear("Allez");
   });
 
-  test("après « temps », la reprise continue : le dépassement est compté et « Temps » répété toutes les 5 s", async ({
+  test("après « temps », la reprise continue : le dépassement est compté, et un bip toutes les 5 s, sans voix (#78)", async ({
     app,
   }) => {
     await app.wait(10_700);
+    await app.expectSpoken("Temps"); // le premier « Temps » est dit
     await app.clearSpoken();
+    await app.clearSounds();
     await app.wait(4000);
     await expect(app.time).toHaveText("+0:04");
-    expect(await app.spoken()).not.toContain("Temps");
+    expect(await app.sounds()).not.toContain(660);
     await app.wait(1000);
-    await app.expectSpoken("Temps"); // à +5 s
-    await app.clearSpoken();
+    await expect.poll(() => app.sounds()).toContain(660); // à +5 s : un bip
+    await expect(app.heard).toHaveText("🔔 Temps (+0:05)");
+    await app.clearSounds();
     await app.wait(5000);
-    await app.expectSpoken("Temps"); // à +10 s
+    await expect.poll(() => app.sounds()).toContain(660); // à +10 s
+    expect(await app.spoken()).not.toContain("Temps"); // la voix ne coupe plus le micro de l'iPhone
     await app.hear("Stop, fin de la reprise");
     await expect(app.phase).toHaveText("Minute de repos");
     await app.$("#statsBtn").click();
