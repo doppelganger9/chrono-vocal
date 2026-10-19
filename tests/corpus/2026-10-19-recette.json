@@ -1,0 +1,132 @@
+{
+  "source": "Recette du 19 octobre 2026, téléphone posé sans écouteurs (à plus d'un mètre, la reconnaissance se dégrade). Seulement les phrases d'arbitrage : les conversations autour ont été retirées (dépôt public).",
+  "colors": ["rouge", "bleu"],
+  "phrases": [
+    {
+      "text": "En garde",
+      "expect": {
+        "kind": "engarde"
+      }
+    },
+    {
+      "text": "Observation tireur bleu technique non armée en garde aller",
+      "expect": {
+        "kind": "motif",
+        "type": "observation",
+        "color": "bleu"
+      }
+    },
+    {
+      "text": "Avertissement refusé",
+      "expect": {
+        "kind": "motif",
+        "type": "avert-refuse",
+        "color": null
+      }
+    },
+    {
+      "text": "Stop",
+      "expect": {
+        "kind": "command",
+        "cmd": "STOP",
+        "end": null
+      }
+    },
+    {
+      "text": "Pénalité pour tire bleu pour lâcher de canne",
+      "expect": {
+        "kind": "motif",
+        "type": "penalite",
+        "color": "bleu"
+      }
+    },
+    {
+      "text": "Tireur en garde",
+      "expect": {
+        "kind": "engarde"
+      }
+    },
+    {
+      "text": "Chrono prêt",
+      "expect": {
+        "kind": "ready"
+      }
+    },
+    {
+      "text": "Tireur au centre tireur en garde allez",
+      "expect": {
+        "kind": "command",
+        "cmd": "ALLEZ",
+        "enGarde": true
+      },
+      "note": "#79 : ce qui précède « en garde » est ignoré"
+    },
+    {
+      "text": "Deuxième reprise tireur en garde",
+      "expect": {
+        "kind": "engarde"
+      },
+      "note": "#79"
+    },
+    {
+      "text": "Hangar",
+      "expect": {
+        "kind": "engarde"
+      },
+      "note": "#79 : « en garde » mal entendu"
+    },
+    {
+      "text": "Tireur hangar",
+      "expect": {
+        "kind": "engarde"
+      },
+      "note": "#79"
+    },
+    {
+      "text": "Tireur équipez-vous",
+      "expect": {
+        "kind": "none"
+      },
+      "note": "protocole du repos : sans effet"
+    },
+    {
+      "text": "Au centre",
+      "expect": {
+        "kind": "none"
+      },
+      "note": "protocole du repos : sans effet"
+    }
+  ],
+  "a_relire": [
+    {
+      "text": "Tire rouge",
+      "alternatives": ["Tiens rouge"],
+      "phase": "round",
+      "note": "« tireur rouge » seul, sans sanction : rien à faire"
+    },
+    {
+      "text": "Fant insuffisante",
+      "alternatives": ["Fant insuffisantes", "Fant insuffisant"],
+      "phase": "round",
+      "note": "sanction mal entendue, sens inconnu"
+    },
+    {
+      "text": "Opération technique née",
+      "alternatives": ["Technique née", "Sur opération technique née"],
+      "phase": "round",
+      "note": "« observation, technique non armée » ? trop déformé"
+    },
+    {
+      "text": "Un",
+      "alternatives": ["Huga", "Hung"],
+      "phase": "round",
+      "note": "bruit"
+    },
+    {
+      "text": "Reprise",
+      "alternatives": [],
+      "phase": "overtime",
+      "note": "temps dépassé : début de « fin de la reprise » coupé par une relance du micro (#78)"
+    }
+  ]
+}

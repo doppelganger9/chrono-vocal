@@ -199,3 +199,57 @@ test("isEcho : ce que le micro entend pendant une annonce est-il l'annonce elle-
   assert.equal(L.isEcho("", "Temps"), false);
   assert.equal(L.isEcho("temps", ""), false);
 });
+
+test("préambule du protocole avant « en garde » ignoré ; « hangar » = « en garde » (#79)", () => {
+  const p = (t) => L.parseCommand(t);
+  assert.deepEqual(p("Tireurs au centre, tireurs en garde, allez"), {
+    enGarde: true,
+    cmd: "ALLEZ",
+    end: null,
+  });
+  assert.deepEqual(p("Deuxième reprise, tireurs en garde"), {
+    enGarde: true,
+    cmd: null,
+    end: null,
+  });
+  assert.deepEqual(p("Reprise supplémentaire, en garde, allez"), {
+    enGarde: true,
+    cmd: "ALLEZ",
+    end: null,
+  });
+  assert.deepEqual(p("Hangar"), { enGarde: true, cmd: null, end: null });
+  assert.deepEqual(p("Tireur hangar, allez"), {
+    enGarde: true,
+    cmd: "ALLEZ",
+    end: null,
+  });
+  // d'autres mots avant « en garde » : ce n'est pas un commandement
+  assert.equal(p("Observation tireur bleu, en garde, allez"), null);
+  assert.equal(p("Le public en garde allez"), null);
+  assert.equal(p("Tireurs au centre"), null);
+  assert.equal(p("Bravo le public allez"), null);
+  assert.deepEqual(p("Tireurs, allez"), {
+    enGarde: false,
+    cmd: "ALLEZ",
+    end: null,
+  });
+  // chaque mot du préambule, et seulement le mot entier
+  for (const t of [
+    "Première reprise, en garde",
+    "Troisième reprise, en garde",
+    "Quatrième reprise, en garde",
+    "Dernière reprise, en garde",
+    "À la reprise, en garde",
+    "Tire, tireurs, en garde",
+  ])
+    assert.deepEqual(p(t), { enGarde: true, cmd: null, end: null }, t);
+  for (const t of [
+    "Aux tireurs, en garde, allez",
+    "Voilà, en garde, allez",
+    "Tirage, en garde, allez",
+    "Satire, en garde, allez",
+    "Hangars, allez",
+    "Changar, allez",
+  ])
+    assert.equal(p(t), null, t);
+});
