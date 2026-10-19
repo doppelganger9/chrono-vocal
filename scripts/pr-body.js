@@ -86,7 +86,7 @@ function buildBody({
           ),
         ...(surv.length > 8
           ? [
-              `  - et ${surv.length - 8} autres : rapport complet dans \`reports/mutation/\`, et dans l'artefact « rapports-qualite » de la CI`,
+              `  - et ${surv.length - 8} autres : rapport complet dans \`reports/mutation/\` (et dans l'artefact « rapports-qualite » quand la passe Qualité tourne)`,
             ]
           : []),
       );
