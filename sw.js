@@ -45,6 +45,7 @@ const FILES = [
   "js/ui/stats-dialog.js",
   "js/ui/theme.js",
   "js/ui/two-tap.js",
+  "js/update.js",
   "js/version.js",
   "js/voice.js",
   "manifest.webmanifest",

@@ -45,9 +45,20 @@ test("une nouvelle version attend le prochain lancement : jamais prise au milieu
     /addEventListener\("message", \(e\) => \{\s*if \(e\.data === "activer"\) self\.skipWaiting\(\);/,
   );
   const main = fs.readFileSync(new URL("js/main.js", root), "utf8");
+  assert.equal(main.match(/postMessage\("activer"\)/g)?.length, 1);
   assert.match(
     main,
-    /\.register\("sw\.js"\)\s*\.then\(\(reg\) => \{[\s\S]*?reg\.waiting\.postMessage\("activer"\);\s*\}\)/,
-    "demandée seulement quand l'enregistrement aboutit, à l'ouverture",
+    /function activateUpdate\(reg\) \{[^}]*?\}[^}]*?reg\.waiting\?\.postMessage\("activer"\);\s*\}/,
+  );
+  assert.match(
+    main,
+    /\.register\("sw\.js"\)\s*\.then\(\(reg\) => \{[\s\S]*?if \(reg\.waiting && controlled\) return activateUpdate\(reg\);/,
+    "demandée quand l'enregistrement aboutit, à l'ouverture",
+  );
+  // ou par l'arbitre, avec le bouton « Mise à jour disponible », affiché seulement quand rien n'est en cours (#96)
+  assert.equal(main.match(/activateUpdate\(/g)?.length, 3);
+  assert.match(
+    main,
+    /\$button\("updateBtn"\)\.hidden = !\(pendingUpdate && canUpdate\(chrono\.state\)\)/,
   );
 });

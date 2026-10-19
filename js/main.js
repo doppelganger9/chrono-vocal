@@ -22,6 +22,10 @@ import { twoTap } from "./ui/two-tap.js";
 import { createMicWatch } from "./mic-watch.js";
 import { createMicIndicator } from "./ui/mic-indicator.js";
 import { VERSION } from "./version.js";
+import { canUpdate, watchUpdate } from "./update.js";
+
+/** Nouvelle version téléchargée pendant la visite, en attente de l'arbitre (#96) @type {ServiceWorkerRegistration | null} */
+let pendingUpdate = null;
 
 const storage = (() => {
   try {
@@ -255,6 +259,7 @@ function render() {
     lastEnGarde: voice.lastEnGarde,
     undoTop: undoStack[undoStack.length - 1],
   });
+  $button("updateBtn").hidden = !(pendingUpdate && canUpdate(chrono.state));
 }
 
 function mainAction() {
@@ -376,20 +381,36 @@ $("micBtn").onclick = () => {
 };
 // Hors ligne (#40) : le service worker garde l'app en cache. Une nouvelle version est prise au prochain lancement.
 // Safari sur iPhone garde l'onglet ouvert : la version en attente est donc prise à l'ouverture de la page, quand rien
-// n'est en cours, puis la page se recharge (#84). Jamais plus tard : pas au milieu d'un assaut
+// n'est en cours, puis la page se recharge (#84). Une version téléchargée pendant la visite est proposée par le
+// bouton « Mise à jour disponible », seulement quand rien n'est en cours : c'est l'arbitre qui la prend (#96)
+/** La version en attente prend la main, puis la page se recharge @param {ServiceWorkerRegistration} reg */
+function activateUpdate(reg) {
+  navigator.serviceWorker.addEventListener(
+    "controllerchange",
+    () => location.reload(),
+    { once: true },
+  );
+  reg.waiting?.postMessage("activer");
+}
 if ("serviceWorker" in navigator)
   navigator.serviceWorker
     .register("sw.js")
     .then((reg) => {
-      if (!reg.waiting || !navigator.serviceWorker.controller) return;
-      navigator.serviceWorker.addEventListener(
-        "controllerchange",
-        () => location.reload(),
-        { once: true },
-      );
-      reg.waiting.postMessage("activer");
+      const controlled = !!navigator.serviceWorker.controller;
+      if (reg.waiting && controlled) return activateUpdate(reg);
+      watchUpdate(reg, controlled, () => {
+        pendingUpdate = reg;
+        render();
+      });
+      // un onglet resté ouvert (Safari sur iPhone) cherche la nouvelle version quand on y revient
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) reg.update().catch(() => {});
+      });
     })
     .catch(() => {});
+$button("updateBtn").onclick = () => {
+  if (pendingUpdate) activateUpdate(pendingUpdate);
+};
 // Version (#39) : sur l'écran titre, ouvert aussi depuis « À propos » dans les réglages (#84)
 $("introAgain").textContent = "À propos · version " + VERSION;
 $("introVersion").textContent = "Version " + VERSION;
