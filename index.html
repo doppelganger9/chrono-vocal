@@ -79,268 +79,272 @@
 
     <dialog id="settings">
       <h2>Réglages de l'assaut</h2>
-      <h3>Format</h3>
-      <div class="field">
-        <label for="sMode">Forme</label>
-        <select id="sMode">
-          <option value="assaut">Assaut</option>
-          <option value="relais">Relais par équipes</option>
-        </select>
-      </div>
-      <div class="field" data-mode="assaut">
-        <label for="sPreset"
-          >Préréglage<small>maximums des compétitions nationales</small></label
-        >
-        <select id="sPreset"></select>
-      </div>
-      <div class="field" data-mode="assaut">
-        <label for="sRounds">Nombre de reprises</label>
-        <select id="sRounds">
-          <option>1</option>
-          <option>2</option>
-          <option>3</option>
-          <option>4</option>
-        </select>
-      </div>
-      <div class="field" data-mode="assaut">
-        <label for="sRound">Durée d'une reprise<small>min:sec</small></label>
-        <input id="sRound" inputmode="numeric" placeholder="1:30" />
-      </div>
-      <div class="field" data-mode="relais">
-        <label for="sRelayBase"
-          >Durée de base<small
-            >reprise unique = base × équipiers × 2</small
-          ></label
-        >
-        <select id="sRelayBase">
-          <option value="60">1:00</option>
-          <option value="90">1:30</option>
-          <option value="120">2:00</option>
-        </select>
-      </div>
-      <div class="field" data-mode="relais">
-        <label for="sRelayCount">Équipiers par équipe</label>
-        <select id="sRelayCount">
-          <option>2</option>
-          <option>3</option>
-          <option>4</option>
-          <option>5</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="sRest"
-          >Durée du repos<small>min:sec — 1:00 en compétition</small></label
-        >
-        <input id="sRest" inputmode="numeric" placeholder="1:00" />
-      </div>
-      <div class="field">
-        <label for="sExtra"
-          >Reprises supplémentaires<small
-            >en cas d'égalité, après une minute de repos</small
-          ></label
-        >
-        <select id="sExtra">
-          <option>0</option>
-          <option>1</option>
-          <option>2</option>
-        </select>
-      </div>
-      <h3>Règles</h3>
-      <div class="field">
-        <label for="sCount"
-          >Arrêts décomptés<small
-            >oui : le chrono s'arrête à chaque « stop »</small
-          ></label
-        >
-        <select id="sCount">
-          <option value="1">Oui</option>
-          <option value="0">Non</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="sProlong"
-          >Prolongation de 30 s<small
-            >après un arrêt de plus de 30 s, une fois par reprise (arrêts non
-            décomptés)</small
-          ></label
-        >
-        <select id="sProlong">
-          <option value="propose">Proposée</option>
-          <option value="auto">Automatique</option>
-          <option value="off">Non</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="sEnGarde"
-          >« En garde » obligatoire<small
-            >un « allez » à la voix n'est accepté que juste après « en garde
-            »</small
-          ></label
-        >
-        <select id="sEnGarde">
-          <option value="0">Non</option>
-          <option value="1">Oui</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="sAutoRest"
-          >Fin de reprise automatique au « temps »<small
-            >entraînement sans arbitre ; sinon c'est l'arbitre qui termine la
-            reprise</small
-          ></label
-        >
-        <select id="sAutoRest">
-          <option value="0">Non</option>
-          <option value="1">Oui</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="sCalls"
-          >Annonces pendant le repos<small
-            >secondes restantes, séparées par des virgules</small
-          ></label
-        >
-        <input id="sCalls" placeholder="30,15,5" />
-      </div>
-      <h3>Apparence</h3>
-      <div class="field">
-        <label for="sTheme"
-          >Thème<small
-            >automatique : suit le réglage jour / nuit du téléphone</small
-          ></label
-        >
-        <select id="sTheme">
-          <option value="auto">Automatique</option>
-          <option value="jour">Jour</option>
-          <option value="nuit">Nuit</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="sColor-round"
-          >Couleurs<small>reprise, repos, arrêt, temps dépassé</small></label
-        >
-        <span class="swatches">
-          <input
-            type="color"
-            id="sColor-round"
-            data-key="round"
-            title="Reprise"
-            aria-label="Couleur de la reprise"
-          />
-          <input
-            type="color"
-            id="sColor-rest"
-            data-key="rest"
-            title="Repos"
-            aria-label="Couleur du repos"
-          />
-          <input
-            type="color"
-            id="sColor-stop"
-            data-key="stop"
-            title="Arrêt"
-            aria-label="Couleur de l'arrêt"
-          />
-          <input
-            type="color"
-            id="sColor-over"
-            data-key="over"
-            title="Temps dépassé"
-            aria-label="Couleur du temps dépassé"
-          />
-        </span>
-      </div>
-      <div class="field">
-        <label for="sBoard"
-          >Mode tableau en paysage<small
-            >le chrono seul, en très grand ; touchez l'écran pour afficher les
-            boutons</small
-          ></label
-        >
-        <select id="sBoard">
-          <option value="0">Non</option>
-          <option value="1">Oui</option>
-        </select>
-      </div>
-      <p id="contrastWarn" class="warn" hidden></p>
-      <div class="dlg-actions">
-        <button id="paletteReset" class="secondary" type="button">
-          Couleurs d'origine
-        </button>
-      </div>
-      <h3>Tireurs et voix</h3>
-      <div class="field">
-        <label for="sColor1"
-          >Couleurs des tireurs<small
-            >pour reconnaître le tireur sanctionné</small
-          ></label
-        >
-        <span
-          ><input id="sColor1" class="color-name" placeholder="rouge" />
-          <input id="sColor2" class="color-name" placeholder="bleu"
-        /></span>
-      </div>
-      <div class="field">
-        <label for="sReady"
-          >Répondre « Prêt »<small>à « Chrono, prêt ? »</small></label
-        >
-        <select id="sReady">
-          <option value="1">Oui</option>
-          <option value="0">Non</option>
-        </select>
-      </div>
-      <div class="dlg-actions">
-        <button id="introAgain" class="secondary" type="button">
-          À propos
-        </button>
-      </div>
-      <h3>Journal vocal</h3>
-      <p class="note">
-        Ce que la reconnaissance a entendu, et ce que l'app en a fait : à
-        exporter après un entraînement pour améliorer la reconnaissance
-        (docs/recette.md).
-      </p>
-      <p id="journalCount" class="note"></p>
-      <div class="dlg-actions">
-        <button id="journalExport" class="secondary" type="button">
-          Exporter le journal
-        </button>
-        <button id="journalClear" class="secondary" type="button">
-          Effacer
-        </button>
-      </div>
-      <h3>Partage des réglages</h3>
-      <p class="note">
-        Pour configurer à l'identique tous les téléphones d'un club ou d'une
-        compétition.
-      </p>
-      <div class="dlg-actions">
-        <button id="shareLink" class="secondary" type="button">
-          Copier le lien
-        </button>
-        <button id="exportFileBtn" class="secondary" type="button">
-          Exporter un fichier
-        </button>
-        <label class="secondary file-btn"
-          >Importer un fichier<input
-            id="importFile"
-            type="file"
-            accept="application/json,.json"
-            hidden
-        /></label>
-      </div>
-      <input id="shareUrl" readonly hidden aria-label="Lien des réglages" />
-      <div class="learn">
-        <h3>Mots entendus non reconnus</h3>
-        <p>
-          Mots courts entendus qui n'ont déclenché aucune commande. Touchez la
-          commande voulue pour que l'app les reconnaisse ensuite.
+      <div class="settings-body">
+        <h3>Format</h3>
+        <div class="field">
+          <label for="sMode">Forme</label>
+          <select id="sMode">
+            <option value="assaut">Assaut</option>
+            <option value="relais">Relais par équipes</option>
+          </select>
+        </div>
+        <div class="field" data-mode="assaut">
+          <label for="sPreset"
+            >Préréglage<small
+              >maximums des compétitions nationales</small
+            ></label
+          >
+          <select id="sPreset"></select>
+        </div>
+        <div class="field" data-mode="assaut">
+          <label for="sRounds">Nombre de reprises</label>
+          <select id="sRounds">
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+          </select>
+        </div>
+        <div class="field" data-mode="assaut">
+          <label for="sRound">Durée d'une reprise<small>min:sec</small></label>
+          <input id="sRound" inputmode="numeric" placeholder="1:30" />
+        </div>
+        <div class="field" data-mode="relais">
+          <label for="sRelayBase"
+            >Durée de base<small
+              >reprise unique = base × équipiers × 2</small
+            ></label
+          >
+          <select id="sRelayBase">
+            <option value="60">1:00</option>
+            <option value="90">1:30</option>
+            <option value="120">2:00</option>
+          </select>
+        </div>
+        <div class="field" data-mode="relais">
+          <label for="sRelayCount">Équipiers par équipe</label>
+          <select id="sRelayCount">
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sRest"
+            >Durée du repos<small>min:sec — 1:00 en compétition</small></label
+          >
+          <input id="sRest" inputmode="numeric" placeholder="1:00" />
+        </div>
+        <div class="field">
+          <label for="sExtra"
+            >Reprises supplémentaires<small
+              >en cas d'égalité, après une minute de repos</small
+            ></label
+          >
+          <select id="sExtra">
+            <option>0</option>
+            <option>1</option>
+            <option>2</option>
+          </select>
+        </div>
+        <h3>Règles</h3>
+        <div class="field">
+          <label for="sCount"
+            >Arrêts décomptés<small
+              >oui : le chrono s'arrête à chaque « stop »</small
+            ></label
+          >
+          <select id="sCount">
+            <option value="1">Oui</option>
+            <option value="0">Non</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sProlong"
+            >Prolongation de 30 s<small
+              >après un arrêt de plus de 30 s, une fois par reprise (arrêts non
+              décomptés)</small
+            ></label
+          >
+          <select id="sProlong">
+            <option value="propose">Proposée</option>
+            <option value="auto">Automatique</option>
+            <option value="off">Non</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sEnGarde"
+            >« En garde » obligatoire<small
+              >un « allez » à la voix n'est accepté que juste après « en garde
+              »</small
+            ></label
+          >
+          <select id="sEnGarde">
+            <option value="0">Non</option>
+            <option value="1">Oui</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sAutoRest"
+            >Fin de reprise automatique au « temps »<small
+              >entraînement sans arbitre ; sinon c'est l'arbitre qui termine la
+              reprise</small
+            ></label
+          >
+          <select id="sAutoRest">
+            <option value="0">Non</option>
+            <option value="1">Oui</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sCalls"
+            >Annonces pendant le repos<small
+              >secondes restantes, séparées par des virgules</small
+            ></label
+          >
+          <input id="sCalls" placeholder="30,15,5" />
+        </div>
+        <h3>Apparence</h3>
+        <div class="field">
+          <label for="sTheme"
+            >Thème<small
+              >automatique : suit le réglage jour / nuit du téléphone</small
+            ></label
+          >
+          <select id="sTheme">
+            <option value="auto">Automatique</option>
+            <option value="jour">Jour</option>
+            <option value="nuit">Nuit</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sColor-round"
+            >Couleurs<small>reprise, repos, arrêt, temps dépassé</small></label
+          >
+          <span class="swatches">
+            <input
+              type="color"
+              id="sColor-round"
+              data-key="round"
+              title="Reprise"
+              aria-label="Couleur de la reprise"
+            />
+            <input
+              type="color"
+              id="sColor-rest"
+              data-key="rest"
+              title="Repos"
+              aria-label="Couleur du repos"
+            />
+            <input
+              type="color"
+              id="sColor-stop"
+              data-key="stop"
+              title="Arrêt"
+              aria-label="Couleur de l'arrêt"
+            />
+            <input
+              type="color"
+              id="sColor-over"
+              data-key="over"
+              title="Temps dépassé"
+              aria-label="Couleur du temps dépassé"
+            />
+          </span>
+        </div>
+        <div class="field">
+          <label for="sBoard"
+            >Mode tableau en paysage<small
+              >le chrono seul, en très grand ; touchez l'écran pour afficher les
+              boutons</small
+            ></label
+          >
+          <select id="sBoard">
+            <option value="0">Non</option>
+            <option value="1">Oui</option>
+          </select>
+        </div>
+        <p id="contrastWarn" class="warn" hidden></p>
+        <div class="dlg-actions">
+          <button id="paletteReset" class="secondary" type="button">
+            Couleurs d'origine
+          </button>
+        </div>
+        <h3>Tireurs et voix</h3>
+        <div class="field">
+          <label for="sColor1"
+            >Couleurs des tireurs<small
+              >pour reconnaître le tireur sanctionné</small
+            ></label
+          >
+          <span
+            ><input id="sColor1" class="color-name" placeholder="rouge" />
+            <input id="sColor2" class="color-name" placeholder="bleu"
+          /></span>
+        </div>
+        <div class="field">
+          <label for="sReady"
+            >Répondre « Prêt »<small>à « Chrono, prêt ? »</small></label
+          >
+          <select id="sReady">
+            <option value="1">Oui</option>
+            <option value="0">Non</option>
+          </select>
+        </div>
+        <div class="dlg-actions">
+          <button id="introAgain" class="secondary" type="button">
+            À propos
+          </button>
+        </div>
+        <h3>Journal vocal</h3>
+        <p class="note">
+          Ce que la reconnaissance a entendu, et ce que l'app en a fait : à
+          exporter après un entraînement pour améliorer la reconnaissance
+          (docs/recette.md).
         </p>
-        <div id="unheardList"></div>
-        <h3>Variantes apprises</h3>
-        <div id="learnedList"></div>
+        <p id="journalCount" class="note"></p>
+        <div class="dlg-actions">
+          <button id="journalExport" class="secondary" type="button">
+            Exporter le journal
+          </button>
+          <button id="journalClear" class="secondary" type="button">
+            Effacer
+          </button>
+        </div>
+        <h3>Partage des réglages</h3>
+        <p class="note">
+          Pour configurer à l'identique tous les téléphones d'un club ou d'une
+          compétition.
+        </p>
+        <div class="dlg-actions">
+          <button id="shareLink" class="secondary" type="button">
+            Copier le lien
+          </button>
+          <button id="exportFileBtn" class="secondary" type="button">
+            Exporter un fichier
+          </button>
+          <label class="secondary file-btn"
+            >Importer un fichier<input
+              id="importFile"
+              type="file"
+              accept="application/json,.json"
+              hidden
+          /></label>
+        </div>
+        <input id="shareUrl" readonly hidden aria-label="Lien des réglages" />
+        <div class="learn">
+          <h3>Mots entendus non reconnus</h3>
+          <p>
+            Mots courts entendus qui n'ont déclenché aucune commande. Touchez la
+            commande voulue pour que l'app les reconnaisse ensuite.
+          </p>
+          <div id="unheardList"></div>
+          <h3>Variantes apprises</h3>
+          <div id="learnedList"></div>
+        </div>
+        <p class="sentence" id="sentencePreview"></p>
       </div>
-      <p class="sentence" id="sentencePreview"></p>
       <div class="dlg-actions">
         <button id="saveBtn">Enregistrer</button>
         <button id="closeBtn" class="secondary">Annuler</button>

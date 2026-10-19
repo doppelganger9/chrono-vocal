@@ -11,6 +11,8 @@ const SIZES = {
   // Safari sur iPhone, barre d'adresse et onglets affichés : la page n'a plus que cette place (recette du 18 octobre 2026)
   "iPhone paysage, barres Safari": { width: 844, height: 280 },
   "iPhone portrait, barres Safari": { width: 390, height: 560 },
+  // vieil Android (Galaxy S7, 360 px de large), avec la barre du navigateur (recette du 19 octobre 2026, #94)
+  "Galaxy S7 portrait, barre du navigateur": { width: 360, height: 560 },
 };
 const box = (page, sel) => page.locator(sel).boundingBox();
 const noScroll = (page) =>
@@ -103,13 +105,71 @@ test("réglages en paysage : sur deux colonnes, sans dépasser l'écran en large
   await page.setViewportSize(SIZES["iPhone Pro Max paysage"]);
   await app.$("#settingsBtn").click();
   const a = await box(page, "#sMode"),
-    b = await box(page, "#sCount");
+    b = await box(page, "#shareLink"); // la fin des réglages, dans la seconde colonne (#94)
   expect(Math.abs(a.x - b.x)).toBeGreaterThan(100); // pas dans la même colonne
   const dlg = await box(page, "#settings");
   expect(dlg.x + dlg.width).toBeLessThanOrEqual(
     SIZES["iPhone Pro Max paysage"].width,
   );
 });
+
+test("réglages sur écran large : toutes les rubriques atteignables, aucune colonne cachée à droite (#94)", async ({
+  app,
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 800 });
+  await app.$("#settingsBtn").click();
+  const dlg = await box(page, "#settings");
+  for (const sel of [
+    "#journalExport",
+    "#shareLink",
+    "#unheardList",
+    "#saveBtn",
+  ]) {
+    const b = await box(page, sel);
+    expect(
+      b.x + b.width,
+      `${sel} dans la largeur de la fenêtre`,
+    ).toBeLessThanOrEqual(dlg.x + dlg.width);
+  }
+  expect(
+    await app
+      .$("#settings")
+      .evaluate((d) => d.scrollWidth <= d.clientWidth + 1),
+    "pas de défilement horizontal",
+  ).toBe(true);
+});
+
+// Minute de repos avec les boutons de rappel : la colonne du chrono, la plus chargée, ne passe ni sous l'en-tête
+// ni sous les boutons (Galaxy S7, recette du 19 octobre 2026, #94)
+for (const [name, size] of Object.entries(SIZES)) {
+  test(`${name} : minute de repos avec rappels, rien ne se chevauche`, async ({
+    app,
+    page,
+  }) => {
+    await page.setViewportSize(size);
+    await app.configure({ sRound: "0:05" });
+    await app.hear("Allez");
+    await app.wait(5700);
+    await app.hear("Stop, fin de la reprise");
+    await app.wait(500);
+    await expect(app.$("#rappels")).toBeVisible();
+    const header = await box(page, "header"),
+      label = await box(page, "#roundLabel"),
+      heard = await box(page, "#heard"),
+      controls = await box(page, ".controls");
+    expect(
+      label.y,
+      "l'en-tête ne recouvre pas « Reprise »",
+    ).toBeGreaterThanOrEqual(header.y + header.height - 1);
+    if (controls.y > label.y)
+      // en portrait, les boutons sont sous le chrono
+      expect(
+        heard.y + heard.height,
+        "le message entendu reste au-dessus des boutons",
+      ).toBeLessThanOrEqual(controls.y + 1);
+  });
+}
 
 // Police large (comme WebKit sous Linux, sans la police d'Apple) et chiffres longs : rien ne déborde, dans aucun format
 for (const name of Object.keys(SIZES)) {

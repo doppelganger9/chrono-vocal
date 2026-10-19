@@ -555,13 +555,12 @@ body.paused #stops {
     width: min(900px, calc(100vw - 32px));
     max-height: calc(100vh - 24px);
   }
-  #settings {
+  /* les colonnes sur le contenu, pas sur la fenêtre : la hauteur de la fenêtre est limitée, et des colonnes de
+     hauteur limitée débordent en une troisième colonne hors de la fenêtre, à droite (#94). Ici elles s'équilibrent,
+     et la fenêtre défile en hauteur */
+  #settings .settings-body {
     columns: 2;
     column-gap: 28px;
-  }
-  #settings h2,
-  #settings .dlg-actions:last-child {
-    column-span: all;
   }
   #settings .field,
   #settings .learn-row,
@@ -776,5 +775,37 @@ body.paused #stops {
   } /* chronomètre annexe : ses boutons visibles sans défiler */
   .annex-modes button {
     padding: 6px;
+  }
+}
+
+/* Portrait bas : vieil Android (Galaxy S7, 360 × 560 avec la barre du navigateur) ou Safari avec ses barres.
+   En minute de repos, avec les rappels, la colonne du chrono débordait sous l'en-tête et sous les boutons
+   (recette du 19 octobre 2026, #94) : des chiffres et des boutons un peu moins hauts, des écarts resserrés */
+@media (orientation: portrait) and (max-height: 620px) {
+  main {
+    gap: 4px;
+    justify-content: safe center; /* si ça ne tient toujours pas, « Reprise » reste sous l'en-tête */
+  }
+  #time {
+    --time-max: 17vh;
+  }
+  .bar {
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  #rappels {
+    margin: 2px auto;
+  }
+  #rappels button {
+    padding: 6px 8px;
+  }
+  .controls {
+    padding: 8px 0 10px;
+  }
+  #mainBtn {
+    padding: 16px 8px;
+  }
+  .controls .secondary {
+    padding: 10px 4px !important;
   }
 }
