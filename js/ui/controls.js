@@ -31,6 +31,29 @@ export function createControls({ onMain, onUndo, onKey, isBoard }) {
   $button("mainBtn").onclick = onMain;
   $button("undoBtn").onclick = onUndo;
 
+  // Élément qui a reçu le focus par Tab, et non par un toucher (:focus-visible ne les distingue pas : toute touche
+  // pressée le rend vrai)
+  let tabbing = false;
+  /** @type {EventTarget | null} */
+  let tabFocused = null;
+  document.addEventListener(
+    "keydown",
+    (e) => {
+      if (e.key === "Tab") tabbing = true;
+    },
+    true,
+  );
+  document.addEventListener(
+    "pointerdown",
+    () => {
+      tabbing = false;
+    },
+    true,
+  );
+  document.addEventListener("focusin", (e) => {
+    tabFocused = tabbing ? e.target : null;
+  });
+
   document.addEventListener("keydown", (e) => {
     if (
       document.querySelector("dialog[open]") ||
@@ -43,6 +66,9 @@ export function createControls({ onMain, onUndo, onKey, isBoard }) {
       e.preventDefault();
       return;
     }
+    // bouton atteint au clavier (Tab) : Entrée et Espace l'activent, comme partout (#38). Un bouton touché
+    // garde aussi le focus, mais la télécommande y reste le bouton principal
+    if ((e.key === " " || e.key === "Enter") && e.target === tabFocused) return;
     if (NEXT_KEYS.includes(e.key)) {
       e.preventDefault();
       onMain();
