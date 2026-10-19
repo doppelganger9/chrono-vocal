@@ -90,4 +90,12 @@
  * @typedef {(type: string, data?: any) => void} Emit
  */
 
+/**
+ * Une version de CHANGELOG.md (#84), pour l'écran titre
+ * @typedef {object} Release
+ * @property {string} version  « 1.2.0 »
+ * @property {string} date  « 2026-10-19 »
+ * @property {{ title: string, items: string[] }[]} sections  rubriques (« Le chrono »), la première parfois sans titre
+ */
+
 export {};

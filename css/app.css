@@ -263,8 +263,7 @@ dialog {
   margin: 0 0 10px;
 }
 /* version (#39), discrète */
-#introVersion,
-#settingsVersion {
+#introVersion {
   margin: 14px 0 0;
   font-size: 13px;
 }
@@ -596,6 +595,25 @@ body.paused #stops {
   letter-spacing: 0.1em;
   margin: 12px 0 0;
   text-align: left;
+}
+/* notes de version (#84) : toutes depuis « À propos », la liste défile sans pousser les boutons hors de l'écran */
+#introNewsList {
+  max-height: 40vh;
+  overflow-y: auto;
+  text-align: left;
+}
+.intro h4 {
+  font-size: 15px;
+  margin: 10px 0 0;
+}
+.intro h5 {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 6px 0 0;
+}
+.intro h4 + ul,
+.intro h5 + ul {
+  margin-top: 4px;
 }
 
 /* Partage des réglages (#15) */

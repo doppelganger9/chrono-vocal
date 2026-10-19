@@ -1,39 +1,65 @@
-// Écran titre (#6) : présenté au premier lancement, puis une fois à chaque nouveauté importante (« Quoi de neuf »). Pur.
+// Écran titre (#6) : présenté au premier lancement, puis une fois à chaque nouvelle version, avec ses notes
+// (« Quoi de neuf », #84). Pur.
+import { VERSION } from "./version.js";
+import { NOTES } from "./notes.js";
+
+/** @typedef {import('./types.js').Release} Release */
 
 export const INTRO_KEY = "chrono-canne-intro";
 
-/** Nouveautés importantes : chacune fait réapparaître l'écran titre une fois @type {{ version: number, items: string[] }[]} */
-export const NEWS = [
-  {
-    version: 2,
-    items: [
-      "Thème jour / nuit automatique, et couleurs personnalisables",
-      "En paysage, des chiffres plus grands ; et un mode tableau pour poser le téléphone face à l'aire",
-      "L'arbitre décide : après « temps », la reprise continue jusqu'à « Stop, fin de la reprise »",
-    ],
-  },
+/** Ancienne valeur enregistrée (numéro de présentation, avant #84) : vue au plus tard avec la 1.0.0 */
+const LEGACY = "1.0.0";
+
+/** Ordre de deux versions « x.y.z » : négatif si a est plus ancienne @param {string} a @param {string} b */
+export function compareVersions(a, b) {
+  const x = a.split(".").map(Number);
+  const y = b.split(".").map(Number);
+  for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] - y[i];
+  return 0;
+}
+
+/** @param {string} seen version déjà vue ("" : jamais) @param {string} [current] */
+export const shouldShowIntro = (seen, current = VERSION) =>
+  !seen || compareVersions(seen, current) < 0;
+
+/** Notes des versions plus récentes que la dernière vue ; rien au premier lancement (c'est la présentation complète)
+ * @param {string} seen @param {Release[]} [notes] */
+export const whatsNew = (seen, notes = NOTES) =>
+  seen ? notes.filter((n) => compareVersions(n.version, seen) > 0) : [];
+
+const MONTHS = [
+  "janvier",
+  "février",
+  "mars",
+  "avril",
+  "mai",
+  "juin",
+  "juillet",
+  "août",
+  "septembre",
+  "octobre",
+  "novembre",
+  "décembre",
 ];
-/** Version de la présentation : celle de la dernière nouveauté importante */
-export const INTRO_VERSION = NEWS.at(-1)?.version ?? 1;
+/** « 2026-10-19 » → « 19 octobre 2026 » @param {string} iso */
+export function frenchDate(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return `${d} ${MONTHS[m - 1]} ${y}`;
+}
 
-/** @param {number} seen version déjà vue (0 : jamais) */
-export const shouldShowIntro = (seen) => seen < INTRO_VERSION;
-
-/** Nouveautés depuis la dernière présentation vue ; rien au premier lancement (c'est la présentation complète) @param {number} seen */
-export const whatsNew = (seen) =>
-  seen === 0 ? [] : NEWS.filter((n) => n.version > seen);
-
-/** @param {Pick<Storage, 'getItem'>} storage @returns {number} */
+/** @param {Pick<Storage, 'getItem'>} storage @returns {string} la version déjà vue, "" si aucune */
 export function readSeen(storage) {
   try {
-    return Number.parseInt(storage.getItem(INTRO_KEY) || "0", 10) || 0;
+    const v = storage.getItem(INTRO_KEY) || "";
+    if (/^\d+\.\d+\.\d+$/.test(v)) return v;
+    return /^\d+$/.test(v) ? LEGACY : "";
   } catch {
-    return 0;
+    return "";
   }
 }
 /** @param {Pick<Storage, 'setItem'>} storage */
 export function markSeen(storage) {
   try {
-    storage.setItem(INTRO_KEY, String(INTRO_VERSION));
+    storage.setItem(INTRO_KEY, VERSION);
   } catch {}
 }

@@ -37,5 +37,17 @@ test("il met en cache tous les fichiers de l'app, et seulement eux", () => {
 });
 
 test("une nouvelle version attend le prochain lancement : jamais prise au milieu d'un assaut", () => {
-  assert.doesNotMatch(sw, /skipWaiting\(|clients\.claim\(/);
+  assert.doesNotMatch(sw, /clients\.claim\(/);
+  // skipWaiting seulement à la demande de la page, que js/main.js fait à son ouverture (#84)
+  assert.equal(sw.match(/skipWaiting\(/g)?.length, 1);
+  assert.match(
+    sw,
+    /addEventListener\("message", \(e\) => \{\s*if \(e\.data === "activer"\) self\.skipWaiting\(\);/,
+  );
+  const main = fs.readFileSync(new URL("js/main.js", root), "utf8");
+  assert.match(
+    main,
+    /\.register\("sw\.js"\)\s*\.then\(\(reg\) => \{[\s\S]*?reg\.waiting\.postMessage\("activer"\);\s*\}\)/,
+    "demandée seulement quand l'enregistrement aboutit, à l'ouverture",
+  );
 });
