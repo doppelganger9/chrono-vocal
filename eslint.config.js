@@ -26,6 +26,11 @@ module.exports = [
     files: ["js/**/*.js"],
     languageOptions: { sourceType: "module", globals: globals.browser },
   },
+  // service worker de l'app hors ligne (#40)
+  {
+    files: ["sw.js"],
+    languageOptions: { sourceType: "script", globals: globals.serviceworker },
+  },
   // tests unitaires : modules ES sous Node
   {
     files: ["tests/unit/**/*.js"],
