@@ -45,7 +45,7 @@ function buildBody({ issue, visible, verif, base, coverage, mutation, touched, a
       for (const s of surv) byFile[s.file] = (byFile[s.file] || 0) + 1;
       quality.push(`- **Mutants survivants dans les fichiers touchés** : ${Object.entries(byFile).map(([f, n]) => `${path.basename(f)} ${n}`).join(', ')}. ${TODO} (tués par un test, ou pourquoi ils sont équivalents)`,
         ...surv.slice(0, 8).map(s => `  - \`${s.file}:${s.line} ${s.mutator}\` → \`${s.replacement.slice(0, 60)}\``),
-        ...(surv.length > 8 ? [`  - et ${surv.length - 8} autres : rapport complet dans \`reports/mutation/\`, et dans l'artefact « rapports-qualite » de la CI`] : []));
+        ...(surv.length > 8 ? [`  - et ${surv.length - 8} autres : rapport complet dans \`reports/mutation/\` (et dans l'artefact « rapports-qualite » quand la passe Qualité tourne)`] : []));
     }
   }
   quality.push('- `npm run typecheck` : 0 erreur.');
