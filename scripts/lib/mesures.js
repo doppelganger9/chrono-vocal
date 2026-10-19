@@ -2,7 +2,7 @@
 
 /** Sortie de node --test → nombres de tests @param {string} out */
 function parseNodeTest(out) {
-  const n = (/** @type {string} */ k) => Number((out.match(new RegExp('^ℹ ' + k + ' (\\d+)', 'm')) || [])[1] || 0);
+  const n = (/** @type {string} */ k) => Number((out.match(new RegExp('^[ℹ#] ' + k + ' (\\d+)', 'm')) || [])[1] || 0);
   return { pass: n('pass'), fail: n('fail'), skipped: n('skipped') };
 }
 

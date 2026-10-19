@@ -26,6 +26,8 @@ test('Node : trop ancien sous la version minimale, et la même version partout',
 test('mesures : résumés des tests unitaires et de bout en bout', () => {
   assert.deepEqual(M.parseNodeTest('ℹ tests 146\nℹ pass 145\nℹ fail 0\nℹ skipped 1\n'), { pass: 145, fail: 0, skipped: 1 });
   assert.deepEqual(M.parseNodeTest('rien'), { pass: 0, fail: 0, skipped: 0 });
+  // sortie TAP (sans terminal, dans certains environnements) : « # pass 182 »
+  assert.deepEqual(M.parseNodeTest('# tests 182\n# pass 181\n# fail 1\n# skipped 0\n'), { pass: 181, fail: 1, skipped: 0 });
   assert.deepEqual(M.parsePlaywright('  2 failed\n  1 flaky\n  1 skipped\n  175 passed (39.1s)\n'),
     { passed: 175, failed: 2, flaky: 1, skipped: 1, seconds: 39.1 });
   assert.deepEqual(M.parsePlaywright('  12 passed (1.2m)'), { passed: 12, failed: 0, flaky: 0, skipped: 0, seconds: 72 });
