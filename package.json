@@ -1,6 +1,6 @@
 {
   "name": "chrono-vocal",
-  "version": "1.1.1",
+  "version": "1.2.1",
   "private": true,
   "engines": {
     "node": ">=20"
@@ -23,7 +23,8 @@
     "typecheck": "tsc -p jsconfig.json",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
-    "version": "node scripts/version.js"
+    "version": "node scripts/version.js",
+    "notes": "node scripts/notes.js"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
