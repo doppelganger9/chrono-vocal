@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  # lancé aussi par « Version » sur le commit de version, avant qu'il n'arrive sur main (#91)
+  workflow_dispatch:
 
 jobs:
   tests:
@@ -18,6 +20,14 @@ jobs:
       # failles connues des dépendances (#34) : seuil « high », les moindres passent par les correctifs groupés de Dependabot
       - name: Audit des dépendances
         run: npm audit --audit-level=high
+      # notes de changements/ bien formées, version jamais changée à la main : elle est calculée à la fusion (#91)
+      - name: Notes de version
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch -q --depth=1 origin "$BASE"
+          node scripts/publier.js --controler "$(git show FETCH_HEAD:package.json | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).version')"
+        env:
+          BASE: ${{ github.base_ref }}
       - name: Typage (JSDoc vérifié par TypeScript)
         run: npm run typecheck
       # ESLint, puis Prettier en mode vérification (#36) : npm run format corrige

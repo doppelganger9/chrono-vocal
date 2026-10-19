@@ -4,7 +4,7 @@ Closes #
 
 ## Ce qui change pour l'utilisateur
 
-<!-- Si c'est visible : nouvelle version et lignes en tête de CHANGELOG.md (CONTRIBUTING § 6). -->
+<!-- Si c'est visible : une note changements/<issue>.md, pas de nouvelle version ni de CHANGELOG.md (CONTRIBUTING § 6). -->
 
 -
 
