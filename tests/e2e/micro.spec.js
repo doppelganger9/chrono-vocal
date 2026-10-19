@@ -43,15 +43,25 @@ test("temps dépassé : « Stop, fin de la reprise » dit pendant « Temps » es
   await app.page.evaluate(() => {
     window.__speechMs = 1500;
   }); // l'annonce dure 1,5 s
-  await app.wait(10_500); // temps dépassé : « Temps » répété à +5 s
+  await app.wait(6200); // fin du temps : gong, puis « Temps » 0,6 s après
   await expect(app.phase).toHaveText("Temps dépassé");
-  await app.page.evaluate(() => {
-    window.__spoken.length = 0;
-  });
-  await app.wait(5000);
   await app.expectSpoken("Temps"); // l'app est en train de dire « Temps »
   await app.hear("Stop, fin de la reprise");
   await expect(app.phase).toHaveText("Minute de repos");
+});
+
+test("temps dépassé : les rappels toutes les 5 s ne relancent pas le micro (#78)", async ({
+  app,
+}) => {
+  await app.configure({ sRounds: 2, sRound: "0:05" });
+  await app.hear("Allez");
+  await app.wait(7000); // « Temps », et la relance éventuelle qui suit
+  const n = await recognizers(app);
+  await app.wait(11_000); // rappels à +5 s et +10 s
+  await expect(app.heard).toHaveText("🔔 Temps (+0:10)");
+  expect(await recognizers(app)).toBe(n); // ni annonce, ni reconnaissance neuve
+  await app.hear("Stop");
+  await expect(app.phase).toHaveText("Arrêt");
 });
 
 test("anti-écho : pendant une annonce, l'app ignore sa propre voix, pas celle de l'arbitre", async ({
