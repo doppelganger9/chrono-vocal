@@ -56,6 +56,9 @@ dialog { overflow: auto; }
 #settings h3, #annexDlg h3 { font-size: 15px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin: 18px 0 4px; }
 .field[hidden] { display: none; }
 .note { color: var(--muted); font-size: 14px; line-height: 1.4; margin: 0 0 10px; }
+.annex-modes { display: flex; gap: 8px; margin: 0 0 10px; }
+.annex-modes button { flex: 1; border: 1px solid var(--line); border-radius: 12px; padding: 12px 6px; font-size: 16px; font-weight: 600; background: var(--panel); color: var(--text); }
+.annex-modes button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
 .annex-time { font-size: 84px; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; margin: 10px 0; }
 .annex-time.alert { color: var(--stop); }
 dialog::backdrop { background: rgba(0,0,0,.6); }
@@ -166,4 +169,6 @@ body.paused #stops { color: var(--stop); font-weight: 700; }
   main:has(#rappels:not([hidden])):has(#micStale:not([hidden])) #time { --time-max: 26vh; }
   #micStale { padding: 2px 10px; font-size: 13px; }
   .intro img { display: none; } /* écran titre : le texte et les boutons d'abord */
+  .annex-time { font-size: 48px; margin: 0; } /* chronomètre annexe : ses boutons visibles sans défiler */
+  .annex-modes button { padding: 6px; }
 }

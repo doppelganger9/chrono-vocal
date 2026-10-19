@@ -202,7 +202,11 @@
 
   <dialog id="annexDlg">
     <h2>Chronomètre annexe</h2>
-    <p class="note">Retard d'un tireur ou d'un second à l'appel de l'assaut : 1 pénalité dès le constat, puis 1 par minute de retard ; disqualification à la fin de la 3ème minute.</p>
+    <div class="annex-modes">
+      <button id="annexRetard" aria-pressed="true">Retard</button>
+      <button id="annexSecond" aria-pressed="false">Second exclu</button>
+    </div>
+    <p id="annexNote" class="note"></p>
     <div id="annexTime" class="annex-time">0:00</div>
     <div class="dlg-actions">
       <button id="annexStart">Démarrer</button>

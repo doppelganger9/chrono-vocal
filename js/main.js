@@ -1,9 +1,9 @@
 // Assemblage de l'app : crée le chrono, la voix et l'interface, et traduit les événements du chrono en effets.
-import { fmt, durationFr, numFr, buildSentence } from './lang.js';
+import { fmt, durationFr, buildSentence } from './lang.js';
 import { load, save, normalizeConfig } from './settings.js';
 import { createChrono } from './chrono.js';
-import { computeStats, rappelLabel } from './stats.js';
-import { createAnnex } from './annex.js';
+import { computeStats, rappelLabel, eventLabel } from './stats.js';
+import { createAnnex, annexAnnouncement } from './annex.js';
 import { createAudio } from './audio.js';
 import { createSpeech } from './speech.js';
 import { createVoice } from './voice.js';
@@ -128,9 +128,17 @@ createJournalPanel({ journal });
 
 const annex = createAnnex({
   clock,
-  emit: (_type, { minute: m }) => {
+  emit: (_type, { minute, mode }) => {
     audio.beep(900, 0.15); audio.beep(900, 0.15, 0.25);
-    speech.say(m === 3 ? 'Trois minutes. Disqualification' : `${numFr(m)} minute${m > 1 ? 's' : ''}. Pénalité`);
+    const text = annexAnnouncement(mode, minute);
+    speech.say(text);
+    // second exclu (#9) : le carton rouge est noté dans l'assaut commencé, et annulable
+    if (mode === 'second' && chrono.bout.start) {
+      const ev = { type: /** @type {const} */ ('carton-rouge'), pts: 2, detail: 'second exclu', color: null };
+      let label = '';
+      command('CARTON ROUGE', () => { label = eventLabel(chrono.addEvent(ev)); });
+      showHeard('📝 ' + label);
+    } else showHeard('🔊 ' + text);
   },
 });
 const annexDialog = createAnnexDialog({ annex, onStart: () => { unlock(); keepAwake(); } });
