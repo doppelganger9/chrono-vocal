@@ -15,7 +15,7 @@ Première version numérotée : tout ce que fait l'app au 19 octobre 2026.
 - Arrêts décomptés ou non, comptés et chronométrés ; annulation d'une commande parasite.
 - Rappels à l'appel de la reprise, avec la sanction qui suit le rang du rappel (#8).
 - Pendant la minute de repos, ce que l'arbitre doit dire, sous le chrono (#43).
-- Chronomètre annexe des retards : pénalité chaque minute, disqualification à 3 minutes.
+- Chronomètre annexe : pour un retard, pénalité chaque minute et disqualification à 3 minutes ; pour un second exclu qui refuse de sortir, carton rouge à son tireur au bout d'une minute (#9).
 - Mode relais par équipes.
 - Statistiques de l'assaut : arrêts, sanctions et points par tireur.
 

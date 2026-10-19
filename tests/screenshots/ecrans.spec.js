@@ -98,6 +98,18 @@ test("réglages", async ({ app }, t) => {
   await shot(app, "7-reglages", t);
 });
 
+test("chronomètre annexe", async ({ app }, t) => {
+  await app.$("#annexBtn").click();
+  await app.$("#annexStart").click();
+  await app.wait(65_000);
+  await shot(app, "7b-annexe", t);
+  await app.$("#annexSecond").click(); // second exclu (#9) : absent des anciennes versions
+  await app.$('#annexTireurs button[data-color="bleu"]').click();
+  await app.$("#annexStart").click();
+  await app.wait(65_000);
+  await shot(app, "7c-annexe-second", t);
+});
+
 test("mode tableau", async ({ app }, t) => {
   await app.configure({ sBoard: "1" });
   await app.hear("Allez");
