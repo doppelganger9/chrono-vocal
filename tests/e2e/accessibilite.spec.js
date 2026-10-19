@@ -49,6 +49,11 @@ const SCREENS = {
   "chronomètre annexe": async (app) => {
     await app.$("#annexBtn").click();
   },
+  "chronomètre annexe, second exclu": async (app) => {
+    await app.$("#annexBtn").click();
+    await app.$("#annexSecond").click();
+    await app.$('#annexTireurs button[data-color="bleu"]').click();
+  },
 };
 
 for (const scheme of ["light", "dark"]) {
