@@ -4,6 +4,15 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : **mineure** (1.**1*
 
 Ces notes s'affichent dans l'app : « Quoi de neuf » sur l'écran titre, à la première ouverture d'une nouvelle version, et toutes dans « À propos ». Les lignes sont écrites pour l'arbitre ; les numéros d'issue et la mise en forme ne s'affichent pas. Après chaque modification, `npm run notes` les recopie dans `js/notes.js`.
 
+## [1.4.0] · 2026-10-20
+
+- Quand une nouvelle version a été téléchargée pendant que l'app est ouverte, un bouton « Mise à jour disponible » apparaît sous le chrono, avant la première reprise ou une fois l'assaut terminé, jamais pendant. Un toucher la prend aussitôt et affiche ses nouveautés (#96).
+- Sur un écran large (ordinateur, tablette en paysage), les réglages s'affichent en entier : le journal vocal, le partage des réglages et les mots appris étaient cachés à droite de la fenêtre (#94).
+- Sur un petit téléphone (Galaxy S7), la minute de repos tient à l'écran : « Reprise » ne passe plus sous les boutons du haut, ni le message entendu sous le bouton STOP (#94).
+- Le bouton « Exporter le journal » télécharge le fichier quand le téléphone refuse de le partager, au lieu de ne rien faire (#94).
+- « Copier le lien » des réglages dit « Copiez le lien ci-dessus » quand le téléphone refuse la copie, au lieu de ne rien faire (#98).
+- « Partager » des statistiques copie le texte quand le partage échoue, et dit « Échec du partage » si la copie échoue aussi (#98).
+
 ## [1.3.2] · 2026-10-19
 
 - Reconnaissance : « Tireurs au centre, tireurs en garde, allez » et « Deuxième reprise, tireurs en garde » sont compris ; « hangar », « en garde » mal entendu de loin, aussi (#79).
