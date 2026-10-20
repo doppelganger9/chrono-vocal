@@ -320,6 +320,25 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
     return ev;
   }
 
+  /** Sanction corrigée par la suite de la phrase de l'arbitre (#110) : même reprise, même arrêt, même heure.
+   *  null si elle n'est plus dans l'assaut (annulée entre-temps) */
+  /** @param {SanctionEvent} old @param {Motif} e @returns {SanctionEvent | null} */
+  function replaceEvent(old, e) {
+    const i = bout.events.indexOf(old);
+    if (i < 0) return null;
+    const ev = { ...e, round: old.round, t: old.t, stop: old.stop };
+    bout.events[i] = ev;
+    return ev;
+  }
+
+  /** Sanction retirée : la suite de la phrase dit que ce n'en était pas une (#110). false si elle n'y était plus */
+  /** @param {SanctionEvent} ev @returns {boolean} */
+  function removeEvent(ev) {
+    const i = bout.events.indexOf(ev);
+    if (i >= 0) bout.events.splice(i, 1);
+    return i >= 0;
+  }
+
   /** @param {string} color */
   const rappelsOf = (color) =>
     bout.events.filter((e) => e.rappel && e.color === color).length;
@@ -376,6 +395,8 @@ export function createChrono({ getCfg, clock, emit = () => {} }) {
     reset,
     tick,
     addEvent,
+    replaceEvent,
+    removeEvent,
     rappel,
     rappelsOf,
     canRappel,
