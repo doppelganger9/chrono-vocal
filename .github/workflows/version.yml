@@ -1,8 +1,9 @@
 # Publication de chaque version (#91, #39). Quand des notes de changements/ arrivent sur main, la CI en fait une
-# version : CHANGELOG.md, numéro recopié partout, js/notes.js (scripts/publier.js). Ce commit passe par « Tests »
-# dans une PR « Version X.Y.Z », fusionnée dès qu'il est vert, ce qu'exige la protection de main (#101) ; enfin
-# l'étiquette vX.Y.Z et la « release » GitHub, avec la partie du journal de cette version.
-# Pas de boucle : une fusion faite avec GITHUB_TOKEN ne relance aucun workflow, et sans note il n'y a rien à publier.
+# version : CHANGELOG.md, numéro recopié partout, js/notes.js (scripts/publier.js). Ce commit part dans une PR
+# « Version X.Y.Z » (un push direct sur main est refusé, #101). GitHub y met « Tests » en attente : David clique
+# « Approve and run » (sa décision, #101), et c'est « Tests », une fois vert, qui fusionne, étiquette et publie
+# (job « publication » de tests.yml).
+# Pas de boucle : une PR ou une fusion faite avec GITHUB_TOKEN ne relance aucun workflow, et sans note il n'y a rien à publier.
 name: Version
 
 on:
@@ -17,10 +18,8 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write # commit de version, étiquette, release
-  pull-requests: write # PR « Version X.Y.Z » : un push direct sur main est refusé (#101)
-  actions: write # lancer « Tests » sur le commit de version
-  pages: write # remettre le site en ligne avec la nouvelle version
+  contents: write # branche publication
+  pull-requests: write # PR « Version X.Y.Z »
 
 jobs:
   publication:
@@ -34,61 +33,23 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Version, passée par « Tests », puis fusionnée dans main par une PR
-        id: v
+      - name: PR « Version X.Y.Z », mise à jour si elle est déjà ouverte
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Un push direct sur main est refusé, même avec « tests » vert sur le commit (#101) : le commit de version
-          # passe par une PR « Version X.Y.Z ». main a pu avancer pendant les tests : on repart de lui, trois fois au plus
-          for essai in 1 2 3; do
-            git fetch -q origin main && git reset -q --hard origin/main
-            node scripts/publier.js
-            [ -n "$(git status --porcelain)" ] || { echo "Rien à publier"; exit 0; }
-            v="$(node -p 'require("./package.json").version')"
-            git add -A && git commit -q -m "Version $v"
-            sha="$(git rev-parse HEAD)"
-            git push -q -f origin HEAD:refs/heads/publication
-            pr="$(gh pr list --head publication --base main --state open --json number -q '.[0].number')"
-            if [ -n "$pr" ]; then
-              gh pr edit "$pr" --title "Version $v" > /dev/null
-            else
-              gh pr create --base main --head publication --title "Version $v" \
-                --body "Publication automatique des notes de changements/ (#91, #101), fusionnée par la CI dès que « tests » passe." > /dev/null
-              pr="$(gh pr list --head publication --base main --state open --json number -q '.[0].number')"
-            fi
-            [ -n "$pr" ] || { echo "::error::PR de version non créée"; exit 1; }
-            # une PR ouverte avec GITHUB_TOKEN ne lance aucun workflow : « Tests » est lancé à la main sur son commit
-            gh workflow run tests.yml --ref publication
-            run=""
-            for i in $(seq 30); do
-              run="$(gh run list --workflow tests.yml --commit "$sha" --event workflow_dispatch --json databaseId -q '.[0].databaseId')"
-              [ -n "$run" ] && break
-              sleep 5
-            done
-            [ -n "$run" ] || { echo "::error::« Tests » n'a pas démarré sur $sha"; exit 1; }
-            gh run watch "$run" --exit-status --interval 30 > /dev/null || { echo "::error::« Tests » échoue sur la version $v : https://github.com/$GITHUB_REPOSITORY/actions/runs/$run"; exit 1; }
-            if gh pr merge "$pr" --merge --match-head-commit "$sha"; then
-              git push -q origin --delete publication || true
-              echo "version=$v" >> "$GITHUB_OUTPUT"
-              echo "sha=$(gh pr view "$pr" --json mergeCommit -q .mergeCommit.oid)" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            echo "PR de version non fusionnée : nouvel essai"
-          done
-          echo "::error::PR de version non fusionnée après trois essais : voir la PR « Version » ouverte, puis relancer « Version » (Actions → Version → Run workflow)"
-          exit 1
+          node scripts/publier.js
+          [ -n "$(git status --porcelain)" ] || { echo "Rien à publier"; exit 0; }
+          v="$(node -p 'require("./package.json").version')"
+          git add -A && git commit -q -m "Version $v"
+          # repartie de main à chaque fois : de nouvelles notes arrivées entre-temps rejoignent la même version
+          git push -q -f origin HEAD:refs/heads/publication
+          pr="$(gh pr list --head publication --base main --state open --json number -q '.[0].number')"
+          body="Publication automatique des notes de changements/ (#91, #101). Approuver « Tests » (Approve and run) : une fois vert, il fusionne, étiquette et publie."
+          if [ -n "$pr" ]; then
+            gh pr edit "$pr" --title "Version $v" --body "$body" > /dev/null
+          else
+            gh pr create --base main --head publication --title "Version $v" --body "$body" > /dev/null
+          fi
+          echo "::notice::PR « Version $v » : approuver « Tests » (Approve and run) pour la publier"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Étiquette et release
-        if: steps.v.outputs.version
-        run: |
-          # la partie du journal de cette version : de son titre au titre suivant
-          awk -v v="$V" '/^## \[/ { on = index($0, "[" v "]") > 0; next } on' CHANGELOG.md > notes.md
-          gh release create "v$V" --target "$SHA" --title "v$V" --notes-file notes.md
-          # un push fait avec GITHUB_TOKEN peut ne pas remettre le site en ligne : on le demande
-          gh api -X POST "repos/$GITHUB_REPOSITORY/pages/builds" > /dev/null || echo "::warning::GitHub Pages : mise en ligne non demandée"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          V: ${{ steps.v.outputs.version }}
-          SHA: ${{ steps.v.outputs.sha }}
