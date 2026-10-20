@@ -4,7 +4,7 @@ Ce que les tests automatiques ne peuvent pas vérifier : la **vraie** reconnaiss
 
 ## Préparation
 
-- [ ] Ouvrir https://doppelganger9.github.io/chrono-vocal/ et recharger la page, pour avoir la dernière version.
+- [ ] Ouvrir https://doppelganger9.github.io/chrono-vocal/ et vérifier la version (Réglages → À propos). Un simple rechargement ne suffit pas : la nouvelle version se télécharge en arrière-plan (#40), puis **« ⬆︎ Mise à jour disponible »** apparaît sous le chrono, à toucher (#96). Sans le bouton, fermer tous les onglets de l'app et la rouvrir.
 - [ ] Volume du téléphone au maximum, mode silencieux désactivé.
 - [ ] Réglages → Journal vocal → **Effacer**, pour ne garder que cette séance.
 
@@ -29,7 +29,7 @@ Ce que les tests automatiques ne peuvent pas vérifier : la **vraie** reconnaiss
 
 ## Après la séance : nourrir le corpus de tests
 
-1. Réglages → Journal vocal → **Exporter le journal**, et l'envoyer sur le Mac (AirDrop, messagerie…).
+1. Réglages → Journal vocal → **Exporter le journal**, et l'envoyer sur le Mac (AirDrop, messagerie…). Si le téléphone refuse de le partager (Samsung Internet), le fichier est téléchargé à la place (#94) : il est dans les téléchargements.
 2. `node scripts/corpus-from-journal.js chrono-canne-journal-vocal.json` crée `tests/corpus/<date>-journal.json` :
    - `phrases` : ce que l'app a compris. **Corriger `expect`** si l'app s'est trompée : le test devient rouge, et on corrige `js/lang.js` ;
    - `a_relire` : phrases non reconnues. Les classer (par exemple « Allô » voulait dire ALLEZ) et les déplacer dans `phrases`, ou les supprimer.
