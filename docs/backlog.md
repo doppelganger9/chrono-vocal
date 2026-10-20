@@ -6,7 +6,7 @@ Ce fichier ne garde que l'**ordre de priorité**, que les issues ne portent pas.
 
 Ordre de la rétrospective du 20 octobre 2026 :
 
-1. [#101 Publication des versions bloquée](https://github.com/doppelganger9/chrono-vocal/issues/101) (urgent : #94 et #96 ne sont pas arrivés sur les téléphones), puis les actions de la rétrospective : [#98 Échec visible d'une copie ou d'un partage](https://github.com/doppelganger9/chrono-vocal/issues/98) et [#99 Documentation et revue de code](https://github.com/doppelganger9/chrono-vocal/issues/99)., et [#102](https://github.com/doppelganger9/chrono-vocal/issues/102), issue de la revue de code.
+1. [#101 Publication des versions bloquée](https://github.com/doppelganger9/chrono-vocal/issues/101) (urgent : #94 et #96 ne sont pas arrivés sur les téléphones), puis les actions de la rétrospective : [#98 Échec visible d'une copie ou d'un partage](https://github.com/doppelganger9/chrono-vocal/issues/98) et [#99 Documentation et revue de code](https://github.com/doppelganger9/chrono-vocal/issues/99), et [#102](https://github.com/doppelganger9/chrono-vocal/issues/102), issue de la revue de code.
 2. [#87 Journal vocal désactivé par défaut](https://github.com/doppelganger9/chrono-vocal/issues/87) : des conversations de tiers sont gardées sur le téléphone.
 3. [#86 Mentions légales et confidentialité](https://github.com/doppelganger9/chrono-vocal/issues/86) : texte relu par David.
 4. [#89 Navigateur sans reconnaissance vocale](https://github.com/doppelganger9/chrono-vocal/issues/89).
