@@ -39,9 +39,10 @@ test.describe("nouvelle version depuis la dernière visite (#84)", () => {
     const news = page.locator("#introNews");
     await expect(page.locator("#intro")).toBeVisible();
     await expect(news).toContainText("Quoi de neuf");
-    await expect(news.locator("h4").first()).toHaveText(
-      `Version ${version} · 19 octobre 2026`,
-    );
+    // la date est celle de la publication (#101) : seule sa forme est vérifiée, « 20 octobre 2026 »
+    const title = news.locator("h4").first();
+    await expect(title).toContainText(`Version ${version} · `);
+    await expect(title).toHaveText(/ · \d{1,2} \p{L}+ \d{4}$/u);
     await expect(news).not.toContainText("Version 1.1.0");
     await expect(news).not.toContainText("(#"); // pas de numéros d'issue
     await page.locator("#introSkip").click();
