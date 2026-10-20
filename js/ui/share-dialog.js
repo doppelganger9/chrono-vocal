@@ -41,7 +41,11 @@ export function createShare({ getCfg, onApply }) {
     try {
       await navigator.clipboard.writeText(url);
       $("shareLink").textContent = "Lien copié ✓";
-    } catch {}
+    } catch {
+      // presse-papiers refusé (#98) : le lien affiché et sélectionné se copie à la main
+      $("shareLink").textContent = "Copiez le lien ci-dessus";
+      field.select();
+    }
   };
   $("exportFileBtn").onclick = () => {
     const f = exportFile(getCfg());
