@@ -20,9 +20,13 @@ jobs:
       # failles connues des dépendances (#34) : seuil « high », les moindres passent par les correctifs groupés de Dependabot
       - name: Audit des dépendances
         run: npm audit --audit-level=high
-      # notes de changements/ bien formées, version jamais changée à la main : elle est calculée à la fusion (#91)
+      # notes de changements/ bien formées, version jamais changée à la main : elle est calculée à la fusion (#91).
+      # Sauf sur la PR « Version X.Y.Z » de la CI (branche publication de ce dépôt), qui change la version (#101)
       - name: Notes de version
-        if: github.event_name == 'pull_request'
+        if: >-
+          github.event_name == 'pull_request' &&
+          !(github.head_ref == 'publication' &&
+          github.event.pull_request.head.repo.full_name == github.repository)
         run: |
           git fetch -q --depth=1 origin "$BASE"
           node scripts/publier.js --controler "$(git show FETCH_HEAD:package.json | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).version')"
