@@ -4,8 +4,10 @@ on:
   push:
     branches: [main]
   pull_request:
-  # lancé aussi par « Version » sur le commit de version, avant qu'il n'arrive sur main (#91)
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   tests:
@@ -49,3 +51,37 @@ jobs:
           name: playwright-traces
           path: test-results/
           retention-days: 7
+
+  # PR « Version X.Y.Z » ouverte par « Version » (#101) : une fois « tests » vert, après l'« Approve and run » de
+  # David, on la fusionne, puis on pose l'étiquette vX.Y.Z et on publie la « release » avec la partie du journal.
+  publication:
+    needs: tests
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.head_ref == 'publication' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # fusion, étiquette, release
+      pull-requests: write
+      pages: write # remettre le site en ligne avec la nouvelle version
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Fusion, étiquette et release
+        run: |
+          v="$(node -p 'require("./package.json").version')"
+          # --match-head-commit : un nouveau commit de version arrivé entre-temps attend ses propres tests
+          gh pr merge "$PR" --merge --match-head-commit "$SHA"
+          git push -q origin --delete publication || true
+          sha="$(gh pr view "$PR" --json mergeCommit -q .mergeCommit.oid)"
+          # la partie du journal de cette version : de son titre au titre suivant
+          awk -v v="$v" '/^## \[/ { on = index($0, "[" v "]") > 0; next } on' CHANGELOG.md > notes.md
+          gh release create "v$v" --target "$sha" --title "v$v" --notes-file notes.md
+          # une fusion faite avec GITHUB_TOKEN peut ne pas remettre le site en ligne : on le demande
+          gh api -X POST "repos/$GITHUB_REPOSITORY/pages/builds" > /dev/null || echo "::warning::GitHub Pages : mise en ligne non demandée"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
