@@ -4,7 +4,7 @@
 // jamais au milieu d'un assaut (décision de David, 19 octobre 2026). Safari sur iPhone garde l'onglet ouvert, et
 // le prochain lancement n'arrivait jamais : la page, à son ouverture (rien en cours), demande l'activation (#84).
 // Jamais de clients.claim, ni de skipWaiting ailleurs (tests/unit/sw.test.js le vérifie).
-const VERSION = "1.4.0";
+const VERSION = "1.4.1";
 const CACHE = "chrono-canne-" + VERSION;
 // tous les fichiers de l'app (tests/unit/sw.test.js vérifie qu'il n'en manque aucun)
 const FILES = [

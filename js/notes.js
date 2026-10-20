@@ -2,6 +2,19 @@
 /** @type {import('./types.js').Release[]} */
 export const NOTES = [
   {
+    version: "1.4.1",
+    date: "2026-10-20",
+    sections: [
+      {
+        title: "",
+        items: [
+          "Sur certains téléphones Android (Samsung Galaxy S7), une sanction dite en une phrase n'est plus comptée plusieurs fois : la reconnaissance y livre la phrase par morceaux, et chaque morceau corrige désormais la sanction déjà notée.",
+          "Un commandement redit aussitôt à l'identique (« Stop… stop ») n'affiche plus « sans effet ».",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.4.0",
     date: "2026-10-20",
     sections: [
