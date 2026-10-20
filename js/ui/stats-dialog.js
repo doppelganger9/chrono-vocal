@@ -10,6 +10,7 @@ import {
 } from "../stats.js";
 import { esc } from "../html.js";
 import { dotHtml, paintDots } from "./dots.js";
+import { shareOrCopy } from "./download.js";
 
 export const LAST_BOUT_KEY = "chrono-canne-last";
 
@@ -98,18 +99,11 @@ export function createStatsDialog({ getBout, storage }) {
   $button("shareStats").onclick = async () => {
     if (!shown) return;
     const text = statsText(shown, computeStats(shown));
-    try {
-      if (navigator.share)
-        await navigator.share({ title: "Chrono Canne", text });
-      else {
-        await navigator.clipboard.writeText(text);
-        $button("shareStats").textContent = "Copié ✓";
-        setTimeout(
-          () => ($button("shareStats").textContent = "Partager"),
-          2000,
-        );
-      }
-    } catch {}
+    const r = await shareOrCopy(text, "Chrono Canne");
+    if (r !== "copié" && r !== "échec") return;
+    $button("shareStats").textContent =
+      r === "copié" ? "Copié ✓" : "Échec du partage";
+    setTimeout(() => ($button("shareStats").textContent = "Partager"), 2000);
   };
   return {
     show,
