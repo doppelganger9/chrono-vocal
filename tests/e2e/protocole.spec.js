@@ -161,6 +161,7 @@ test.describe("l'arbitre décide de la fin de la reprise", () => {
 
   test("un commandement sans effet est signalé", async ({ app }) => {
     await app.hear("Stop, fin de la reprise");
+    await app.wait(3000); // redit aussitôt, c'est la même phrase livrée deux fois (#110)
     await app.hear("Stop, fin de la reprise"); // déjà en minute de repos
     await expect(app.heard).toContainText("sans effet");
   });

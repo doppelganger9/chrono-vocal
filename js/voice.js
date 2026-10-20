@@ -223,10 +223,10 @@ export function createVoice({
     const words = phonWords(alts[0]);
     prev = isFinal ? suiteOf(words) : null;
     cur = { did: "", ev: null };
-    if (prev && words.length === prev.words.length && (prev.did || prev.ev)) {
-      // la même phrase, redonnée telle quelle : ce qu'elle a fait n'est pas refait, pas même « sans effet »
+    if (prev?.ev && words.length === prev.words.length) {
+      // la même sanction, redonnée telle quelle : rien à corriger (un commandement redit est vu plus bas)
       firedFor.add(index);
-      cur = { did: prev.did, ev: prev.ev };
+      cur.ev = prev.ev;
       action = "répétition ignorée";
       journal?.add({ alts, final: true, phase: chrono.state.phase, action });
     } else {

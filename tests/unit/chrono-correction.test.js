@@ -44,9 +44,10 @@ test("corriger ou retirer une sanction qui n'est plus dans l'assaut : rien", () 
   const snap = h.chrono.snapshot();
   const ev = h.chrono.addEvent({ type: "observation", pts: 0 });
   h.chrono.restore(snap); // « Annuler »
+  const other = h.chrono.addEvent({ type: "observation", pts: 0 });
   assert.equal(h.chrono.replaceEvent(ev, { type: "penalite", pts: 1 }), null);
   assert.equal(h.chrono.removeEvent(ev), false);
-  assert.deepEqual(h.bout.events, []);
+  assert.deepEqual(h.bout.events, [other]);
 });
 
 test("retirer une sanction : les autres restent", () => {

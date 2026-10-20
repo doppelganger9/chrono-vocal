@@ -22,6 +22,7 @@ const morceaux = (v, texts) =>
 
 test("une sanction qui s'allonge est notée une seule fois, corrigée à chaque morceau", () => {
   const v = arrete();
+  const renders = v.renders;
   morceaux(v, [
     "pénalité",
     "pénalité tir",
@@ -31,6 +32,11 @@ test("une sanction qui s'allonge est notée une seule fois, corrigée à chaque 
     "pénalité tir en bleu pour lâcher de canne",
   ]);
   assert.equal(v.h.bout.events.length, 1, "une seule pénalité");
+  assert.equal(
+    v.renders,
+    renders + 5,
+    "l'écran suit chaque correction (l'ajout redessine par command)",
+  );
   const [ev] = v.h.bout.events;
   assert.equal(ev.type, "penalite");
   assert.equal(ev.color, "bleu");
@@ -70,9 +76,11 @@ test("une phrase complète qui n'est plus une sanction retire la sanction notée
   const v = arrete();
   // aujourd'hui, une phrase qui commence par « observation » est une sanction, sauf si c'est un rappel ;
   // « observation des juges » s'y ajoutera (#109)
+  const renders = v.renders;
   morceaux(v, ["observation", "observation rappel tireur bleu"]);
   assert.equal(v.h.bout.events.length, 0);
   assert.deepEqual(v.rappels, ["bleu"], "la phrase complète a servi");
+  assert.ok(v.renders > renders, "l'écran suit");
   assert.ok(v.heard.includes("↶ Observation retirée"));
   assert.equal(v.journal.at(-1).action, "sanction retirée, rappel bleu");
 });
@@ -116,8 +124,27 @@ test("la même phrase répétée telle quelle ne refait rien, sans « sans effet
   assert.equal(v.done.filter((d) => d === "STOP").length, 2, "un seul STOP");
   assert.equal(v.journal.at(-1).action, "répétition ignorée");
   assert.ok(!v.heard.some((h) => h.includes("sans effet")));
-  morceaux(v, ["pénalité bleu", "pénalité bleu"]);
+  morceaux(v, ["pénalité bleu", "pénalité bleu", "pénalité bleu"]);
   assert.equal(v.h.bout.events.length, 1);
+  assert.deepEqual(v.journal.at(-1), {
+    alts: ["pénalité bleu"],
+    final: true,
+    phase: "round",
+    action: "répétition ignorée",
+  });
+  assert.equal(v.last(), "📝 Pénalité bleu");
+});
+
+test("« en garde » redit reste « en garde »", () => {
+  const v = voiceSetup();
+  morceaux(v, ["en garde", "en garde"]);
+  assert.equal(v.journal.at(-1).action, "EN GARDE");
+});
+
+test("deux sanctions de même longueur, pour deux tireurs : deux sanctions", () => {
+  const v = arrete();
+  morceaux(v, ["pénalité rouge", "pénalité bleu"]);
+  assert.equal(v.h.bout.events.length, 2);
 });
 
 test("un commandement prolongé par le même commandement ne refait rien", () => {
@@ -140,14 +167,21 @@ test("« en garde » puis « en garde allez » : ALLEZ ; « stop » puis « stop
 
 test("les débuts de phrase prolongés ne restent pas dans les mots à apprendre", () => {
   const v = arrete();
-  morceaux(v, ["tireur", "tireur bleu", "tireur bleu défaut"]);
+  morceaux(v, [" tireur", " tireur bleu", " tireur bleu défaut"]); // espace en tête, comme Chrome Android
   assert.deepEqual(v.voice.unheard, ["tireur bleu défaut"]);
   v.hear("second");
   assert.deepEqual(v.voice.unheard, ["second", "tireur bleu défaut"]);
+  morceaux(v, ["en garde", "en garde allez"]);
+  assert.deepEqual(
+    v.voice.unheard,
+    ["second", "tireur bleu défaut"],
+    "un début compris n'y était pas : rien à retirer",
+  );
 });
 
 test("une phrase non comprise, redite telle quelle, est relue : un mot appris entre-temps la fait comprendre", () => {
   const v = voiceSetup();
+  v.hear("Stop");
   v.hear("Hop");
   v.voice.learn(0, "ALLEZ");
   v.hear("Hop");
