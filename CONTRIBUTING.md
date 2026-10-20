@@ -42,6 +42,7 @@ Le développement est piloté par les tests, sans dogmatisme sur la taille des c
 11. **Un test se juge à son code de sortie**, jamais à une sortie filtrée (`grep`) : un filtre peut cacher un échec.
 12. **Accessibilité** (#38) : `tests/e2e/accessibilite.spec.js` passe [axe-core](https://github.com/dequelabs/axe-core) sur chaque écran, en thème jour et nuit, et n'admet **aucune violation « serious » ou « critical »** (contrastes, libellés, fenêtres). **Un nouvel écran ou une nouvelle fenêtre s'y ajoute.** `AXE_DETAIL=1` donne les contrastes mesurés. Au clavier, un bouton atteint par Tab s'active avec Entrée ou Espace ; ailleurs, ces touches restent celles de la télécommande.
 13. **Les mises en page se testent dans le pire cas** : plusieurs formats d'écran (iPhone SE, iPhone Pro Max, Android, en portrait et en paysage, et **Safari avec sa barre d'adresse et ses onglets**, qui ne laisse que 280 px de haut en paysage) et une **police large** forcée. Sur GitHub, WebKit tourne sous Linux, sans la police d'Apple : un débordement invisible sur le Mac y apparaît.
+14. **Pas d'échec muet sur une action de l'utilisateur** (#98) : un bouton touché ne se termine jamais par un `catch {}`. Un partage, une copie ou un téléchargement qui échoue se voit à l'écran (message sur le bouton, solution de repli), et un test e2e simule l'échec. Une annulation par l'utilisateur (`AbortError`) ne dit rien. Les `catch {}` restent permis pour les API facultatives qui ne répondent pas à un geste : stockage, verrou d'écran, son.
 
 ## 3. Prouver la qualité
 
