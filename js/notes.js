@@ -2,6 +2,23 @@
 /** @type {import('./types.js').Release[]} */
 export const NOTES = [
   {
+    version: "1.4.0",
+    date: "2026-10-20",
+    sections: [
+      {
+        title: "",
+        items: [
+          "Quand une nouvelle version a été téléchargée pendant que l'app est ouverte, un bouton « Mise à jour disponible » apparaît sous le chrono, avant la première reprise ou une fois l'assaut terminé, jamais pendant. Un toucher la prend aussitôt et affiche ses nouveautés.",
+          "Sur un écran large (ordinateur, tablette en paysage), les réglages s'affichent en entier : le journal vocal, le partage des réglages et les mots appris étaient cachés à droite de la fenêtre.",
+          "Sur un petit téléphone (Galaxy S7), la minute de repos tient à l'écran : « Reprise » ne passe plus sous les boutons du haut, ni le message entendu sous le bouton STOP.",
+          "Le bouton « Exporter le journal » télécharge le fichier quand le téléphone refuse de le partager, au lieu de ne rien faire.",
+          "« Copier le lien » des réglages dit « Copiez le lien ci-dessus » quand le téléphone refuse la copie, au lieu de ne rien faire.",
+          "« Partager » des statistiques copie le texte quand le partage échoue, et dit « Échec du partage » si la copie échoue aussi.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.3.2",
     date: "2026-10-19",
     sections: [
