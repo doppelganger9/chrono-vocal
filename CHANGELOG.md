@@ -4,6 +4,11 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : **mineure** (1.**1*
 
 Ces notes s'affichent dans l'app : « Quoi de neuf » sur l'écran titre, à la première ouverture d'une nouvelle version, et toutes dans « À propos ». Les lignes sont écrites pour l'arbitre ; les numéros d'issue et la mise en forme ne s'affichent pas. Après chaque modification, `npm run notes` les recopie dans `js/notes.js`.
 
+## [1.4.1] · 2026-10-20
+
+- Sur certains téléphones Android (Samsung Galaxy S7), une sanction dite en une phrase n'est plus comptée plusieurs fois : la reconnaissance y livre la phrase par morceaux, et chaque morceau corrige désormais la sanction déjà notée (#110).
+- Un commandement redit aussitôt à l'identique (« Stop… stop ») n'affiche plus « sans effet » (#110).
+
 ## [1.4.0] · 2026-10-20
 
 - Quand une nouvelle version a été téléchargée pendant que l'app est ouverte, un bouton « Mise à jour disponible » apparaît sous le chrono, avant la première reprise ou une fois l'assaut terminé, jamais pendant. Un toucher la prend aussitôt et affiche ses nouveautés (#96).
