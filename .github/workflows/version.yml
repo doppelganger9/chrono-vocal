@@ -68,7 +68,8 @@ jobs:
             done
             [ -n "$run" ] || { echo "::error::« Tests » n'a pas démarré sur $sha"; exit 1; }
             gh run watch "$run" --exit-status --interval 30 > /dev/null || { echo "::error::« Tests » échoue sur la version $v : https://github.com/$GITHUB_REPOSITORY/actions/runs/$run"; exit 1; }
-            if gh pr merge "$pr" --merge --match-head-commit "$sha" --delete-branch; then
+            if gh pr merge "$pr" --merge --match-head-commit "$sha"; then
+              git push -q origin --delete publication || true
               echo "version=$v" >> "$GITHUB_OUTPUT"
               echo "sha=$(gh pr view "$pr" --json mergeCommit -q .mergeCommit.oid)" >> "$GITHUB_OUTPUT"
               exit 0
