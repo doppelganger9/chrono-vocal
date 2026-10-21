@@ -16,19 +16,29 @@ test("le service worker porte la version de l'app : il change donc à chaque ver
 });
 
 test("il met en cache tous les fichiers de l'app, et seulement eux", () => {
-  // les fichiers servis : page, styles, modules (sauf les types, lus seulement par TypeScript), manifeste, icônes
+  // les fichiers servis : pages (index.html est « ./ »), styles, modules (sauf les types, lus seulement par
+  // TypeScript), manifeste, icônes
   let tracked;
   try {
     tracked = execFileSync(
       "git",
-      ["ls-files", "js", "css", "assets", "manifest.webmanifest"],
+      [
+        "ls-files",
+        ":(top,glob)*.html",
+        "js",
+        "css",
+        "assets",
+        "manifest.webmanifest",
+      ],
       {
         cwd: root,
         encoding: "utf8",
       },
     )
       .split("\n")
-      .filter((f) => f && !/js\/types\.js$|package\.json$/.test(f));
+      .filter(
+        (f) => f && !/^index\.html$|js\/types\.js$|package\.json$/.test(f),
+      );
   } catch {
     return; // copie de travail des tests de mutation, sans git
   }

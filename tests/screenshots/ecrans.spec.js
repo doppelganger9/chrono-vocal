@@ -124,6 +124,12 @@ test.describe("écran titre", () => {
   });
 });
 
+test("mentions légales et confidentialité (#86)", async ({ app, page }, t) => {
+  const r = await page.goto("/mentions-legales.html");
+  if (!r?.ok()) throw new Error("page absente de cette version");
+  await shot(app, "0b-mentions-legales", t);
+});
+
 test.describe("micro silencieux (#56)", () => {
   test.use({ micSilentMs: 30_000 });
   test("témoin", async ({ app }, t) => {

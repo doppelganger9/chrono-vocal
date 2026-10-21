@@ -25,6 +25,7 @@ const FILES = [
   "js/journal.js",
   "js/lang.js",
   "js/main.js",
+  "js/mentions.js",
   "js/mic-watch.js",
   "js/notes.js",
   "js/settings.js",
@@ -49,6 +50,7 @@ const FILES = [
   "js/version.js",
   "js/voice.js",
   "manifest.webmanifest",
+  "mentions-legales.html",
 ];
 
 // Installation : tous les fichiers, ou rien. « reload » contourne le cache HTTP, qui pourrait mêler deux versions

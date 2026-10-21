@@ -614,6 +614,39 @@ body.paused #stops {
 .intro h5 + ul {
   margin-top: 4px;
 }
+/* Confidentialité (#86) : avant « Commencer » */
+#introPrivacy {
+  margin: 12px 0 0;
+  text-align: left;
+}
+a {
+  color: var(--accent);
+}
+
+/* Page des mentions légales et de la confidentialité (#86) : un texte à lire, qui défile */
+body.legal {
+  display: block;
+  height: auto;
+  min-height: 100%;
+  line-height: 1.5;
+}
+.legal main {
+  max-width: 680px;
+  text-align: left;
+  margin: 0 auto;
+  padding: 16px 0 32px;
+}
+.legal h1 {
+  font-size: 26px;
+  margin: 8px 0;
+}
+.legal h2 {
+  font-size: 19px;
+  margin: 24px 0 6px;
+}
+.legal ul {
+  padding-left: 20px;
+}
 
 /* Partage des réglages (#15) */
 .file-btn {
