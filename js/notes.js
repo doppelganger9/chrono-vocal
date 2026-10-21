@@ -2,6 +2,18 @@
 /** @type {import('./types.js').Release[]} */
 export const NOTES = [
   {
+    version: "1.5.0",
+    date: "2026-10-21",
+    sections: [
+      {
+        title: "",
+        items: [
+          "Journal vocal désactivé par défaut : le micro entend aussi les conversations autour de l'aire. À activer dans les réglages le temps d'une recette ou d'un entraînement ; les phrases notées sont effacées au bout de 7 jours, et un avertissement rappelle de relire le journal avant de le partager.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.4.1",
     date: "2026-10-20",
     sections: [
