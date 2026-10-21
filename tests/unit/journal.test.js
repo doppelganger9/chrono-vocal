@@ -52,6 +52,7 @@ test("journal : chaque phrase entendue, avec ce que l'app en a fait, gardée sur
   const s = memory();
   let t = 1000;
   const j = createJournal({ storage: s, now: () => t });
+  j.setEnabled(true); // désactivé par défaut (#87)
   j.add({
     alts: ["à les", "allez"],
     final: true,
@@ -80,6 +81,7 @@ test("journal : chaque phrase entendue, avec ce que l'app en a fait, gardée sur
 
 test("journal : limité aux 500 dernières phrases, et sans risque si le stockage est indisponible", () => {
   const j = createJournal({ storage: memory(), now: () => 0, max: 3 });
+  j.setEnabled(true);
   for (let i = 0; i < 5; i++)
     j.add({
       alts: [String(i)],
@@ -100,6 +102,7 @@ test("journal : limité aux 500 dernières phrases, et sans risque si le stockag
     },
   };
   const k = createJournal({ storage: broken, now: () => 0 });
+  k.setEnabled(true);
   assert.doesNotThrow(() =>
     k.add({ alts: ["stop"], final: true, phase: "round", action: "STOP" }),
   );
@@ -108,6 +111,7 @@ test("journal : limité aux 500 dernières phrases, et sans risque si le stockag
 
 test("journal : export en fichier", () => {
   const j = createJournal({ storage: memory(), now: () => 5 });
+  j.setEnabled(true);
   j.add({ alts: ["stop"], final: true, phase: "round", action: "STOP" });
   const f = j.exportFile();
   assert.equal(f.name, "chrono-canne-journal-vocal.json");

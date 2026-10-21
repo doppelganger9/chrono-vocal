@@ -211,8 +211,18 @@ const test = base.extend({
   introSeen: [require("../../package.json").version, { option: true }],
   // stockage du navigateur indisponible (navigation privée stricte)
   blockStorage: [false, { option: true }],
+  // journal vocal activé (#87) : il est désactivé par défaut
+  journalOn: [false, { option: true }],
   app: async (
-    { page, savedSettings, introSeen, blockStorage, micSilentMs, browserName },
+    {
+      page,
+      savedSettings,
+      introSeen,
+      blockStorage,
+      micSilentMs,
+      journalOn,
+      browserName,
+    },
     use,
   ) => {
     // toute erreur JavaScript de la page fait échouer le test
@@ -242,6 +252,12 @@ const test = base.extend({
           localStorage.setItem("chrono-canne-intro", String(v));
         } catch {}
       }, introSeen);
+    if (journalOn)
+      await page.addInitScript(() => {
+        try {
+          localStorage.setItem("chrono-canne-journal-on", "1");
+        } catch {}
+      });
     if (blockStorage)
       await page.addInitScript(() =>
         Object.defineProperty(window, "localStorage", {
