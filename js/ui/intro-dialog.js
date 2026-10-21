@@ -13,10 +13,12 @@ import { NOTES } from "../notes.js";
 
 /** @typedef {import('../types.js').Release} Release */
 
-/** @param {{ storage: Storage | Pick<Storage, 'getItem' | 'setItem'>, onStart: () => void }} deps */
-export function createIntro({ storage, onStart }) {
+/** @param {{ storage: Storage | Pick<Storage, 'getItem' | 'setItem'>, onStart: () => void, canLeave: () => boolean }} deps
+ * canLeave : rien n'est en cours, la page des mentions légales (#86) peut remplacer le chrono */
+export function createIntro({ storage, onStart, canLeave }) {
   /** @param {Release[]} notes @param {string} title */
   function show(notes, title) {
+    $("introLegal").hidden = !canLeave();
     $("introNews").hidden = !notes.length;
     $("introNewsTitle").textContent = title;
     $("introNewsList").innerHTML = notes

@@ -421,6 +421,7 @@ createIntro({
     unlock();
     startMic();
   },
+  canLeave: () => canUpdate(chrono.state),
 });
 // Réglages partagés par lien ou fichier (#15) : après l'écran titre, pour s'afficher par-dessus
 createShare({

@@ -43,6 +43,10 @@ const SCREENS = {
   réglages: async (app) => {
     await app.$("#settingsBtn").click();
   },
+  // une page à part (#86) ; le thème vient du téléphone, comme dans l'app (« automatique »)
+  "mentions légales et confidentialité": async (app) => {
+    await app.page.goto("/mentions-legales.html");
+  },
   statistiques: async (app) => {
     await app.hear("Allez");
     await app.wait(3000);
