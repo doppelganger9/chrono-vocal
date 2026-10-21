@@ -1,0 +1,43 @@
+# État de la publication (#118), chaque matin, sans Claude : chaque version du CHANGELOG a son étiquette et sa
+# release, aucune PR « Version » n'attend « Approve and run » depuis plus de 12 h, la dernière exécution de
+# « Version » a réussi (scripts/lib/etat-publication.js). Un point à régler ouvre une issue, ou commente celle
+# déjà ouverte. La rétrospective lit ce bilan au lieu de tout vérifier à la main (CONTRIBUTING § 1).
+# Lecture seule sur le code ; seul droit d'écriture : les issues.
+name: État de la publication
+
+on:
+  schedule:
+    - cron: "7 6 * * *" # chaque jour à 6 h 07 (UTC), avant la rétrospective
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  etat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Bilan
+        run: node scripts/etat-publication.js | tee bilan.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Issue si un point est à régler
+        if: failure()
+        run: |
+          titre="Publication : point à régler"
+          { cat bilan.md; echo; echo "Exécution : $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"; } > corps.md
+          n="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "\"$titre\" in:title" --json number -q '.[0].number')"
+          if [ -n "$n" ]; then
+            gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body-file corps.md
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --label technique --title "$titre" --body-file corps.md
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

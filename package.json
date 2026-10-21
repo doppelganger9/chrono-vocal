@@ -20,6 +20,7 @@
     "avant-apres": "node scripts/avant-apres.js",
     "pr-assets": "node scripts/pr-assets.js",
     "ai-stats": "node scripts/ai-stats.js",
+    "etat-publication": "node scripts/etat-publication.js",
     "typecheck": "tsc -p jsconfig.json",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",

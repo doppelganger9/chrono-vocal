@@ -16,7 +16,8 @@
     "js/voice.js",
     "js/speech.js",
     "js/update.js",
-    "scripts/lib/publication.js"
+    "scripts/lib/publication.js",
+    "scripts/lib/etat-publication.js"
   ],
   "reporters": ["clear-text", "progress", "html", "json"],
   "htmlReporter": {
