@@ -2,6 +2,18 @@
 /** @type {import('./types.js').Release[]} */
 export const NOTES = [
   {
+    version: "1.6.0",
+    date: "2026-10-21",
+    sections: [
+      {
+        title: "",
+        items: [
+          "Une page « Mentions légales et confidentialité », liée depuis l'écran titre et « À propos » : ce que l'app garde sur le téléphone, où part la voix selon le téléphone, aucun cookie ni traceur.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.5.0",
     date: "2026-10-21",
     sections: [

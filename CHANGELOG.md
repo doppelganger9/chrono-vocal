@@ -4,6 +4,10 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : **mineure** (1.**1*
 
 Ces notes s'affichent dans l'app : « Quoi de neuf » sur l'écran titre, à la première ouverture d'une nouvelle version, et toutes dans « À propos ». Les lignes sont écrites pour l'arbitre ; les numéros d'issue et la mise en forme ne s'affichent pas. Après chaque modification, `npm run notes` les recopie dans `js/notes.js`.
 
+## [1.6.0] · 2026-10-21
+
+- Une page « Mentions légales et confidentialité », liée depuis l'écran titre et « À propos » : ce que l'app garde sur le téléphone, où part la voix selon le téléphone, aucun cookie ni traceur (#86).
+
 ## [1.5.0] · 2026-10-21
 
 - Journal vocal désactivé par défaut : le micro entend aussi les conversations autour de l'aire. À activer dans les réglages le temps d'une recette ou d'un entraînement ; les phrases notées sont effacées au bout de 7 jours, et un avertissement rappelle de relire le journal avant de le partager (#87).
