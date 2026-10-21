@@ -6,7 +6,7 @@ Ce que les tests automatiques ne peuvent pas vérifier : la **vraie** reconnaiss
 
 - [ ] Ouvrir https://doppelganger9.github.io/chrono-vocal/ et vérifier la version (Réglages → À propos). Un simple rechargement ne suffit pas : la nouvelle version se télécharge en arrière-plan (#40), puis **« ⬆︎ Mise à jour disponible »** apparaît sous le chrono, à toucher (#96). Sans le bouton, fermer tous les onglets de l'app et la rouvrir.
 - [ ] Volume du téléphone au maximum, mode silencieux désactivé.
-- [ ] Réglages → Journal vocal → **Effacer**, pour ne garder que cette séance.
+- [ ] Réglages → Journal vocal → **Effacer**, pour ne garder que cette séance, puis **Noter les phrases entendues : Oui** (désactivé par défaut, #87 : le micro entend aussi les conversations autour de l'aire). Les phrases sont effacées au bout de 7 jours.
 
 ## Voix (téléphone posé au bord de l'aire, arbitre à 4-5 m)
 
@@ -33,5 +33,6 @@ Ce que les tests automatiques ne peuvent pas vérifier : la **vraie** reconnaiss
 2. `node scripts/corpus-from-journal.js chrono-canne-journal-vocal.json` crée `tests/corpus/<date>-journal.json` :
    - `phrases` : ce que l'app a compris. **Corriger `expect`** si l'app s'est trompée : le test devient rouge, et on corrige `js/lang.js` ;
    - `a_relire` : phrases non reconnues. Les classer (par exemple « Allô » voulait dire ALLEZ) et les déplacer dans `phrases`, ou les supprimer.
-3. **Relire avant de commiter** (décision D3.1) : seulement des phrases courtes de commandement et de sanction, **ni noms ni conversations**. Le dépôt est public.
-4. `npm run test:unit` rejoue tout le corpus.
+3. **Relire avant de commiter** (décision D3.1) : seulement des phrases courtes de commandement et de sanction, **ni noms ni conversations**. Le dépôt est public, et ce sont des données personnelles de tiers (#87) : **retirer les conversations** du fichier créé par `scripts/corpus-from-journal.js` (dans `a_relire` surtout), sans les déplacer dans `phrases`.
+4. Sur le téléphone : **Noter les phrases entendues : Non**, puis **Effacer** le journal.
+5. `npm run test:unit` rejoue tout le corpus.

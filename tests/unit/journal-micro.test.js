@@ -30,10 +30,11 @@ test("les relances ordinaires à la suite sont regroupées en une ligne, avec le
   j.event("restart");
   assert.deepEqual(j.entries, [{ t: 0, event: "restart", n: 3, until: 9000 }]);
   assert.deepEqual(
-    createJournal({ storage }).entries,
+    createJournal({ storage, now: () => t }).entries,
     j.entries,
     "le regroupement est enregistré",
   );
+  j.setEnabled(true);
   j.add({ alts: ["Allez"], final: true, phase: "ready", action: "ALLEZ" });
   j.event("restart");
   assert.equal(j.entries.length, 3, "une phrase entre deux : nouvelle ligne");

@@ -2,6 +2,8 @@
 // sur Android, chaque démarrage de la reconnaissance fait un bip), et l'anti-écho ne filtre que la voix de l'app.
 const { test, expect } = require("./fixtures");
 
+test.use({ journalOn: true }); // l'écho ignoré se vérifie dans le journal des phrases (#87)
+
 const recognizers = (app) =>
   app.page.evaluate(() => window.__recLog.filter((x) => x === "new").length);
 const journal = (app) =>

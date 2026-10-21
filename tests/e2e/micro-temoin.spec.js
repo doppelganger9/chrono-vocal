@@ -63,30 +63,33 @@ test("micro coupé : pas de témoin", async ({ app }) => {
   await expect(stale(app)).toBeHidden();
 });
 
-test("le journal exporté montre la vie du micro : démarrage, erreur, relances regroupées", async ({
-  app,
-}) => {
-  await app.page.evaluate(() => {
-    window.__rec.onerror({ error: "network" });
-    window.__rec.onend();
+test.describe("journal activé (#87)", () => {
+  test.use({ journalOn: true }); // pour voir la phrase entre les événements
+  test("le journal exporté montre la vie du micro : démarrage, erreur, relances regroupées", async ({
+    app,
+  }) => {
+    await app.page.evaluate(() => {
+      window.__rec.onerror({ error: "network" });
+      window.__rec.onend();
+    });
+    await app.wait(500);
+    await app.page.evaluate(() => window.__rec.onend());
+    await app.wait(500);
+    await app.hear("Allez");
+    await app.$("#settingsBtn").click();
+    await app.$("#journalExport").click();
+    await expect.poll(() => app.shared()).toHaveLength(1);
+    const [file] = await app.shared();
+    const { journal: j } = JSON.parse(file.text);
+    expect(j.map((e) => e.event || e.action)).toEqual([
+      "start",
+      "error",
+      "restart",
+      "ALLEZ",
+    ]);
+    expect(j[1].detail).toBe("network");
+    expect(j[2].n).toBe(2);
   });
-  await app.wait(500);
-  await app.page.evaluate(() => window.__rec.onend());
-  await app.wait(500);
-  await app.hear("Allez");
-  await app.$("#settingsBtn").click();
-  await app.$("#journalExport").click();
-  await expect.poll(() => app.shared()).toHaveLength(1);
-  const [file] = await app.shared();
-  const { journal: j } = JSON.parse(file.text);
-  expect(j.map((e) => e.event || e.action)).toEqual([
-    "start",
-    "error",
-    "restart",
-    "ALLEZ",
-  ]);
-  expect(j[1].detail).toBe("network");
-  expect(j[2].n).toBe(2);
 });
 
 for (const size of [

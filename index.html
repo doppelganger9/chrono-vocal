@@ -300,10 +300,24 @@
         <h3>Journal vocal</h3>
         <p class="note">
           Ce que la reconnaissance a entendu, et ce que l'app en a fait : à
-          exporter après un entraînement pour améliorer la reconnaissance
-          (docs/recette.md).
+          activer le temps d'une recette ou d'un entraînement, puis à exporter
+          pour améliorer la reconnaissance (docs/recette.md). Les phrases sont
+          effacées au bout de 7 jours.
         </p>
+        <div class="field">
+          <label for="journalOn"
+            >Noter les phrases entendues<small
+              >désactivé par défaut : le micro entend aussi les conversations
+              autour de l'aire</small
+            ></label
+          >
+          <select id="journalOn">
+            <option value="0">Non</option>
+            <option value="1">Oui</option>
+          </select>
+        </div>
         <p id="journalCount" class="note"></p>
+        <p id="journalWarn" class="note"></p>
         <div class="dlg-actions">
           <button id="journalExport" class="secondary" type="button">
             Exporter le journal
