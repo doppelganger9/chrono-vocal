@@ -10,6 +10,7 @@
     "js/stats.js",
     "js/settings.js",
     "js/annex.js",
+    "js/formation.js",
     "js/html.js",
     "js/journal.js",
     "js/mic-watch.js",

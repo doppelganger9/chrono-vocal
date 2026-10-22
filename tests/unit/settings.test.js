@@ -147,6 +147,7 @@ test("valeurs par défaut exactes (ce que voit un nouveau téléphone)", () => {
     theme: "auto",
     palette: {},
     board: false,
+    formation: false,
   });
 });
 

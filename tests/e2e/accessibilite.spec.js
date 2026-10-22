@@ -36,6 +36,18 @@ const SCREENS = {
     await app.$("#skipBtn").click();
     await app.wait(1500);
   },
+  // mode formation (#106) : l'aide-mémoire, avant l'assaut (phrase d'usage marquée) puis pendant le repos
+  "mode formation": async (app) => {
+    await app.configure({ sFormation: "1", sRound: "0:05" });
+    await app.$("#formationNext").click();
+  },
+  "mode formation, repos": async (app) => {
+    await app.configure({ sFormation: "1", sRound: "0:05" });
+    await app.hear("Allez");
+    await app.wait(5500);
+    await app.$("#skipBtn").click();
+    await app.wait(46_000);
+  },
   // le bouton seul, affiché à la main : la version téléchargée est simulée dans mise-a-jour.spec.js (#96)
   "mise à jour disponible": async (app) => {
     await app.$("#updateBtn").evaluate((b) => (b.hidden = false));

@@ -71,6 +71,7 @@ export function createSettingsDialog({ getCfg, onSave, voice }) {
     $field("sReady").value = c.answerReady ? "1" : "0";
     $field("sTheme").value = c.theme;
     $field("sBoard").value = c.board ? "1" : "0";
+    $field("sFormation").value = c.formation ? "1" : "0";
     for (const k of PALETTE_KEYS) {
       if (c.palette[k]) {
         colorInput(k).value = /** @type {string} */ (c.palette[k]);
@@ -111,6 +112,7 @@ export function createSettingsDialog({ getCfg, onSave, voice }) {
       theme: /** @type {'auto' | 'jour' | 'nuit'} */ ($field("sTheme").value),
       palette: customPalette(),
       board: yes("sBoard"),
+      formation: yes("sFormation"),
     };
     if (mode === "relais") {
       // reprise unique (I 2.3.2) ; reprise supplémentaire = base × 2
