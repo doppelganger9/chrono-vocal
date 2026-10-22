@@ -9,6 +9,11 @@ on:
 permissions:
   contents: read
 
+# bash avec pipefail : une commande qui échoue dans un tube fait échouer l'étape (tests/unit/workflows.test.js)
+defaults:
+  run:
+    shell: bash
+
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -72,8 +77,16 @@ jobs:
       - name: Fusion, étiquette et release
         run: |
           v="$(node -p 'require("./package.json").version')"
-          # --match-head-commit : un nouveau commit de version arrivé entre-temps attend ses propres tests
-          gh pr merge "$PR" --merge --match-head-commit "$SHA"
+          # --match-head-commit : un nouveau commit de version arrivé entre-temps attend ses propres tests.
+          # GitHub peut voir « tests » en cours plusieurs minutes après sa fin (« base branch policy prohibits the
+          # merge » pour la v1.6.0 le 21 octobre, 8 minutes de retard sur la PR #124) : on réessaie pendant 15 minutes,
+          # et une PR déjà fusionnée à la main reçoit quand même étiquette et release.
+          for i in $(seq 30); do
+            gh pr merge "$PR" --merge --match-head-commit "$SHA" && break
+            [ "$(gh pr view "$PR" --json state -q .state)" = MERGED ] && break
+            [ "$i" -lt 30 ] || exit 1
+            sleep 30
+          done
           git push -q origin --delete publication || true
           sha="$(gh pr view "$PR" --json mergeCommit -q .mergeCommit.oid)"
           # la partie du journal de cette version : de son titre au titre suivant

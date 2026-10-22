@@ -18,6 +18,11 @@ permissions:
   contents: read
   issues: write
 
+# bash avec pipefail : une commande qui échoue dans un tube fait échouer l'étape (tests/unit/workflows.test.js)
+defaults:
+  run:
+    shell: bash
+
 jobs:
   qualite:
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'qualite')

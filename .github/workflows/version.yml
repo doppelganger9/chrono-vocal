@@ -21,6 +21,11 @@ permissions:
   contents: write # branche publication
   pull-requests: write # PR « Version X.Y.Z »
 
+# bash avec pipefail : une commande qui échoue dans un tube fait échouer l'étape (tests/unit/workflows.test.js)
+defaults:
+  run:
+    shell: bash
+
 jobs:
   publication:
     runs-on: ubuntu-latest

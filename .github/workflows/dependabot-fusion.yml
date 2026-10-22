@@ -8,6 +8,11 @@ permissions:
   contents: write
   pull-requests: write
 
+# bash avec pipefail : une commande qui échoue dans un tube fait échouer l'étape (tests/unit/workflows.test.js)
+defaults:
+  run:
+    shell: bash
+
 jobs:
   fusion-auto:
     if: github.event.pull_request.user.login == 'dependabot[bot]'

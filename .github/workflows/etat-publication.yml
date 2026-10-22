@@ -16,6 +16,11 @@ permissions:
   pull-requests: read
   issues: write
 
+# bash avec pipefail : une commande qui échoue dans un tube fait échouer l'étape (tests/unit/workflows.test.js)
+defaults:
+  run:
+    shell: bash
+
 jobs:
   etat:
     runs-on: ubuntu-latest
