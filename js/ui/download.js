@@ -28,10 +28,20 @@ export async function shareOrCopy(text, title) {
 
 /** @param {string} name @param {string} text @param {string} title */
 export async function shareOrDownload(name, text, title) {
-  const file = new File([text], name, { type: "application/json" });
-  if (navigator.canShare?.({ files: [file] })) {
+  await shareOrDownloadFiles(
+    [new File([text], name, { type: "application/json" })],
+    title,
+  );
+}
+
+/**
+ * Fichiers (journal, captation audio #136) : feuille de partage, sinon un téléchargement par fichier
+ * @param {File[]} files @param {string} title
+ */
+export async function shareOrDownloadFiles(files, title) {
+  if (navigator.canShare?.({ files })) {
     try {
-      await navigator.share({ files: [file], title });
+      await navigator.share({ files, title });
       return;
     } catch (e) {
       // feuille de partage fermée par l'utilisateur : rien de plus. Tout autre échec (Samsung Internet refuse
@@ -39,12 +49,14 @@ export async function shareOrDownload(name, text, title) {
       if (cancelled(e)) return;
     }
   }
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(file);
-  a.download = name;
-  document.body.append(a); // certains navigateurs mobiles ignorent le clic sur un lien hors de la page
-  a.click();
-  a.remove();
-  // le téléchargement d'un vieux téléphone peut démarrer tard : l'adresse du fichier reste valable une minute
-  setTimeout(() => URL.revokeObjectURL(a.href), 60_000);
+  for (const file of files) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(file);
+    a.download = file.name;
+    document.body.append(a); // certains navigateurs mobiles ignorent le clic sur un lien hors de la page
+    a.click();
+    a.remove();
+    // le téléchargement d'un vieux téléphone peut démarrer tard : l'adresse du fichier reste valable une minute
+    setTimeout(() => URL.revokeObjectURL(a.href), 60_000);
+  }
 }

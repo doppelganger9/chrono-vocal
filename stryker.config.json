@@ -14,6 +14,7 @@
     "js/html.js",
     "js/journal.js",
     "js/mic-watch.js",
+    "js/capture.js",
     "js/voice.js",
     "js/speech.js",
     "js/update.js",

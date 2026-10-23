@@ -46,7 +46,13 @@ test("éditeur anonyme (LCEN, art. 6-III) et hébergeur nommé, avec son adresse
 });
 
 test("ce que l'app garde sur le téléphone, et comment l'effacer", () => {
-  for (const what of ["réglages", "dernier assaut", "version", "journal vocal"])
+  for (const what of [
+    "réglages",
+    "dernier assaut",
+    "version",
+    "journal vocal",
+    "captation audio", // #136
+  ])
     assert.match(text, new RegExp(what, "i"), what);
   assert.match(text, /7 jours/);
   assert.match(text, /effacer/i);
