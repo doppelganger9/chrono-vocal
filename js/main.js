@@ -18,6 +18,7 @@ import { createShare } from "./ui/share-dialog.js";
 import { createJournal } from "./journal.js";
 import { createJournalPanel } from "./ui/journal-panel.js";
 import { createControls } from "./ui/controls.js";
+import { createFormationCard } from "./ui/formation-card.js";
 import { twoTap } from "./ui/two-tap.js";
 import { createMicWatch } from "./mic-watch.js";
 import { createMicIndicator } from "./ui/mic-indicator.js";
@@ -252,7 +253,18 @@ const annexDialog = createAnnexDialog({
   },
 });
 
+const formationCard = createFormationCard({ onChange: () => render() });
+
 function render() {
+  formationCard.render(cfg.formation, {
+    phase: chrono.state.phase,
+    halt: chrono.state.halt,
+    round: chrono.state.round,
+    totalRounds: chrono.totalRounds(),
+    remaining: chrono.state.remaining,
+    started: !!chrono.bout.start,
+    cfg,
+  });
   renderScreen({
     chrono,
     cfg,

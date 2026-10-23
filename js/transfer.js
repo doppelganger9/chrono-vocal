@@ -93,6 +93,7 @@ const FIELDS = [
     (v) => (Object.keys(v).length ? "personnalisées" : "d'origine"),
   ],
   ["board", "Mode tableau", yesNo],
+  ["formation", "Mode formation", yesNo],
   [
     "learned",
     "Variantes apprises",

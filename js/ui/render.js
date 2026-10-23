@@ -80,10 +80,10 @@ export function render({
   else if (inPlay && rs.length) {
     const tot = rs.reduce((a, x) => a + (x.dur ?? 0), 0);
     line = `${rs.length} arrêt${rs.length > 1 ? "s" : ""} · ${fmt(tot)}`;
-  } else if (st.phase === "rest" && !st.halt) {
+  } else if (st.phase === "rest" && !st.halt && !cfg.formation) {
     const cue = restCue(st.remaining);
     if (cue) line = `🗣 « ${cue} »`;
-  } // ce que l'arbitre doit dire
+  } // ce que l'arbitre doit dire (en mode formation, la carte de l'aide-mémoire le dit)
   if (st.prolonged && inPlay)
     line += (line ? " · " : "") + "prolongation +30 s";
   $("stops").textContent = line;

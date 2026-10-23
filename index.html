@@ -38,6 +38,8 @@
     <link rel="modulepreload" href="js/ui/stats-dialog.js" />
     <link rel="modulepreload" href="js/ui/settings-dialog.js" />
     <link rel="modulepreload" href="js/ui/annex-dialog.js" />
+    <link rel="modulepreload" href="js/formation.js" />
+    <link rel="modulepreload" href="js/ui/formation-card.js" />
   </head>
   <body class="ready">
     <header>
@@ -65,6 +67,25 @@
       <button id="prolongBtn" hidden>Prolonger la reprise de 30 s</button>
       <div id="rappels" hidden></div>
       <div class="bar"><div id="barFill"></div></div>
+      <!-- Mode formation (#106) : aide-mémoire du protocole, d'après l'état du chrono -->
+      <section id="formation" aria-label="Aide-mémoire de l'arbitre" hidden>
+        <div class="f-head">
+          <button
+            id="formationPrev"
+            type="button"
+            aria-label="Étape précédente"
+          >
+            ‹
+          </button>
+          <span id="formationWhen"></span>
+          <button id="formationNext" type="button" aria-label="Étape suivante">
+            ›
+          </button>
+        </div>
+        <p id="formationSay"></p>
+        <p id="formationNote"></p>
+        <p id="formationThen"></p>
+      </section>
       <div id="heard"></div>
       <button id="micStale" hidden></button>
       <button id="updateBtn" hidden>⬆︎ Mise à jour disponible</button>
@@ -193,6 +214,18 @@
             ></label
           >
           <select id="sAutoRest">
+            <option value="0">Non</option>
+            <option value="1">Oui</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sFormation"
+            >Mode formation<small
+              >aide-mémoire du protocole de l'arbitre : ce qu'il dit maintenant,
+              et ensuite</small
+            ></label
+          >
+          <select id="sFormation">
             <option value="0">Non</option>
             <option value="1">Oui</option>
           </select>

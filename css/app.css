@@ -842,3 +842,121 @@ body.legal {
     padding: 10px 4px !important;
   }
 }
+
+/* Mode formation (#106) : aide-mémoire du protocole, sous la barre de temps. Les chiffres cèdent un peu de place */
+#formation {
+  width: 100%;
+  max-width: 640px;
+  margin: 6px auto 0;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  text-align: center;
+}
+#formation[hidden] {
+  display: none;
+}
+#formation p {
+  margin: 2px 0;
+}
+.f-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+#formationWhen {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.f-head button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px 14px;
+}
+.f-head button[hidden] {
+  display: none;
+}
+.f-head button:disabled {
+  opacity: 0.4;
+}
+#formationSay {
+  font-size: clamp(16px, 4.2vw, 24px);
+  font-weight: 700;
+  line-height: 1.25;
+}
+.f-usage {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 4px;
+  vertical-align: middle;
+}
+#formationNote,
+#formationThen {
+  font-size: 13px;
+  color: var(--muted);
+}
+#formationThen {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+main:has(#formation:not([hidden])) #time {
+  --time-max: min(160px, 24vw);
+}
+main:has(#formation:not([hidden])) #stops:empty {
+  display: none;
+}
+@media (orientation: landscape) {
+  #formation {
+    margin-top: 2px;
+    padding: 2px 8px;
+  }
+  #formationSay {
+    font-size: clamp(14px, 4.4vh, 22px);
+  }
+  main:has(#formation:not([hidden])) #time {
+    --time-max: 30vh;
+  }
+}
+/* écrans bas : la durée de la reprise (« / 1:30 ») et le détail du geste laissent la place aux phrases */
+@media (orientation: landscape) and (max-height: 440px),
+  (orientation: portrait) and (max-height: 700px) {
+  main:has(#formation:not([hidden])) #max,
+  #formationNote {
+    display: none;
+  }
+}
+@media (orientation: landscape) and (max-height: 440px) {
+  main:has(#formation:not([hidden])) #time {
+    --time-max: 24vh;
+  }
+}
+@media (orientation: landscape) and (max-height: 320px) {
+  main:has(#formation:not([hidden])) #time {
+    --time-max: 18vh;
+  }
+}
+@media (orientation: portrait) and (max-height: 620px) {
+  main:has(#formation:not([hidden])) #time {
+    --time-max: 10vh;
+  }
+  #formation {
+    margin-top: 2px;
+    padding: 2px 8px;
+  }
+  #formationSay {
+    font-size: 15px;
+  }
+}

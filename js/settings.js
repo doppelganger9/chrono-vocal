@@ -26,6 +26,7 @@ export const DEFAULTS = {
   theme: "auto",
   palette: {},
   board: false,
+  formation: false,
 };
 
 // Préréglages : maximums des compétitions nationales (J 4.3), repos d'une minute
@@ -187,6 +188,7 @@ function sanitize(c) {
       ),
     ),
     board: bool(c.board, D.board),
+    formation: bool(c.formation, D.formation),
   };
 }
 

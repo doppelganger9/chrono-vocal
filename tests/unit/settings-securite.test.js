@@ -25,6 +25,7 @@ test("types faux : chaque réglage invalide reprend sa valeur par défaut", () =
     answerReady: "non",
     theme: "rose",
     board: "true",
+    formation: 1,
   });
   for (const k of [
     "mode",
@@ -41,6 +42,7 @@ test("types faux : chaque réglage invalide reprend sa valeur par défaut", () =
     "answerReady",
     "theme",
     "board",
+    "formation",
   ])
     assert.deepEqual(c[k], DEFAULTS[k], k);
   assert.equal(
@@ -196,6 +198,7 @@ test("les valeurs valides sont toutes gardées, y compris celles qui ne sont pas
     "autoRest",
     "answerReady",
     "board",
+    "formation",
   ]) {
     assert.equal(migrate({ [k]: true })[k], true, k);
     assert.equal(migrate({ [k]: false })[k], false, k);
