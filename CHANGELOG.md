@@ -4,6 +4,10 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : **mineure** (1.**1*
 
 Ces notes s'affichent dans l'app : « Quoi de neuf » sur l'écran titre, à la première ouverture d'une nouvelle version, et toutes dans « À propos ». Les lignes sont écrites pour l'arbitre ; les numéros d'issue et la mise en forme ne s'affichent pas. Après chaque modification, `npm run notes` les recopie dans `js/notes.js`.
 
+## [1.9.0] · 2026-10-23
+
+- Le journal vocal exporté dit avec quelle version de l'app et quel navigateur il a été noté, et quand il a été exporté : on sait ainsi si un défaut relevé a déjà été corrigé depuis (#112).
+
 ## [1.8.1] · 2026-10-23
 
 - « Stop, fin de la deuxième reprise » (ou « de la 2e reprise », « de la dernière reprise »…) termine la reprise, comme « fin de la reprise » ; « Stop, temps » est compris comme « stop », et « … tireurs, dans vos zones » peut suivre la fin de la reprise (#109).

@@ -2,6 +2,18 @@
 /** @type {import('./types.js').Release[]} */
 export const NOTES = [
   {
+    version: "1.9.0",
+    date: "2026-10-23",
+    sections: [
+      {
+        title: "",
+        items: [
+          "Le journal vocal exporté dit avec quelle version de l'app et quel navigateur il a été noté, et quand il a été exporté : on sait ainsi si un défaut relevé a déjà été corrigé depuis.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.8.1",
     date: "2026-10-23",
     sections: [
