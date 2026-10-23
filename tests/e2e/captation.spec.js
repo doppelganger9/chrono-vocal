@@ -214,3 +214,90 @@ for (const [name, size] of Object.entries({
       expect(badge.y + badge.height).toBeLessThanOrEqual(controls.y + 1);
   });
 }
+
+/** Une captation de quelques secondes, arrêtée, la fenêtre ouverte */
+async function recordOne(app) {
+  await openCapture(app);
+  await app.$("#captureToggle").click();
+  await expect(app.$("#captureBtn")).toBeVisible();
+  await app.wait(5500);
+  await app.$("#captureToggle").click();
+  await expect(app.$("#captureBtn")).toBeHidden();
+  await app.wait(500);
+}
+
+test("écouter un fichier depuis l'app, puis l'arrêter", async ({
+  app,
+  page,
+}) => {
+  await recordOne(app);
+  const play = app.$("#captureList [data-play]");
+  await expect(play).toHaveText("▶ Écouter");
+  await play.click();
+  await expect(play).toHaveText("■ Arrêter");
+  const played = await page.evaluate(() => window.__played);
+  expect(played).toHaveLength(1);
+  expect(played[0]).toMatch(/^blob:/);
+  await play.click();
+  await expect(play).toHaveText("▶ Écouter");
+  // fermer la fenêtre arrête l'écoute
+  await play.click();
+  await expect(play).toHaveText("■ Arrêter");
+  await app.$("#captureClose").click();
+  await app.$("#settingsBtn").click();
+  await app.$("#captureOpen").click();
+  await expect(app.$("#captureList [data-play]")).toHaveText("▶ Écouter");
+});
+
+test("iPhone : lecture refusée hors du toucher, le fichier est prêt pour le suivant", async ({
+  app,
+  page,
+}) => {
+  await recordOne(app);
+  await page.evaluate(() => (window.__playError = "NotAllowedError"));
+  const play = app.$("#captureList [data-play]");
+  await play.click();
+  await expect(app.$("#captureError")).toHaveText(
+    "Touchez à nouveau « Écouter ».",
+  );
+  await expect(play).toHaveText("▶ Écouter");
+  await page.evaluate(() => (window.__playError = ""));
+  await play.click();
+  await expect(play).toHaveText("■ Arrêter");
+  await expect(app.$("#captureError")).toBeHidden();
+  await page.evaluate(() => (window.__playError = "NotSupportedError"));
+  await play.click(); // arrêt
+  await play.click();
+  await expect(app.$("#captureError")).toHaveText(
+    "Lecture impossible sur ce navigateur : exportez le fichier pour l'écouter.",
+  );
+});
+
+test("les boutons de la liste ne sont pas refaits chaque seconde (touchers perdus sur iPhone)", async ({
+  app,
+}) => {
+  await recordOne(app);
+  const rm = app.$("#captureList [data-remove]");
+  await rm.click();
+  await app.wait(2000);
+  await expect(rm).toHaveText("Confirmer ?");
+  await rm.click();
+  await expect(app.$("#captureList")).toHaveText("Aucun fichier.");
+});
+
+test("micro qui ne répond pas : le bouton le montre, puis le dit", async ({
+  app,
+  page,
+}) => {
+  await page.evaluate(() => (window.__micError = "hang"));
+  await openCapture(app);
+  await app.$("#captureToggle").click();
+  await expect(app.$("#captureToggle")).toHaveText("Ouverture du micro…");
+  await expect(app.$("#captureToggle")).toBeDisabled();
+  await app.wait(2000);
+  await expect(app.$("#captureToggle")).toHaveText("Ouverture du micro…");
+  await app.wait(6500);
+  await expect(app.$("#captureError")).toContainText("Le micro ne répond pas");
+  await expect(app.$("#captureToggle")).toHaveText("Démarrer la captation");
+  await expect(app.$("#captureToggle")).toBeEnabled();
+});

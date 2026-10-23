@@ -106,10 +106,21 @@ function installFakes() {
   // (horloge simulée) ; window.__micError fait refuser le micro (NotAllowedError…), window.__micTrack est la piste
   // ouverte (window.__micTrack.end() : micro coupé par le téléphone)
   window.__micError = "";
+  // écoute d'un fichier : lecteur muet, on note ce qui est lu ; window.__playError fait refuser la lecture
+  window.__played = [];
+  window.__playError = "";
+  HTMLMediaElement.prototype.play = function () {
+    if (window.__playError)
+      return Promise.reject(new DOMException("refusé", window.__playError));
+    window.__played.push(this.src);
+    return Promise.resolve();
+  };
+  HTMLMediaElement.prototype.pause = function () {};
   Object.defineProperty(navigator, "mediaDevices", {
     configurable: true,
     value: {
       getUserMedia: async () => {
+        if (window.__micError === "hang") return new Promise(() => {}); // micro qui ne répond pas
         if (window.__micError)
           throw new DOMException("refusé", window.__micError);
         const track = {
