@@ -132,3 +132,8 @@ Ces chiffres sont **mesurés, pas estimés**, sauf le temps actif, qui est une a
 3. **À la fin** : `npm run verifier -- --complet`, puis `npm run pr-body`, et Claude écrit les parties « À ÉCRIRE ».
 
 **Node 20 ou plus récent** (`.nvmrc` : 22). `npm test` et `npm run verifier` refusent un Node plus ancien avec un message clair (`scripts/check-node.js`), et `npm install` aussi (`engine-strict`, `.npmrc`). **`npm ci` sous un vieux npm plante avant tout script**, sur un message obscur : « Cannot read property '@playwright/test' of undefined ». C'est la version de Node, pas le dépôt. Sur le Mac de David, le Node par défaut de nvm est trop ancien : `nvm use`, ou `PATH=/opt/homebrew/bin:$PATH npm test`.
+
+**Sessions de Claude Code dans le cloud** (rétro du 23 octobre 2026) : reconnues à la variable `CLAUDE_CODE_REMOTE`, qui n'existe que là ; sur le Mac et sur la CI, rien ne change.
+- Au démarrage, le crochet `SessionStart` de `.claude/settings.json` lance `scripts/session-cloud.sh` : `npm ci` si `node_modules` manque, et un rappel de ce qui suit. Hors du cloud, il s'arrête aussitôt, sans rien écrire.
+- Playwright y prend le **Chromium préinstallé** (`/opt/pw-browsers/chromium`) et **saute WebKit**, absent du conteneur (`scripts/lib/cloud.js`). `npm run verifier -- --complet` marche donc tel quel, et son résumé comme la description de PR disent que WebKit n'a pas tourné : **la CI le vérifie**, comme toujours. Les captures (`avant-apres`) gardent tous les formats, rendus par Chromium, iPhone compris.
+- Les statistiques IA (§ 5) ne sont pas mesurables : le journal de session est sur le Mac. La PR donne la durée du fil.
