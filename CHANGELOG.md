@@ -4,6 +4,11 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : **mineure** (1.**1*
 
 Ces notes s'affichent dans l'app : « Quoi de neuf » sur l'écran titre, à la première ouverture d'une nouvelle version, et toutes dans « À propos ». Les lignes sont écrites pour l'arbitre ; les numéros d'issue et la mise en forme ne s'affichent pas. Après chaque modification, `npm run notes` les recopie dans `js/notes.js`.
 
+## [1.11.0] · 2026-10-23
+
+- Dans la fenêtre « Captation audio », un bouton « Écouter » pour réentendre un fichier sans l'exporter (#136).
+- Les boutons de la liste des captations répondent du premier coup : « Confirmer ? » ne revient plus aussitôt à « Effacer » (#136).
+
 ## [1.10.0] · 2026-10-23
 
 - Captation audio, dans les réglages : le son de l'aire est enregistré sur le téléphone pendant un entraînement ou un stage, en même temps que la reconnaissance, pour constituer une banque sonore de terrain. Un témoin rouge sous le chrono le signale tant qu'elle dure. Les fichiers, nommés par leur heure de début, restent sur le téléphone jusqu'à leur export (feuille de partage ou téléchargement) puis leur effacement ; rien n'est envoyé (#136).
