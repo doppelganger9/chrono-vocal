@@ -2,6 +2,18 @@
 /** @type {import('./types.js').Release[]} */
 export const NOTES = [
   {
+    version: "1.10.0",
+    date: "2026-10-23",
+    sections: [
+      {
+        title: "",
+        items: [
+          "Captation audio, dans les réglages : le son de l'aire est enregistré sur le téléphone pendant un entraînement ou un stage, en même temps que la reconnaissance, pour constituer une banque sonore de terrain. Un témoin rouge sous le chrono le signale tant qu'elle dure. Les fichiers, nommés par leur heure de début, restent sur le téléphone jusqu'à leur export (feuille de partage ou téléchargement) puis leur effacement ; rien n'est envoyé.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.9.0",
     date: "2026-10-23",
     sections: [
