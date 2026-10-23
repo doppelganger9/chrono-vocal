@@ -8,6 +8,7 @@ const { execSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 const { fr } = require("./lib/mesures.js");
+const { NOTE_WEBKIT } = require("./lib/cloud.js");
 
 const TODO = "_À ÉCRIRE_";
 
@@ -51,7 +52,7 @@ function buildBody({
     );
   if (verif?.e2e)
     quality.push(
-      `- **Tests de bout en bout : ${evol(base?.e2e?.passed, verif.e2e.passed)}**${verif.e2e.skipped ? ` (${verif.e2e.skipped} ignoré${verif.e2e.skipped > 1 ? "s" : ""})` : ""}, en ${fr(verif.e2e.seconds)} s. ${TODO}`,
+      `- **Tests de bout en bout : ${evol(base?.e2e?.passed, verif.e2e.passed)}**${verif.e2e.skipped ? ` (${verif.e2e.skipped} ignoré${verif.e2e.skipped > 1 ? "s" : ""})` : ""}, en ${fr(verif.e2e.seconds)} s.${verif.e2e.webkitSaute ? ` ${NOTE_WEBKIT}.` : ""} ${TODO}`,
     );
   if (coverage)
     quality.push(
