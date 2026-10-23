@@ -1,5 +1,6 @@
 // Carte du mode formation (#106) : l'étape du protocole à dire, d'après l'état du chrono (js/formation.js).
 // Avant l'assaut et pour les résultats, le chrono ne bouge pas : ‹ et › parcourent les étapes, d'un toucher.
+// Pendant un arrêt, une liste propose les cas (observation, demande d'avertissement…), chacun avec son script.
 import { $, $button } from "./dom.js";
 import { esc } from "../html.js";
 import { formationView } from "../formation.js";
@@ -15,6 +16,7 @@ const phrasesHtml = (step) =>
   step.phrases
     .map(
       (p) =>
+        (p.or ? `<span class="f-or">ou</span> ` : "") +
         `<span class="f-phrase">${esc(nbsp(`« ${p.text} »`))}</span>` +
         (p.usage ? ` <small class="f-usage">usage</small>` : ""),
     )
@@ -33,6 +35,11 @@ export function createFormationCard({ onChange }) {
   };
   $button("formationPrev").onclick = () => move(-1);
   $button("formationNext").onclick = () => move(1);
+  const choice = /** @type {HTMLSelectElement} */ ($("formationCase"));
+  choice.onchange = () => {
+    index = choice.selectedIndex;
+    onChange();
+  };
 
   /** @param {boolean} enabled @param {FormationContext} ctx */
   function render(enabled, ctx) {
@@ -46,17 +53,26 @@ export function createFormationCard({ onChange }) {
       view = formationView(ctx, (index = 0));
     }
     count = view.count;
-    const inSeq = view.sequence !== null;
+    const cases = view.choices ?? null;
+    const inSeq = view.sequence !== null && !cases;
     $button("formationPrev").hidden = !inSeq;
     $button("formationNext").hidden = !inSeq;
+    choice.hidden = !cases;
+    if (cases && choice.options.length !== cases.length)
+      choice.innerHTML = cases
+        .map((c) => `<option>${esc(c)}</option>`)
+        .join("");
+    if (cases) choice.selectedIndex = view.index;
     $button("formationPrev").disabled = view.index === 0;
     $button("formationNext").disabled = view.next === null;
-    const when = inSeq
-      ? `${view.step.when} · ${view.index + 1}/${view.count}`
-      : view.step.when;
+    const when = cases
+      ? "Arrêt"
+      : inSeq
+        ? `${view.step.when} · ${view.index + 1}/${view.count}`
+        : view.step.when;
     const say = phrasesHtml(view.step);
     const then = view.next
-      ? `Ensuite (${view.next.when[0].toLowerCase() + view.next.when.slice(1)}) : ${view.next.phrases.map((p) => "« " + p.text + " »").join(" ")}`
+      ? `Ensuite (${view.next.when[0].toLowerCase() + view.next.when.slice(1)}) : ${view.next.phrases.map((p) => (p.or ? "ou " : "") + "« " + p.text + " »").join(" ")}`
       : "";
     const key = [when, say, view.step.note, then].join("\n");
     if (card.dataset.key === key) return; // pas à chaque image : un bouton touché serait remplacé

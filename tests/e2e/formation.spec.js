@@ -28,11 +28,23 @@ test("avant l'assaut : les étapes du protocole, d'un toucher à l'autre", async
   await app.$("#formationNext").click();
   await app.$("#formationNext").click();
   await expect(when(app)).toHaveText("Arbitre · 3/9");
-  await expect(say(app)).toHaveText("« Tireurs, au centre »");
-  await expect(say(app).locator(".f-usage")).toHaveCount(0); // phrase du cahier
+  await expect(say(app)).toHaveText(
+    "« Tireurs, au centre, pour la présentation » usage",
+  );
   await app.$("#formationPrev").click();
   await expect(when(app)).toHaveText("Arbitre · 2/9");
-  for (let i = 0; i < 7; i++) await app.$("#formationNext").click();
+  for (let i = 0; i < 4; i++) await app.$("#formationNext").click();
+  await expect(when(app)).toHaveText("Arbitre · 6/9");
+  await expect(say(app)).toHaveText(
+    "« Tireurs, équipez-vous sur l'aire » usage ou « Tireurs, dans vos zones, équipez-vous » usage",
+  );
+  await app.$("#formationNext").click();
+  await expect(say(app)).toContainText(
+    "« [Début de la] première reprise » usage",
+  );
+  await expect(say(app).locator(".f-usage")).toHaveCount(2); // « Tireurs au centre » est du cahier
+  await app.$("#formationNext").click();
+  await app.$("#formationNext").click();
   await expect(when(app)).toHaveText("Arbitre · 9/9");
   await expect(say(app)).toHaveText("« En garde » « Allez »");
   await expect(app.$("#formationNext")).toBeDisabled();
@@ -52,13 +64,33 @@ test("pendant l'assaut : l'aide-mémoire suit le chrono, et les commandes marche
   await app.hear("Stop");
   await expect(when(app)).toHaveText("Arrêt");
   await expect(say(app)).toHaveText("« En garde » « Allez »");
+  // le cas d'arrêt se choisit : son script s'affiche, puis « En garde, allez »
+  await expect(app.$("#formationCase")).toBeVisible();
+  await expect(app.$("#formationNext")).toBeHidden();
+  await app.$("#formationCase").selectOption("Demande d'avertissement");
+  await expect(say(app)).toContainText("« Les juges, ensemble » usage");
+  await expect(say(app)).toContainText(
+    "« Demande d'avertissement au tireur rouge ou bleu pour … »",
+  );
+  await expect(app.$("#formationThen")).toHaveText(
+    "Ensuite (pour repartir) : « En garde » « Allez »",
+  );
+  await app.$("#formationCase").selectOption("Décision des juges");
+  await expect(say(app)).toContainText("ou « Avertissement refusé »");
+  await app.hear("Allez");
+  await expect(app.$("#formationCase")).toBeHidden();
+  await app.hear("Stop");
+  await expect(app.$("#formationCase")).toHaveValue("Sans sanction"); // chaque arrêt repart du début
   await app.hear("Allez");
   await app.wait(6000);
   await expect(app.phase).toHaveText("Temps dépassé");
   await expect(say(app)).toHaveText("« Stop, fin de la reprise »");
   await app.hear("Stop, fin de la reprise");
   await expect(app.phase).toHaveText("Minute de repos");
-  await expect(when(app)).toHaveText("Repos");
+  await expect(when(app)).toHaveText("Début du repos");
+  await expect(say(app)).toHaveText(
+    "« Fin de la première reprise » usage « Tireurs, dans vos zones » usage",
+  );
   await expect(app.$("#formationThen")).toHaveText(
     "Ensuite (à 30 s) : « Tireurs, équipez-vous »",
   );
@@ -140,6 +172,10 @@ for (const [name, size] of Object.entries(SIZES)) {
         ).toBeLessThanOrEqual(controls.y + 1);
     };
     for (let i = 0; i < 7; i++) await app.$("#formationNext").click(); // les quatre officiels
+    await visible();
+    await app.hear("Allez");
+    await app.hear("Stop");
+    await app.$("#formationCase").selectOption("Demande d'avertissement"); // le script le plus long
     await visible();
     await app.hear("Allez");
     await app.wait(5700);
