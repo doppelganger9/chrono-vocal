@@ -2,6 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  CAPTURE_SEGMENT_MS,
   createCapture,
   pickMimeType,
   extensionFor,
@@ -69,6 +70,7 @@ test("taille et durée lisibles", () => {
   assert.equal(formatDuration(0), "0:00");
   assert.equal(formatDuration(59_999), "0:59");
   assert.equal(formatDuration(61_000), "1:01");
+  assert.equal(formatDuration(600_000), "10:00");
   assert.equal(formatDuration(3_600_000 + 65_000), "1:01:05");
 });
 
@@ -147,6 +149,7 @@ function setup({ getStream, mimeType = "audio/webm;codecs=opus" } = {}) {
 test("démarrer : enregistre le micro par morceaux, dans le format choisi", async () => {
   const s = setup();
   assert.equal(s.capture.recording, false);
+  assert.equal(s.capture.storageFailed, false);
   assert.equal(await s.capture.start(), "ok");
   assert.equal(s.capture.recording, true);
   assert.equal(s.capture.elapsedMs(), 0);
@@ -200,6 +203,7 @@ test("arrêter : le dernier morceau est gardé, le micro libéré, le journal pr
     "chrono-canne-captation-2026-10-24-09h00m00.webm",
   ]);
   assert.equal(s.capture.elapsedMs(), 0);
+  assert.equal(FakeRecorder.all.length, 1, "pas de nouveau fichier");
   s.capture.stop(); // déjà arrêtée : rien
   assert.equal(s.events.length, 2);
 });
@@ -289,6 +293,12 @@ test("format laissé au navigateur : celui qu'il annonce donne l'extension", asy
   assert.equal(s.metas.get(s.capture.current?.id).mime, "audio/webm");
 });
 
+// quelques tours de microtâches : pas de setTimeout, que d'autres tests simulent (mock.timers) dans le même processus
+// sous Stryker (--experimental-test-isolation=none)
+const flush = async () => {
+  for (let i = 0; i < 5; i++) await null;
+};
+
 test("stockage du téléphone plein : dit une fois, et à nouveau à la captation suivante", async () => {
   const s = setup();
   const failing = {
@@ -313,10 +323,10 @@ test("stockage du téléphone plein : dit une fois, et à nouveau à la captatio
     onEvent: (e, d) => events.push([e, d]),
   });
   await c.start();
-  await new Promise((r) => setTimeout(r, 0));
+  await flush();
   assert.equal(c.storageFailed, true);
   FakeRecorder.all[0].data();
-  await new Promise((r) => setTimeout(r, 0));
+  await flush();
   assert.deepEqual(
     events.filter((e) => e[0] === "capture-error"),
     [["capture-error", "StorageError"]],
@@ -325,7 +335,34 @@ test("stockage du téléphone plein : dit une fois, et à nouveau à la captatio
   const again = c.start();
   assert.equal(c.storageFailed, false, "remis à zéro");
   await again;
-  await new Promise((r) => setTimeout(r, 0));
+  await flush();
   assert.equal(c.storageFailed, true);
   assert.equal(events.filter((e) => e[0] === "capture-error").length, 2);
+});
+
+test("un fichier dure 30 minutes au plus", () => {
+  assert.equal(CAPTURE_SEGMENT_MS, 30 * 60 * 1000);
+});
+
+test("démarrer pendant l'enregistrement ne rouvre pas le micro ; après un refus, on peut réessayer", async () => {
+  const s = setup();
+  await s.capture.start();
+  assert.equal(await s.capture.start(), "ok");
+  assert.equal(FakeRecorder.all.length, 1);
+  let refuse = true;
+  const r = setup({
+    getStream: async () => {
+      if (refuse)
+        throw Object.assign(new Error("non"), { name: "NotAllowedError" });
+      return { getTracks: () => [], getAudioTracks: () => [] };
+    },
+  });
+  assert.equal(await r.capture.start(), "NotAllowedError");
+  refuse = false;
+  assert.equal(
+    await r.capture.start(),
+    "ok",
+    "micro sans piste annoncée : enregistré quand même",
+  );
+  assert.equal(r.capture.recording, true);
 });
