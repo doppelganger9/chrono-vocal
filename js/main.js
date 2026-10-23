@@ -197,7 +197,7 @@ function applyConfig(c) {
 
 // ---------- Interface ----------
 const stats = createStatsDialog({ getBout: () => chrono.bout, storage });
-const journal = createJournal({ storage });
+const journal = createJournal({ storage, userAgent: navigator.userAgent });
 const voice = createVoice({
   getCfg: () => cfg,
   updateCfg: applyConfig,

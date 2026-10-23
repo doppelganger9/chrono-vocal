@@ -29,8 +29,8 @@ Ce que les tests automatiques ne peuvent pas vérifier : la **vraie** reconnaiss
 
 ## Après la séance : nourrir le corpus de tests
 
-1. Réglages → Journal vocal → **Exporter le journal**, et l'envoyer sur le Mac (AirDrop, messagerie…). Si le téléphone refuse de le partager (Samsung Internet), le fichier est téléchargé à la place (#94) : il est dans les téléchargements.
-2. `node scripts/corpus-from-journal.js chrono-canne-journal-vocal.json` crée `tests/corpus/<date>-journal.json` :
+1. Réglages → Journal vocal → **Exporter le journal**, et l'envoyer sur le Mac (AirDrop, messagerie…). Si le téléphone refuse de le partager (Samsung Internet), le fichier est téléchargé à la place (#94) : il est dans les téléchargements. Le fichier dit avec quelle version de l'app (`version`, et `v` à chaque début d'écoute, si le journal couvre une mise à jour), quel navigateur (`userAgent`) et quand (`exported`) il a été fait (#112) : **avant d'ouvrir une issue sur un défaut relevé, vérifier qu'il n'a pas été corrigé depuis cette version** ([CHANGELOG.md](../CHANGELOG.md)). Un journal exporté avant n'a pas ces renseignements.
+2. `node scripts/corpus-from-journal.js chrono-canne-journal-vocal.json` crée `tests/corpus/<date>-journal.json`, avec la version de l'app et le nom court du navigateur (« Samsung Internet », « Safari iPhone »… ; pas le `userAgent` complet, le dépôt est public) :
    - `phrases` : ce que l'app a compris. **Corriger `expect`** si l'app s'est trompée : le test devient rouge, et on corrige `js/lang.js` ;
    - `a_relire` : phrases non reconnues. Les classer (par exemple « Allô » voulait dire ALLEZ) et les déplacer dans `phrases`, ou les supprimer.
 3. **Relire avant de commiter** (décision D3.1) : seulement des phrases courtes de commandement et de sanction, **ni noms ni conversations**. Le dépôt est public, et ce sont des données personnelles de tiers (#87) : **retirer les conversations** du fichier créé par `scripts/corpus-from-journal.js` (dans `a_relire` surtout), sans les déplacer dans `phrases`.

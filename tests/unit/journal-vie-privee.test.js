@@ -1,5 +1,6 @@
 // Journal vocal et vie privée (#87) : désactivé par défaut, phrases gardées 7 jours au plus
 import { test } from "node:test";
+import { VERSION } from "../../js/version.js"; // chaque start note la version (#112)
 import assert from "node:assert/strict";
 import {
   createJournal,
@@ -26,7 +27,7 @@ test("désactivé par défaut : aucune phrase notée, les événements du micro 
   assert.equal(j.enabled, false);
   j.add(phrase);
   j.event("start");
-  assert.deepEqual(j.entries, [{ t: 0, event: "start" }]);
+  assert.deepEqual(j.entries, [{ t: 0, event: "start", v: VERSION }]);
 });
 
 test("activé à la main, gardé au prochain lancement, puis désactivé", () => {
