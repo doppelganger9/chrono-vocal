@@ -1004,13 +1004,15 @@ main:has(#formation:not([hidden])) #stops:empty {
 }
 .capture-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   padding: 6px 0;
   border-bottom: 1px solid var(--line);
 }
+/* le nom sur sa ligne, les boutons dessous : trois boutons ne laissent pas la place au nom sur un téléphone */
 .capture-row span {
-  flex: 1;
+  flex: 1 1 100%;
   min-width: 0;
   font-size: 14px;
   overflow-wrap: anywhere;

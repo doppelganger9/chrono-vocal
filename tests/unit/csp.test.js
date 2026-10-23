@@ -34,6 +34,8 @@ test("rien n'est permis par défaut, sauf ce que le site sert lui-même", () => 
   assert.equal(csp["default-src"], "'none'");
   for (const d of ["script-src", "style-src", "img-src", "manifest-src"])
     assert.equal(csp[d], "'self'", d);
+  // écoute d'une captation audio (#136) : le fichier, lu dans le stockage du téléphone, seulement
+  assert.equal(csp["media-src"], "blob:");
   assert.equal(csp["base-uri"], "'none'");
   assert.equal(csp["form-action"], "'none'");
 });

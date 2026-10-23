@@ -1,5 +1,6 @@
 // Fenêtre de la captation audio (#136) : démarrer et arrêter, les fichiers gardés sur le téléphone, leur export et
-// leur effacement en deux appuis. Le témoin ● de l'en-tête, visible pendant l'enregistrement, ouvre la fenêtre.
+// leur écoute, leur effacement en deux appuis. Le témoin ● sous le chrono, visible pendant l'enregistrement, ouvre la
+// fenêtre.
 import { $, $button, $dialog } from "./dom.js";
 import { twoTap } from "./two-tap.js";
 import { shareOrDownloadFiles } from "./download.js";
@@ -14,6 +15,8 @@ const ERRORS = /** @type {Record<string, string>} */ ({
   NotReadableError: "Le micro est occupé par une autre application.",
 });
 const TITLE = "Captation audio Chrono Canne";
+/** micro qui ne répond pas (partagé avec la reconnaissance ?) : le dire plutôt qu'un bouton sans effet */
+const START_TIMEOUT_MS = 8000;
 
 /**
  * @param {object} deps
@@ -31,6 +34,66 @@ export function createCaptureDialog({ capture, store, onStart }) {
     error.textContent = text;
   };
 
+  // ---------- Écoute d'un fichier ----------
+  // Sur iPhone, la lecture n'est permise que pendant le toucher : le fichier lu dans IndexedDB arrive trop tard la
+  // première fois. Il reste alors prêt, et le toucher suivant le lit aussitôt
+  /** @type {HTMLAudioElement | null} */
+  let player = null;
+  /** @type {number | null} */
+  let playingId = null;
+  /** @type {{ id: number, url: string } | null} */
+  let ready = null;
+  function showPlaying() {
+    for (const b of $("captureList").querySelectorAll("[data-play]")) {
+      const id = Number(
+        /** @type {HTMLElement} */ (b.closest(".capture-row")).dataset.id,
+      );
+      b.textContent = id === playingId ? "■ Arrêter" : "▶ Écouter";
+    }
+  }
+  function stopPlaying() {
+    player?.pause();
+    player = null;
+    playingId = null;
+    showPlaying();
+  }
+  /** @param {import('../capture.js').CaptureMeta} meta */
+  async function play(meta) {
+    if (playingId === meta.id) return stopPlaying();
+    stopPlaying();
+    showError("");
+    if (ready?.id !== meta.id) {
+      if (ready) URL.revokeObjectURL(ready.url);
+      ready = null;
+      try {
+        ready = {
+          id: meta.id,
+          url: URL.createObjectURL(await store.file(meta)),
+        };
+      } catch {
+        return showError("Fichier illisible.");
+      }
+    }
+    const audio = new Audio(ready.url);
+    player = audio;
+    playingId = meta.id;
+    audio.onended = () => player === audio && stopPlaying();
+    showPlaying();
+    try {
+      await audio.play();
+    } catch (e) {
+      if (player !== audio) return;
+      stopPlaying();
+      // iPhone : le toucher est passé pendant la lecture du fichier ; il est prêt pour le suivant
+      if (e instanceof DOMException && e.name === "NotAllowedError")
+        showError("Touchez à nouveau « Écouter ».");
+      else
+        showError(
+          "Lecture impossible sur ce navigateur : exportez le fichier pour l'écouter.",
+        );
+    }
+  }
+
   /** Fichiers gardés : nom, durée, taille, export, effacement */
   async function renderList() {
     let files = /** @type {import('../capture.js').CaptureMeta[]} */ ([]);
@@ -45,6 +108,7 @@ export function createCaptureDialog({ capture, store, onStart }) {
           .map(
             (f) => `<div class="capture-row" data-id="${f.id}">
         <span>${esc(f.name)}<small>${formatDuration(f.end - f.start)} · ${formatSize(f.size)}</small></span>
+        <button class="secondary" type="button" data-play>▶ Écouter</button>
         <button class="secondary" type="button" data-export>Exporter</button>
         <button class="secondary" type="button" data-remove>Effacer</button></div>`,
           )
@@ -59,6 +123,12 @@ export function createCaptureDialog({ capture, store, onStart }) {
         row.querySelector("[data-export]")
       );
       exp.onclick = () => exportFiles([meta]);
+      const pl = /** @type {HTMLButtonElement} */ (
+        row.querySelector("[data-play]")
+      );
+      // le fichier en cours d'enregistrement : seulement une fois terminé
+      pl.disabled = capture?.current?.id === id;
+      pl.onclick = () => play(meta);
       const rm = /** @type {HTMLButtonElement} */ (
         row.querySelector("[data-remove]")
       );
@@ -67,6 +137,7 @@ export function createCaptureDialog({ capture, store, onStart }) {
       twoTap(rm, {
         label: "Effacer",
         onConfirm: async () => {
+          if (playingId === id) stopPlaying();
           try {
             await store.remove(id);
           } catch {
@@ -76,6 +147,7 @@ export function createCaptureDialog({ capture, store, onStart }) {
         },
       });
     }
+    showPlaying();
   }
 
   /** @param {import('../capture.js').CaptureMeta[]} metas */
@@ -89,10 +161,16 @@ export function createCaptureDialog({ capture, store, onStart }) {
     }
   }
 
+  /** micro demandé, pas encore ouvert */
+  let starting = false;
   function render() {
     const on = !!capture?.recording;
-    toggle.textContent = on ? "Arrêter la captation" : "Démarrer la captation";
-    toggle.disabled = !capture;
+    toggle.textContent = starting
+      ? "Ouverture du micro…"
+      : on
+        ? "Arrêter la captation"
+        : "Démarrer la captation";
+    toggle.disabled = !capture || starting;
     $("captureStatus").textContent = !capture
       ? "La captation audio n'est pas possible sur ce navigateur."
       : on
@@ -113,8 +191,24 @@ export function createCaptureDialog({ capture, store, onStart }) {
       capture.stop();
     } else {
       onStart();
-      const r = await capture.start();
-      if (r !== "ok") showError(ERRORS[r] ?? `Captation impossible (${r}).`);
+      starting = true;
+      render();
+      /** @type {ReturnType<typeof setTimeout> | undefined} */
+      let timer;
+      const r = await Promise.race([
+        capture.start(),
+        new Promise((resolve) => {
+          timer = setTimeout(() => resolve("timeout"), START_TIMEOUT_MS);
+        }),
+      ]);
+      clearTimeout(timer);
+      starting = false;
+      if (r === "timeout")
+        showError(
+          "Le micro ne répond pas. Coupez le micro de la reconnaissance (bouton « À l'écoute »), puis réessayez.",
+        );
+      else if (r !== "ok")
+        showError(ERRORS[r] ?? `Captation impossible (${r}).`);
     }
     render();
     renderList();
@@ -131,6 +225,7 @@ export function createCaptureDialog({ capture, store, onStart }) {
   };
   $button("captureBtn").onclick = open;
   $button("captureClose").onclick = () => dlg.close();
+  dlg.addEventListener("close", stopPlaying);
   $button("captureExportAll").onclick = async () => {
     try {
       await exportFiles(await store.list());
@@ -140,11 +235,8 @@ export function createCaptureDialog({ capture, store, onStart }) {
   };
 
   return {
-    /** chaque seconde, et à chaque début ou fin de fichier */
-    render() {
-      render();
-      if (dlg.open && !capture?.recording) renderList();
-    },
+    /** chaque seconde : l'état seulement. Refaire la liste chaque seconde perdait les touchers sur ses boutons */
+    render,
     /** un nouveau fichier a commencé, ou s'est terminé */
     changed() {
       render();
