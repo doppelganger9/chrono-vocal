@@ -90,6 +90,10 @@
       <div id="heard"></div>
       <button id="micStale" hidden></button>
       <button id="updateBtn" hidden>⬆︎ Mise à jour disponible</button>
+      <!-- Captation audio en cours (#136) : un toucher ouvre sa fenêtre -->
+      <button id="captureBtn" hidden>
+        ● Captation · <span id="captureTime">0:00</span>
+      </button>
     </main>
 
     <div class="controls">
@@ -360,6 +364,16 @@
             Effacer
           </button>
         </div>
+        <h3>Captation audio</h3>
+        <p class="note">
+          Enregistrer le son de l'aire pendant un entraînement ou un stage, pour
+          constituer une banque sonore de terrain.
+        </p>
+        <div class="dlg-actions">
+          <button id="captureOpen" class="secondary" type="button">
+            Captation audio…
+          </button>
+        </div>
         <h3>Partage des réglages</h3>
         <p class="note">
           Pour configurer à l'identique tous les téléphones d'un club ou d'une
@@ -441,6 +455,33 @@
       <div class="dlg-actions">
         <button id="importApply">Appliquer</button>
         <button id="importCancel" class="secondary">Annuler</button>
+      </div>
+    </dialog>
+
+    <!-- Captation audio de terrain (#136) -->
+    <dialog id="captureDlg" aria-labelledby="captureTitle">
+      <h2 id="captureTitle">Captation audio</h2>
+      <p class="note">
+        Le son de l'aire est enregistré sur ce téléphone, en même temps que la
+        reconnaissance vocale, pour constituer une banque sonore de terrain.
+        Rien n'est envoyé : les fichiers restent ici jusqu'à leur export, puis
+        effacez-les. Prévenez les personnes présentes. Le journal vocal est
+        activé avec la captation, pour retrouver les phrases par l'heure.
+      </p>
+      <p id="captureStatus" class="capture-status">Captation arrêtée</p>
+      <p id="captureError" class="warn" hidden></p>
+      <div class="dlg-actions">
+        <button id="captureToggle" type="button">Démarrer la captation</button>
+      </div>
+      <h3>Fichiers enregistrés</h3>
+      <div id="captureList"></div>
+      <div class="dlg-actions">
+        <button id="captureExportAll" class="secondary" type="button">
+          Tout exporter
+        </button>
+        <button id="captureClose" class="secondary" type="button">
+          Fermer
+        </button>
       </div>
     </dialog>
 

@@ -73,6 +73,19 @@ const SCREENS = {
     await app.hear("Pénalité pour sortie d'aire, tireur bleu");
     await app.$("#statsBtn").click();
   },
+  // captation audio (#136) : la fenêtre pendant l'enregistrement, avec un fichier listé, puis le témoin sous le chrono
+  "captation audio": async (app) => {
+    await app.$("#settingsBtn").click();
+    await app.$("#captureOpen").click();
+    await app.$("#captureToggle").click();
+    await app.wait(5500);
+  },
+  "captation audio en cours": async (app) => {
+    await app.$("#settingsBtn").click();
+    await app.$("#captureOpen").click();
+    await app.$("#captureToggle").click();
+    await app.$("#captureClose").click();
+  },
   "chronomètre annexe": async (app) => {
     await app.$("#annexBtn").click();
   },

@@ -102,6 +102,57 @@ function installFakes() {
     }
   }
   window.SpeechRecognition = window.webkitSpeechRecognition = FakeRecognition;
+  // Captation audio (#136) : micro et enregistreur muets. L'enregistreur rend un morceau « son-N » à chaque tranche
+  // (horloge simulée) ; window.__micError fait refuser le micro (NotAllowedError…), window.__micTrack est la piste
+  // ouverte (window.__micTrack.end() : micro coupé par le téléphone)
+  window.__micError = "";
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: {
+      getUserMedia: async () => {
+        if (window.__micError)
+          throw new DOMException("refusé", window.__micError);
+        const track = {
+          stopped: false,
+          onended: null,
+          stop() {
+            this.stopped = true;
+          },
+          end() {
+            this.onended?.(new Event("ended"));
+          },
+        };
+        window.__micTrack = track;
+        return { getTracks: () => [track], getAudioTracks: () => [track] };
+      },
+    },
+  });
+  window.MediaRecorder = class {
+    static isTypeSupported = (m) => m === "audio/webm;codecs=opus";
+    constructor(stream, opts) {
+      this.mimeType = opts.mimeType || "audio/webm";
+      this.state = "inactive";
+      this.n = 0;
+    }
+    emit() {
+      this.ondataavailable?.({
+        data: new Blob([`son-${this.n++};`], { type: this.mimeType }),
+      });
+    }
+    start(slice) {
+      this.state = "recording";
+      this.timer = setInterval(() => this.emit(), slice);
+    }
+    stop() {
+      if (this.state === "inactive") return;
+      this.state = "inactive";
+      clearInterval(this.timer);
+      setTimeout(() => {
+        this.emit();
+        this.onstop?.();
+      }, 0);
+    }
+  };
   window.__hear = (alternatives, isFinal) => {
     const rec = window.__rec;
     const result = alternatives.map((transcript) => ({ transcript }));

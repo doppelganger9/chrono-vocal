@@ -24,6 +24,9 @@ import { createMicWatch } from "./mic-watch.js";
 import { createMicIndicator } from "./ui/mic-indicator.js";
 import { VERSION } from "./version.js";
 import { canUpdate, watchUpdate } from "./update.js";
+import { createCapture, pickMimeType } from "./capture.js";
+import { createCaptureStore } from "./capture-store.js";
+import { createCaptureDialog } from "./ui/capture-dialog.js";
 
 /** Nouvelle version téléchargée pendant la visite, en attente de l'arbitre (#96) @type {ServiceWorkerRegistration | null} */
 let pendingUpdate = null;
@@ -221,6 +224,35 @@ createSettingsDialog({ getCfg: () => cfg, onSave: applyConfig, voice });
 
 createJournalPanel({ journal });
 
+// ---------- Captation audio (#136) ----------
+// Un second accès au micro, à côté de la reconnaissance, qui n'en sait rien. Le journal vocal note le début et la fin
+// de chaque fichier : les phrases se retrouvent dans le son par l'heure
+const captureStore = createCaptureStore();
+const capture =
+  typeof MediaRecorder === "function" && navigator.mediaDevices?.getUserMedia
+    ? createCapture({
+        getStream: () => navigator.mediaDevices.getUserMedia({ audio: true }),
+        Recorder: /** @type {any} */ (MediaRecorder),
+        mimeType: pickMimeType((m) => MediaRecorder.isTypeSupported(m)),
+        store: captureStore,
+        now: () => Date.now(),
+        onEvent: (event, detail) => {
+          journal.event(event, detail, chrono.state.phase);
+          captureDialog.changed();
+        },
+      })
+    : null;
+const captureDialog = createCaptureDialog({
+  capture,
+  store: captureStore,
+  onStart: () => {
+    unlock();
+    keepAwake();
+    journal.setEnabled(true);
+  },
+});
+setInterval(captureDialog.render, 1000);
+
 const annex = createAnnex({
   clock,
   emit: (_type, { minute, mode, color }) => {
@@ -351,6 +383,9 @@ function onMicEvent(event, detail) {
   micWatch.activity();
   if (event !== "result") journal.event(event, detail, chrono.state.phase); // les résultats sont notés en phrases
   micIndicator.update();
+  // micro pris par la captation (#136) : sur certains téléphones, la reconnaissance n'y a plus accès
+  if (event === "error" && detail === "audio-capture" && capture?.recording)
+    showHeard("⚠ Reconnaissance gênée par la captation audio");
 }
 setInterval(micIndicator.update, 1000);
 function updateMic() {
