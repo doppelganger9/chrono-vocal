@@ -17,14 +17,16 @@ test("le service worker porte la version de l'app : il change donc à chaque ver
 
 test("il met en cache tous les fichiers de l'app, et seulement eux", () => {
   // les fichiers servis : pages (index.html est « ./ »), styles, modules (sauf les types, lus seulement par
-  // TypeScript), manifeste, icônes
+  // TypeScript), manifeste, icônes. Les pages sont cherchées à partir du dossier courant, pas de la racine du dépôt
+  // (« top ») : dans la copie de travail des tests de mutation (.stryker-tmp/, ignorée par git), rien n'est suivi, et le
+  // test se tait, au lieu de trouver les pages du dépôt en « ../../index.html »
   let tracked;
   try {
     tracked = execFileSync(
       "git",
       [
         "ls-files",
-        ":(top,glob)*.html",
+        ":(glob)*.html",
         "js",
         "css",
         "assets",

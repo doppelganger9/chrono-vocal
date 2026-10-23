@@ -30,13 +30,17 @@ test("avant l'assaut : les étapes du protocole, de l'appel à « En garde, alle
     says(formationView(ctx(), i).step),
   );
   assert.deepEqual(all.slice(2), [
-    ["Tireurs, au centre"],
+    ["Tireurs, au centre, pour la présentation"],
     ["À ma gauche, en rouge, … ; à ma droite, en bleu, …"],
     ["Tireurs en place pour le salut", "Prêts pour le salut", "Saluez-vous"],
-    ["Équipez-vous"],
+    [
+      "Tireurs, équipez-vous sur l'aire",
+      "Tireurs, dans vos zones, équipez-vous",
+    ],
     [
       "Tireurs au centre",
       "Pour un assaut en trois reprises d'une minute trente, avec une minute de repos",
+      "[Début de la] première reprise",
     ],
     ["Juge 1, prêt ? Juge 2, prêt ? Juge 3, prêt ?", "Chrono, prêt ?"],
     ["En garde", "Allez"],
@@ -82,10 +86,24 @@ test("les phrases d'usage sont marquées, celles du cahier non", () => {
   const usage = (i) => formationView(ctx(), i).step.phrases.map((p) => p.usage);
   assert.deepEqual(usage(0), [true], "appel");
   assert.deepEqual(usage(1), [true], "vérification du matériel");
-  assert.deepEqual(usage(2), [false], "tireurs, au centre");
+  assert.deepEqual(
+    usage(2),
+    [true],
+    "tireurs, au centre, pour la présentation",
+  );
   assert.deepEqual(usage(3), [true], "présentation");
   assert.deepEqual(usage(4), [false, false, false], "salut");
-  assert.deepEqual(usage(6), [false, true], "annonce du format");
+  assert.deepEqual(usage(5), [true, true], "équipez-vous, deux façons");
+  assert.deepEqual(
+    formationView(ctx(), 5).step.phrases.map((p) => !!p.or),
+    [false, true],
+    "la seconde est une autre façon de dire la première",
+  );
+  assert.deepEqual(
+    usage(6),
+    [false, true, true],
+    "annonce du format, première reprise",
+  );
   assert.deepEqual(usage(8), [false, false]);
 });
 
@@ -125,27 +143,109 @@ test("relais : le changement de tireur chaque minute est rappelé", () => {
   );
 });
 
-test("pendant un arrêt : sanction s'il y a lieu, puis « En garde », « Allez »", () => {
-  const v = formationView(ctx({ phase: "round", halt: true, started: true }));
-  assert.equal(v.step.when, "Arrêt");
+test("pendant un arrêt : sans sanction, « En garde », « Allez » ; sinon le cas choisi et son script", () => {
+  const at = (i) =>
+    formationView(ctx({ phase: "round", halt: true, started: true }), i);
+  const v = at(0);
+  assert.equal(v.sequence, "arret");
+  assert.equal(v.step.when, "Sans sanction");
   assert.deepEqual(says(v.step), ["En garde", "Allez"]);
-  assert.match(v.step.note ?? "", /^Sanction s'il y a lieu/);
+  assert.match(v.step.note ?? "", /choisir le cas/);
   assert.deepEqual(says(v.next), ["Stop, fin de la reprise"]);
+  assert.deepEqual(v.choices, [
+    "Sans sanction",
+    "Observation",
+    "Demande d'avertissement",
+    "Décision des juges",
+    "Carton",
+    "Problème d'équipement",
+    "Sortie d'aire",
+    "Lâcher de canne",
+    "Blessure",
+    "Disqualification",
+  ]);
+  assert.equal(v.count, 10);
+  assert.deepEqual(says(at(1).step), ["Observation tireur rouge ou bleu : …"]);
+  assert.deepEqual(says(at(2).step), [
+    "Tireurs, en zone neutre",
+    "Les juges, ensemble",
+    "Demande d'avertissement au tireur rouge ou bleu pour …",
+  ]);
+  assert.deepEqual(
+    at(2).step.phrases.map((p) => p.usage),
+    [true, true, false],
+  );
+  assert.deepEqual(says(at(3).step), [
+    "Avertissement prononcé, tireur rouge ou bleu",
+    "Avertissement refusé",
+  ]);
+  assert.equal(at(3).step.phrases[1].or, true);
+  assert.deepEqual(says(at(5).step), ["Second"]);
+  assert.deepEqual(says(at(6).step), [
+    "Pénalité pour sortie d'aire, tireur rouge ou bleu",
+  ]);
+  assert.deepEqual(says(at(7).step), [
+    "Pénalité pour lâcher de canne, tireur rouge ou bleu",
+  ]);
+  assert.deepEqual(says(at(8).step), [], "blessure : rien à dire, un geste");
+  assert.match(at(8).step.note ?? "", /médecin/);
+  for (let i = 1; i < 9; i++) {
+    assert.equal(at(i).next?.when, "Pour repartir", String(i));
+    assert.deepEqual(says(at(i).next), ["En garde", "Allez"]);
+  }
+  assert.deepEqual(says(at(9).step), ["Disqualification"]);
+  assert.equal(at(9).next?.when, "Puis");
+  assert.deepEqual(
+    says(
+      formationView(
+        ctx({ phase: "overtime", halt: true, started: true, round: 3 }),
+      ).step,
+    ),
+    ["En garde", "Allez", "Stop, fin de l'assaut"],
+  );
+  assert.deepEqual(says(at(9).next), [
+    "Tireurs en place pour le salut",
+    "Prêts pour le salut",
+    "Saluez-vous",
+  ]);
+  assert.equal(at(99).index, 9, "rang borné");
+  assert.equal(
+    formationView(ctx({ phase: "round", started: true })).choices,
+    undefined,
+    "pas de cas hors arrêt",
+  );
 });
 
-test("temps dépassé : « Stop, fin de la reprise », ou « … de l'assaut » à la dernière", () => {
+test("pendant un arrêt : les couleurs viennent des réglages", () => {
+  const cfg = { ...DEFAULTS, colors: ["vert", ""] };
+  const v = formationView(
+    ctx({ phase: "round", halt: true, started: true, cfg }),
+    6,
+  );
+  assert.deepEqual(says(v.step), [
+    "Pénalité pour sortie d'aire, tireur vert ou …",
+  ]);
+});
+
+test("temps dépassé : « Stop, fin de la reprise », puis le début du repos ; « … de l'assaut » à la dernière", () => {
   const v = formationView(ctx({ phase: "overtime", started: true }));
   assert.deepEqual(says(v.step), ["Stop, fin de la reprise"]);
   assert.equal(
     v.step.note,
     "Le chrono lance la minute de repos à ce « stop ».",
   );
-  assert.equal(v.next, null);
+  assert.equal(v.next?.when, "Début du repos");
+  assert.deepEqual(says(v.next), [
+    "Fin de la première reprise",
+    "Tireurs, dans vos zones",
+  ]);
   const last = formationView(
     ctx({ phase: "overtime", started: true, round: 3 }),
   );
   assert.deepEqual(says(last.step), ["Stop, fin de l'assaut"]);
   assert.equal(last.step.note, "Le chrono termine l'assaut à ce « stop ».");
+  assert.equal(last.next?.when, "Puis");
+  assert.deepEqual(says(last.next)?.[2], "Saluez-vous");
   const extra = formationView(
     ctx({ phase: "overtime", started: true, round: 4, totalRounds: 4 }),
   );
@@ -168,12 +268,22 @@ test("minute de repos : l'étape suit le temps restant, et annonce la suivante",
   const at = (remaining, round = 1) =>
     formationView(ctx({ phase: "rest", started: true, remaining, round }));
   const start = at(60);
-  assert.equal(start.step.when, "Repos");
-  assert.deepEqual(says(start.step), []);
-  assert.match(start.step.note ?? "", /Rien à dire avant 30 s/);
+  assert.equal(start.step.when, "Début du repos");
+  assert.deepEqual(says(start.step), [
+    "Fin de la première reprise",
+    "Tireurs, dans vos zones",
+  ]);
+  assert.ok(start.step.phrases.every((p) => p.usage));
+  assert.match(start.step.note ?? "", /rien à dire avant 30 s/);
+  assert.deepEqual(says(at(60, 2).step)[0], "Fin de la deuxième reprise");
+  assert.deepEqual(
+    says(at(60, 4).step)[0],
+    "Fin de la reprise supplémentaire",
+    "après la dernière reprise prévue, à égalité",
+  );
   assert.equal(start.next?.when, "À 30 s");
   assert.deepEqual(says(start.next), ["Tireurs, équipez-vous"]);
-  assert.equal(at(30.05).step.when, "Repos", "pas avant 30 s");
+  assert.equal(at(30.05).step.when, "Début du repos", "pas avant 30 s");
   assert.equal(at(30).step.when, "30 s");
   assert.deepEqual(says(at(30).step), ["Tireurs, équipez-vous"]);
   assert.equal(at(15.05).step.when, "30 s");
@@ -281,7 +391,7 @@ test("le geste ou le détail accompagne les étapes qui en ont un", () => {
     "Casque sous le bras.",
     "Présentation, juste avant le salut.",
     undefined,
-    "Les tireurs regagnent leur place et mettent le casque.",
+    "Geste : mettre le casque des deux mains. Sur l'aire, les tireurs s'équipent sans la quitter ; sinon, à leur chaise.",
     undefined,
     undefined,
     "Le chrono part à « allez ».",
@@ -312,5 +422,35 @@ test("le geste ou le détail accompagne les étapes qui en ont un", () => {
   assert.equal(
     formationView(ctx({ phase: "rest", halt: true, started: true })).step.note,
     "« Allez » relance la minute de repos.",
+  );
+});
+
+test("pendant un arrêt : chaque cas a son geste ou son détail", () => {
+  const note = (i) =>
+    formationView(ctx({ phase: "round", halt: true, started: true }), i).step
+      .note;
+  assert.deepEqual(
+    says(
+      formationView(ctx({ phase: "round", halt: true, started: true }), 4).step,
+    ),
+    [
+      "Tireurs, en zone neutre",
+      "Carton jaune (ou rouge), tireur rouge ou bleu",
+    ],
+  );
+  assert.deepEqual(
+    Array.from({ length: 10 }, (_, i) => note(i)),
+    [
+      "Faire repartir. Une sanction : choisir le cas pour voir son script.",
+      "Nommer la faute ; désigner le tireur du bras, sur place. 0 point. Reprise à l'emplacement de l'arrêt.",
+      "Hors de l'aire, près du juge 2 ou 3 : un bras horizontal, main verticale, vers le tireur ; l'autre le long du corps.",
+      "Devant le juge 1. Prononcé (+2) : un bras oblique vers le haut, l'autre vers le tireur. Refusé : bras en croix devant la poitrine.",
+      "Au centre : le carton bras tendu vers le haut, l'autre bras désigne le fautif. Jaune +2 ; rouge : exclusion.",
+      "Le second répare au plus vite, sans parler ; l'adversaire attend en zone neutre. Protection obligatoire manquante : carton jaune.",
+      "À cheval sur la ligne des 9 m ; replacer le tireur un pied à l'intérieur. +1.",
+      "Ramasser la canne, la tenir bras tendu en oblique vers le haut. +1.",
+      "Le tireur reste dans l'aire, le second n'intervient pas ; appeler le médecin. Des soins valent abandon.",
+      "Au centre face au tireur : ciseaux, bras à l'horizontale, mains à plat. Fin de l'assaut, puis le résultat.",
+    ],
   );
 });

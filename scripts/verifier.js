@@ -11,6 +11,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { tooOld, MIN_NODE } = require("./check-node.js");
 const M = require("./lib/mesures.js");
+const { estCloud, NOTE_WEBKIT } = require("./lib/cloud.js");
 
 const root = path.join(__dirname, "..");
 const complet = process.argv.includes("--complet");
@@ -72,7 +73,9 @@ const steps = [
     "npx playwright test",
     (out) => {
       const e = (result.e2e = M.parsePlaywright(out));
-      return `${e.passed} réussis${e.skipped ? `, ${e.skipped} ignoré${e.skipped > 1 ? "s" : ""}` : ""}${e.flaky ? `, ${e.flaky} instable${e.flaky > 1 ? "s" : ""}` : ""} (${M.fr(e.seconds)} s)`;
+      // dans le cloud, WebKit est sauté (playwright.config.js) : le résumé et la description de PR le disent
+      if (estCloud(process.env)) e.webkitSaute = true;
+      return `${e.passed} réussis${e.skipped ? `, ${e.skipped} ignoré${e.skipped > 1 ? "s" : ""}` : ""}${e.flaky ? `, ${e.flaky} instable${e.flaky > 1 ? "s" : ""}` : ""} (${M.fr(e.seconds)} s)${e.webkitSaute ? ` — ${NOTE_WEBKIT}` : ""}`;
     },
   ],
 ];

@@ -48,6 +48,13 @@ const SCREENS = {
     await app.$("#skipBtn").click();
     await app.wait(46_000);
   },
+  // pendant un arrêt : la liste des cas, et un script avec « ou »
+  "mode formation, arrêt": async (app) => {
+    await app.configure({ sFormation: "1" });
+    await app.hear("Allez");
+    await app.hear("Stop");
+    await app.$("#formationCase").selectOption("Décision des juges");
+  },
   // le bouton seul, affiché à la main : la version téléchargée est simulée dans mise-a-jour.spec.js (#96)
   "mise à jour disponible": async (app) => {
     await app.$("#updateBtn").evaluate((b) => (b.hidden = false));

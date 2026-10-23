@@ -19,7 +19,8 @@
     "js/update.js",
     "scripts/lib/publication.js",
     "scripts/lib/etat-publication.js",
-    "scripts/lib/corpus.js"
+    "scripts/lib/corpus.js",
+    "scripts/lib/cloud.js"
   ],
   "reporters": ["clear-text", "progress", "html", "json"],
   "htmlReporter": {
