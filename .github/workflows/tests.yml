@@ -14,9 +14,14 @@ defaults:
   run:
     shell: bash
 
+# Durée et solidité (#131, ADR 0008) : les vérifications rapides et un job de bout en bout par navigateur tournent
+# en parallèle ; le job final « tests », seul exigé par la protection de main, les attend tous. Les navigateurs et
+# leurs dépendances viennent de l'image de Playwright : plus d'apt-get, resté bloqué 33 minutes le 22 octobre 2026.
+# Chaque job a un délai maximal : sans lui, GitHub attend 6 heures.
 jobs:
-  tests:
+  verifications:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -46,16 +51,73 @@ jobs:
         run: npm run lint
       - name: Tests unitaires
         run: npm run test:unit
-      - name: Navigateurs de test (Chromium, WebKit)
-        run: npx playwright install --with-deps chromium webkit
+
+  # la version de Playwright de package.json, pour prendre l'image qui va avec : une montée de Dependabot suit d'elle-même
+  playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: package.json
+          sparse-checkout-cone-mode: false
+      - id: version
+        run: echo "version=$(node -p "require('./package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
+
+  # un job par navigateur (Chromium pour Android, WebKit pour l'iPhone), dans l'image de Playwright. WebKit, deux fois
+  # plus lent (4,4 min contre 2 min pour Chromium), est coupé en deux morceaux qui tournent en même temps.
+  e2e:
+    needs: playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.playwright.outputs.version }}-noble
+      options: --ipc=host # conseillé pour Chromium dans Docker (mémoire partagée)
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { projet: android-chrome, morceau: 1, morceaux: 1 }
+          - { projet: iphone-safari, morceau: 1, morceaux: 2 }
+          - { projet: iphone-safari, morceau: 2, morceaux: 2 }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # les polices des runners Ubuntu, que l'image n'a pas : les tests de mise en page en dépendent
+      - name: Polices DejaVu
+        run: sh scripts/polices-dejavu.sh
       - name: Tests de bout en bout
-        run: npm run test:e2e
+        run: npx playwright test --project "$PROJET" --shard "$MORCEAU/$MORCEAUX"
+        env:
+          PROJET: ${{ matrix.projet }}
+          MORCEAU: ${{ matrix.morceau }}
+          MORCEAUX: ${{ matrix.morceaux }}
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: playwright-traces
+          name: playwright-traces-${{ matrix.projet }}-${{ matrix.morceau }}
           path: test-results/
           retention-days: 7
+
+  # le contrôle exigé par la protection de main. Sans always(), un job sauté parce qu'un autre a échoué compterait
+  # comme réussi ; on échoue donc soi-même si l'un d'eux a échoué ou a été annulé.
+  tests:
+    needs: [verifications, playwright, e2e]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Tous les jobs ont réussi
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "::error::un job de vérification ou de bout en bout a échoué"
+          exit 1
 
   # PR « Version X.Y.Z » ouverte par « Version » (#101) : une fois « tests » vert, après l'« Approve and run » de
   # David, on la fusionne, puis on pose l'étiquette vX.Y.Z et on publie la « release » avec la partie du journal.
@@ -66,6 +128,8 @@ jobs:
       github.head_ref == 'publication' &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    # la fusion réessaie pendant 15 minutes
+    timeout-minutes: 25
     permissions:
       contents: write # fusion, étiquette, release
       pull-requests: write

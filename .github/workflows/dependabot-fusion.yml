@@ -17,6 +17,7 @@ jobs:
   fusion-auto:
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Fusion automatique quand les tests passent
         run: gh pr merge --auto --merge "$PR"
