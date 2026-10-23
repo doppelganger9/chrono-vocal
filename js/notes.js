@@ -2,6 +2,19 @@
 /** @type {import('./types.js').Release[]} */
 export const NOTES = [
   {
+    version: "1.11.0",
+    date: "2026-10-23",
+    sections: [
+      {
+        title: "",
+        items: [
+          "Dans la fenêtre « Captation audio », un bouton « Écouter » pour réentendre un fichier sans l'exporter.",
+          "Les boutons de la liste des captations répondent du premier coup : « Confirmer ? » ne revient plus aussitôt à « Effacer ».",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.10.0",
     date: "2026-10-23",
     sections: [
