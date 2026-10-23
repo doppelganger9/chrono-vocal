@@ -41,9 +41,12 @@ export function createCaptureStore(idb = globalThis.indexedDB) {
     async putMeta(m) {
       await done((await table("files", "readwrite")).put(m));
     },
-    /** @param {number} id @param {number} seq @param {Blob} blob */
+    /** Gardé en octets, pas en Blob : WebKit refuse les Blob dans IndexedDB en navigation privée (et les rendait
+     * vides dans les tests sur WebKit)
+     * @param {number} id @param {number} seq @param {Blob} blob */
     async addChunk(id, seq, blob) {
-      await done((await table("chunks", "readwrite")).put(blob, [id, seq]));
+      const bytes = await blob.arrayBuffer();
+      await done((await table("chunks", "readwrite")).put(bytes, [id, seq]));
     },
     /** les fichiers, du plus ancien au plus récent @returns {Promise<CaptureMeta[]>} */
     async list() {
