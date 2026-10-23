@@ -4,6 +4,10 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : **mineure** (1.**1*
 
 Ces notes s'affichent dans l'app : « Quoi de neuf » sur l'écran titre, à la première ouverture d'une nouvelle version, et toutes dans « À propos ». Les lignes sont écrites pour l'arbitre ; les numéros d'issue et la mise en forme ne s'affichent pas. Après chaque modification, `npm run notes` les recopie dans `js/notes.js`.
 
+## [1.7.0] · 2026-10-23
+
+- Mode formation, à activer dans les réglages : un aide-mémoire du protocole de l'arbitre s'affiche sous le chrono, avec la phrase à dire maintenant et la suivante. Avant l'assaut (de l'appel à « En garde, allez ») et pour les résultats, les flèches ‹ et › passent d'une étape à l'autre ; pendant l'assaut et la minute de repos, il suit le chrono. Les phrases d'usage, pratiquées sur le terrain sans être écrites dans le cahier, sont marquées « usage ». Rien n'est imposé : les commandes marchent comme d'habitude (#106).
+
 ## [1.6.0] · 2026-10-21
 
 - Une page « Mentions légales et confidentialité », liée depuis l'écran titre et « À propos » : ce que l'app garde sur le téléphone, où part la voix selon le téléphone, aucun cookie ni traceur (#86).
