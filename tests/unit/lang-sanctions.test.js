@@ -200,3 +200,11 @@ test("observations des juges et décompte des pénalités : ni sanction ni stati
   );
   assert.equal(L.parseMotif("penalité décomptée", c).type, "penalite");
 });
+
+test("observations des juges : singulier et transcription collée (#109)", () => {
+  assert.equal(
+    L.parseMotif("Observation des juge, tireur bleu", ["bleu"]),
+    null,
+  );
+  assert.equal(L.parseMotif("pas dobservation", ["bleu"]), null);
+});

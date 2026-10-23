@@ -407,3 +407,18 @@ test("une phrase qui finit par « chrono » vaut l'appel « Chrono » (#109)", (
     "chrono",
   );
 });
+
+test("cas limites de #109 et #111 relevés par les tests de mutation", () => {
+  for (const t of [
+    "Reprise",
+    "fin de la reprise xdans",
+    "fin de la reprise dansx",
+    "fin de la x2 reprise",
+    "fin de la 2ex reprise",
+    "stop temps allez",
+    "statu en garde",
+    "erreurx en garde",
+  ])
+    assert.equal(L.parseCommand(t), null, t);
+  assert.equal(L.parseCommand("fin de la 12e reprise")?.end, "reprise");
+});

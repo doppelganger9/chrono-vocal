@@ -229,11 +229,11 @@ export function parseCommand(text, learned = {}) {
   /** @type {'reprise' | 'assaut' | null} */
   let end = null;
   const f = ws.indexOf("fin");
-  // la fin protocolaire s'arrête au dernier « reprise » ou « assaut » ; peut suivre l'envoi des tireurs en zone
+  // la fin protocolaire s'arrête au dernier « reprise » ou « assaut » ; peut suivre l'envoi des tireurs en zone.
+  // Sans « reprise » ni « assaut » après « fin », « fin » reste dans la suite, qui échoue
   const k = Math.max(ws.lastIndexOf("reprise"), ws.lastIndexOf("asaut"));
   if (
     f >= 0 &&
-    k > f &&
     ws.slice(f, k + 1).every((w) => END_WORDS.has(w) || RANG.test(w)) &&
     ws
       .slice(k + 1)
