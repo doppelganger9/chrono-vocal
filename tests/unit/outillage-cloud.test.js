@@ -21,6 +21,7 @@ const projets = [
   },
   { name: "iphone-safari", use: { defaultBrowserType: "webkit" } },
   { name: "bureau", use: {} },
+  { name: "nu" },
 ];
 
 test("cloud : reconnu à la variable CLAUDE_CODE_REMOTE, et seulement à elle", () => {
@@ -40,7 +41,7 @@ test("tests de bout en bout dans le cloud : WebKit sauté, Chromium préinstall�
   const p = C.sansWebkit(projets, cloud);
   assert.deepEqual(
     p.map((x) => x.name),
-    ["android-chrome", "bureau"],
+    ["android-chrome", "bureau", "nu"],
   );
   assert.deepEqual(p[0].use.launchOptions, {
     args: ["--mute-audio"],
@@ -62,6 +63,7 @@ test("captures dans le cloud : tous les formats gardés, rendus par Chromium", (
       ["android-chrome", "chromium"],
       ["iphone-safari", "chromium"],
       ["bureau", "chromium"],
+      ["nu", "chromium"],
     ],
   );
   assert.ok(p.every((x) => x.use.launchOptions?.executablePath));
