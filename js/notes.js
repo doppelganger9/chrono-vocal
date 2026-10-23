@@ -2,6 +2,18 @@
 /** @type {import('./types.js').Release[]} */
 export const NOTES = [
   {
+    version: "1.7.0",
+    date: "2026-10-23",
+    sections: [
+      {
+        title: "",
+        items: [
+          "Mode formation, à activer dans les réglages : un aide-mémoire du protocole de l'arbitre s'affiche sous le chrono, avec la phrase à dire maintenant et la suivante. Avant l'assaut (de l'appel à « En garde, allez ») et pour les résultats, les flèches ‹ et › passent d'une étape à l'autre ; pendant l'assaut et la minute de repos, il suit le chrono. Les phrases d'usage, pratiquées sur le terrain sans être écrites dans le cahier, sont marquées « usage ». Rien n'est imposé : les commandes marchent comme d'habitude.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.6.0",
     date: "2026-10-21",
     sections: [
