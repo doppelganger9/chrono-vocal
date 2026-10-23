@@ -4,6 +4,14 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : **mineure** (1.**1*
 
 Ces notes s'affichent dans l'app : « Quoi de neuf » sur l'écran titre, à la première ouverture d'une nouvelle version, et toutes dans « À propos ». Les lignes sont écrites pour l'arbitre ; les numéros d'issue et la mise en forme ne s'affichent pas. Après chaque modification, `npm run notes` les recopie dans `js/notes.js`.
 
+## [1.8.1] · 2026-10-23
+
+- « Stop, fin de la deuxième reprise » (ou « de la 2e reprise », « de la dernière reprise »…) termine la reprise, comme « fin de la reprise » ; « Stop, temps » est compris comme « stop », et « … tireurs, dans vos zones » peut suivre la fin de la reprise (#109).
+- « Stop » entendu avant la fin de la phrase n'empêche plus « … fin de la reprise » de terminer la reprise (#109).
+- « Observations des juges », « pas d'observation » et « après décompte des points et des pénalités » ne sont plus notés comme des sanctions (#109).
+- Une phrase qui finit par « chrono » (« … juge 3, chrono ») vaut l'appel « Chrono » : le « prêt » qui suit est compris (#109).
+- « Regarde » vaut « en garde » (« regarde, allez » fait partir), et « tireurs » mal entendu (« erreur », « terreur », « Thierry », « tu iras »…) est accepté devant « en garde » (#111).
+
 ## [1.8.0] · 2026-10-23
 
 - Mode formation : pendant un arrêt, une liste propose le cas (observation, demande d'avertissement, décision des juges, carton, problème d'équipement, sortie d'aire, lâcher de canne, blessure, disqualification) et affiche son script, avec le geste ; puis « En garde, allez » (#106).
