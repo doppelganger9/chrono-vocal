@@ -166,3 +166,45 @@ test("classify : un rappel passe avant les sanctions", () => {
     { kind: "rappel", color: "bleu" },
   );
 });
+
+test("observations des juges et décompte des pénalités : ni sanction ni statistique (#109)", () => {
+  const c = ["rouge", "bleu"];
+  for (const t of [
+    "Tireurs, observations des juges : rouge, défaut de priorité",
+    "Observation des juges, tireur bleu, défaut d'armé",
+    "Pas d'observation des juges",
+    "Juges, pas d'observation des juges",
+    "juge pas d'observation des juge",
+    "Pas d'observation",
+    "pas d observations",
+    "Tireur au centre observations des juges tireurs bleu tireur rouge défaut de priorité",
+    "Après décompte des points et des pénalités, victoire du tireur rouge",
+    "décompte des pénalités",
+  ]) {
+    assert.equal(L.parseMotif(t, c), null, t);
+    assert.equal(L.classify(t, {}, c).kind, "none", t);
+  }
+  // les sanctions restent des sanctions
+  assert.deepEqual(L.parseMotif("Observation rouge, défaut d'armé", c), {
+    type: "observation",
+    pts: 0,
+    color: "rouge",
+  });
+  assert.equal(
+    L.parseMotif("Pénalité pour sortie d'aire, tireur bleu", c).type,
+    "penalite",
+  );
+  assert.equal(
+    L.parseMotif("observation des jugements", c).type,
+    "observation",
+  );
+  assert.equal(L.parseMotif("penalité décomptée", c).type, "penalite");
+});
+
+test("observations des juges : singulier et transcription collée (#109)", () => {
+  assert.equal(
+    L.parseMotif("Observation des juge, tireur bleu", ["bleu"]),
+    null,
+  );
+  assert.equal(L.parseMotif("pas dobservation", ["bleu"]), null);
+});

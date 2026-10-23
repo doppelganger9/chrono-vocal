@@ -181,15 +181,24 @@ export function phon(text) {
   const ws = phonWords(text);
   return (ws.every((w) => w === ws[0]) ? [ws[0]] : ws).join(""); // « allez allez » = « allez »
 }
+const STOP = /^e?s?tope?$|^stopez$/;
 /** @type {{ name: CommandName, re: RegExp }[]} */
 export const COMMAND_PATTERNS = [
-  { name: "STOP", re: /^e?s?tope?$|^stopez$/ },
+  { name: "STOP", re: STOP },
   { name: "ALLEZ", re: /^ale(y|i)?$|^ole$/ },
   { name: "REPOS", re: /^re?po(s|t)?$/ },
 ];
-export const EN_GARDE = /^(?:[ae]n|on|sans?)?gu?ard?e$/; // « en garde », « an garde », « en gare », « on garde », « sans garde », « garde » (#47)
+export const EN_GARDE = /^(?:[ae]n|on|sans?)?(?:re)?gu?ard?e$/; // « en garde », « an garde », « en gare », « on garde », « sans garde », « garde », « regarde » (#47, #111)
 /** « Tireurs, en garde » : le mot qui précède parfois « en garde » (#47) */
 const TIREUR = /^tir(e|eur)?s?$/;
+/** « Tireurs » mal entendu : « erreur », « terreur », « Thierry », « tirant », « tiroir », « tu iras » (#111).
+ *  Seulement devant « en garde » : seuls ou devant un autre mot, ce sont des mots ordinaires */
+const TIREUR_ENTENDU = /^(t?ereur|tiery|tirant|tiroir|tu|iras)$/;
+/** Le rang de la reprise : « fin de la deuxième reprise », « … de la 2e reprise », « … de la reprise supplémentaire » (#109) */
+const RANG =
+  /^(\d+(e|eme|ere|re)?|premiere|deuxieme|seconde|troisieme|quatrieme|derniere|suplementaire)$/;
+/** Après la fin de la reprise, l'arbitre envoie les tireurs dans leurs zones : « … tireurs, dans vos zones » (#109) */
+const ZONES = /^(dans|vos|en|zone|neutre)$/;
 /** « hangar » : « en garde » mal entendu, téléphone loin de l'arbitre (recette du 19 octobre, #79) */
 const HANGAR = /^angar$/;
 /** Ce que l'arbitre dit avant « en garde » dans le protocole : « Tireurs au centre », « Deuxième reprise » (#79).
@@ -219,21 +228,36 @@ export function parseCommand(text, learned = {}) {
   let ws = phonWords(text);
   /** @type {'reprise' | 'assaut' | null} */
   let end = null;
-  const f = ws.findIndex(
-    (w, i) =>
-      w === "fin" && ws.slice(i).some((x) => x === "reprise" || x === "asaut"),
-  );
-  if (f >= 0 && ws.slice(f).every((w) => END_WORDS.has(w))) {
-    end = ws.slice(f).includes("asaut") ? "assaut" : "reprise";
+  const f = ws.indexOf("fin");
+  // la fin protocolaire s'arrête au dernier « reprise » ou « assaut » ; peut suivre l'envoi des tireurs en zone.
+  // Sans « reprise » ni « assaut » après « fin », « fin » reste dans la suite, qui échoue
+  const k = Math.max(ws.lastIndexOf("reprise"), ws.lastIndexOf("asaut"));
+  if (
+    f >= 0 &&
+    ws.slice(f, k + 1).every((w) => END_WORDS.has(w) || RANG.test(w)) &&
+    ws
+      .slice(k + 1)
+      .every((w) => RANG.test(w) || TIREUR.test(w) || ZONES.test(w))
+  ) {
+    end = ws.slice(f, k + 1).includes("asaut") ? "assaut" : "reprise";
     ws = ws.slice(0, f);
   }
+  // « Stop, temps » : l'arbitre reprend l'annonce du chronométreur (#109)
+  if (ws.length === 2 && ws[1] === "temps" && STOP.test(ws[0])) ws = [ws[0]];
   let enGarde = false;
   // « Tireurs au centre, tireurs en garde, allez » : le préambule du protocole avant « en garde » est ignoré (#79)
   const g = ws.findIndex(
     (w, i) =>
       EN_GARDE.test(w) || EN_GARDE.test(w + ws[i + 1]) || HANGAR.test(w),
   );
-  if (g > 0 && ws.slice(0, g).every((w) => TIREUR.test(w) || PREAMBULE.test(w)))
+  if (
+    g > 0 &&
+    ws
+      .slice(0, g)
+      .every(
+        (w) => TIREUR.test(w) || TIREUR_ENTENDU.test(w) || PREAMBULE.test(w),
+      )
+  )
     ws = ws.slice(g);
   if (TIREUR.test(ws[0])) ws = ws.slice(1);
   if (ws.length >= 2 && EN_GARDE.test(ws[0] + ws[1])) {
@@ -256,8 +280,9 @@ export function parseCommand(text, learned = {}) {
   );
   return cmd ? { enGarde, cmd: cmd.name, end } : null;
 }
-/** « Chrono » seul : la reconnaissance a pu couper « Chrono, prêt ? » en deux phrases (#47) @param {string} text */
-export const isChronoCall = (text) => phon(text) === "crono";
+/** « Chrono » seul, ou en fin de phrase (« … juge 3, chrono ») : la reconnaissance a pu couper « Chrono, prêt ? » en
+ *  deux phrases (#47, #109) @param {string} text */
+export const isChronoCall = (text) => phonWords(text).at(-1) === "crono";
 /** « Prêt » seul (« près », « prêts ») : la fin de « Chrono, prêt ? » @param {string} text */
 export const isPretAlone = (text) => /^pre(ts)?$/.test(phon(text));
 // « Chrono, prêt ? » (contrôle des officiels avant chaque reprise)
@@ -280,10 +305,15 @@ export function findColor(text, colors) {
 }
 const SORTIE = /sortie d? ?aire?\b/; // « sortie d'aire », « sortie d'air »
 const LACHER = /lache\w* (de )?(la )?canne/;
+/** Ce que l'arbitre rapporte sans sanctionner : « observations des juges », « pas d'observation » (minute de repos),
+ *  « après décompte des points et des pénalités » (résultat) (#109) */
+const NON_SANCTION =
+  /\bobservations? des juges?\b|\bpas d ?observations?\b|\bdecomptes?\b/;
 // Motif d'un arrêt annoncé par l'arbitre (I 4.2.8 à 4.2.13), avec la couleur du tireur concerné
 /** @param {string} text @param {string[]} [colors] @returns {Motif | null} */
 export function parseMotif(text, colors = []) {
   const t = plain(text).replace(/\s+/g, " ");
+  if (NON_SANCTION.test(t)) return null;
   /** @type {Motif | null} */
   let e = null;
   if (/carton rouge/.test(t)) e = { type: "carton-rouge", pts: 2 };
