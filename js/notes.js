@@ -2,6 +2,22 @@
 /** @type {import('./types.js').Release[]} */
 export const NOTES = [
   {
+    version: "1.8.1",
+    date: "2026-10-23",
+    sections: [
+      {
+        title: "",
+        items: [
+          "« Stop, fin de la deuxième reprise » (ou « de la 2e reprise », « de la dernière reprise »…) termine la reprise, comme « fin de la reprise » ; « Stop, temps » est compris comme « stop », et « … tireurs, dans vos zones » peut suivre la fin de la reprise.",
+          "« Stop » entendu avant la fin de la phrase n'empêche plus « … fin de la reprise » de terminer la reprise.",
+          "« Observations des juges », « pas d'observation » et « après décompte des points et des pénalités » ne sont plus notés comme des sanctions.",
+          "Une phrase qui finit par « chrono » (« … juge 3, chrono ») vaut l'appel « Chrono » : le « prêt » qui suit est compris.",
+          "« Regarde » vaut « en garde » (« regarde, allez » fait partir), et « tireurs » mal entendu (« erreur », « terreur », « Thierry », « tu iras »…) est accepté devant « en garde ».",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.8.0",
     date: "2026-10-23",
     sections: [
