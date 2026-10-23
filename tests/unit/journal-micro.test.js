@@ -1,5 +1,6 @@
 // Événements du micro dans le journal vocal (#56)
 import { test } from "node:test";
+import { VERSION } from "../../js/version.js"; // chaque start note la version (#112)
 import assert from "node:assert/strict";
 import { createJournal } from "../../js/journal.js";
 
@@ -16,7 +17,7 @@ test("un événement du micro est noté avec son heure, son détail et la phase"
     { t: 1000, event: "error", detail: "network", phase: "round" },
   ]);
   j.event("start");
-  assert.deepEqual(j.entries[1], { t: 1000, event: "start" });
+  assert.deepEqual(j.entries[1], { t: 1000, event: "start", v: VERSION });
 });
 
 test("les relances ordinaires à la suite sont regroupées en une ligne, avec leur nombre", () => {

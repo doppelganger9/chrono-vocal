@@ -115,12 +115,16 @@ test("journal : export en fichier", () => {
   j.add({ alts: ["stop"], final: true, phase: "round", action: "STOP" });
   const f = j.exportFile();
   assert.equal(f.name, "chrono-canne-journal-vocal.json");
-  assert.deepEqual(JSON.parse(f.text), {
-    app: "chrono-canne",
-    journal: [
-      { t: 5, alts: ["stop"], final: true, phase: "round", action: "STOP" },
-    ],
-  });
+  const { app, journal } = JSON.parse(f.text); // version et navigateur : journal-version.test.js (#112)
+  assert.deepEqual(
+    { app, journal },
+    {
+      app: "chrono-canne",
+      journal: [
+        { t: 5, alts: ["stop"], final: true, phase: "round", action: "STOP" },
+      ],
+    },
+  );
   assert.equal(JOURNAL_KEY, "chrono-canne-journal");
 });
 
