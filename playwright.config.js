@@ -8,6 +8,8 @@ module.exports = defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  // sur la CI, un job par navigateur sur un runner à 4 processeurs : Playwright n'en prendrait que la moitié (#131)
+  workers: process.env.CI ? 4 : undefined,
   reporter: process.env.CI ? "github" : "list",
   use: { baseURL: "http://localhost:4173", trace: "retain-on-failure" },
   // dans une session de Claude Code dans le cloud : Chromium préinstallé, sans WebKit (scripts/lib/cloud.js)

@@ -1,5 +1,5 @@
 # Preuves de qualité (CONTRIBUTING.md § 3) : couverture et score de mutation, dans le résumé de l'exécution.
-# Pas à chaque PR, pour garder la CI légère (environ 4 min) : chaque PR est déjà mesurée en local
+# Pas à chaque PR, pour garder la CI légère (quelques minutes) : chaque PR est déjà mesurée en local
 # (npm run verifier -- --complet, chiffres dans sa description). Ici :
 #   - chaque lundi sur main : si le score passe sous le seuil, une issue est ouverte ;
 #   - à la demande (onglet Actions → Qualité → Run workflow) ;
@@ -23,18 +23,38 @@ defaults:
   run:
     shell: bash
 
+# Chromium vient de l'image de Playwright, à la version de package.json : plus d'apt-get (#131, ADR 0008)
 jobs:
-  qualite:
+  playwright:
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'qualite')
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          sparse-checkout: package.json
+          sparse-checkout-cone-mode: false
+      - id: version
+        run: echo "version=$(node -p "require('./package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
+
+  qualite:
+    needs: playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.playwright.outputs.version }}-noble
+      options: --ipc=host # conseillé pour Chromium dans Docker (mémoire partagée)
+    steps:
+      - uses: actions/checkout@v7
+      # le dépôt appartient à l'utilisateur du runner, pas à root : sans cela, git refuse les tests qui lisent git ls-files
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
       - name: Couverture
         run: npm run coverage && cat coverage/coverage-summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Tests de mutation
@@ -51,8 +71,15 @@ jobs:
             coverage/
             reports/mutation/
           retention-days: 14
+
+  # hors de l'image, qui n'a pas gh
+  issue:
+    needs: qualite
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
       - name: Issue si la passe du lundi échoue
-        if: failure() && github.event_name == 'schedule'
         run: |
           gh issue create --repo "$GITHUB_REPOSITORY" --label technique \
             --title "Qualité : la passe hebdomadaire a échoué ($(date -u +%Y-%m-%d))" \
