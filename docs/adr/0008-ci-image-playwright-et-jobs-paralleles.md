@@ -8,7 +8,7 @@ Les tests de bout en bout tournent dans l'**image officielle de Playwright** (`m
 
 - `verifications` : audit, notes de version, typage, lint et format, tests unitaires (une vingtaine de secondes) ;
 - `playwright` : lit la version de `@playwright/test` dans `package.json`, pour prendre l'image qui va avec ;
-- `e2e` : un job par navigateur (`android-chrome` pour Chromium, `iphone-safari` pour WebKit), dans l'image, avec les **polices DejaVu** des runners Ubuntu (`scripts/polices-dejavu.sh`, depuis le paquet npm `dejavu-fonts-ttf`) ;
+- `e2e` : un job par navigateur (`android-chrome` pour Chromium, `iphone-safari` pour WebKit), et même deux pour WebKit, deux fois plus lent (4,4 min contre 2 min pour Chromium, `--shard`), dans l'image, avec les **polices DejaVu** des runners Ubuntu (`scripts/polices-dejavu.sh`, depuis le paquet npm `dejavu-fonts-ttf`) ;
 - `tests` : attend tous les autres, et échoue si l'un d'eux a échoué ou a été annulé. **C'est le seul contrôle exigé par la protection de `main`** : son nom n'a pas changé, ni le `needs: tests` du job `publication`.
 
 Chaque job de chaque workflow a un `timeout-minutes`.
@@ -34,6 +34,6 @@ Mesures du 23 octobre 2026, sur 11 exécutions de « Tests » :
 
 - Plus d'`apt-get` dans la CI. Tirer l'image depuis le registre de Microsoft prend environ 25 s (mesuré sur la PR #133), à la place de l'installation.
 - Les deux navigateurs tournent en même temps sur deux runners : le temps d'attente d'une PR est celui du plus lent des deux, plus la mise en route.
-- Un échec de bout en bout dépose ses traces dans `playwright-traces-<projet>`.
-- `tests/unit/workflows.test.js` vérifie : un délai maximal sur chaque job, aucun `playwright install`, l'image qui suit `package.json`, les polices DejaVu, un job par navigateur, et un job `tests` qui attend tous les autres.
+- Un échec de bout en bout dépose ses traces dans `playwright-traces-<projet>-<morceau>`.
+- `tests/unit/workflows.test.js` vérifie : un délai maximal sur chaque job, aucun `playwright install`, l'image qui suit `package.json`, les polices DejaVu, un job par navigateur (WebKit en deux morceaux), et un job `tests` qui attend tous les autres.
 - L'image n'a pas les polices DejaVu des runners Ubuntu : la police large des tests de mise en page (`"DejaVu Sans"`) y retombait sur une autre, et deux tests de `formation.spec.js` débordaient d'un pixel sur WebKit. `scripts/polices-dejavu.sh` les installe (mêmes fichiers que le paquet `fonts-dejavu-core` d'Ubuntu 24.04), un test vérifie que chaque job dans l'image le lance.

@@ -94,13 +94,23 @@ test(
 );
 
 test(
-  "tests.yml : un job de bout en bout par navigateur, en parallèle",
+  "tests.yml : un job de bout en bout par navigateur, WebKit en deux morceaux, en parallèle",
   { skip },
   () => {
     const e2e = jobs(lire("tests.yml")).e2e ?? "";
-    assert.match(e2e, /projet: \[android-chrome, iphone-safari\]/);
-    assert.match(e2e, /--project "\$PROJET"/);
-    assert.match(e2e, /PROJET: \$\{\{ matrix\.projet \}\}/);
+    for (const ligne of [
+      "{ projet: android-chrome, morceau: 1, morceaux: 1 }",
+      "{ projet: iphone-safari, morceau: 1, morceaux: 2 }",
+      "{ projet: iphone-safari, morceau: 2, morceaux: 2 }",
+    ])
+      assert.ok(e2e.includes(`- ${ligne}\n`), ligne);
+    assert.ok(e2e.includes('--project "$PROJET" --shard "$MORCEAU/$MORCEAUX"'));
+    // un nom d'artefact par job : deux jobs ne peuvent pas déposer le même
+    assert.ok(
+      e2e.includes(
+        "name: playwright-traces-${{ matrix.projet }}-${{ matrix.morceau }}",
+      ),
+    );
   },
 );
 
