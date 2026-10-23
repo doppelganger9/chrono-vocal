@@ -880,6 +880,26 @@ body.legal {
   line-height: 1;
   padding: 4px 14px;
 }
+.f-head select {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 4px 10px;
+  max-width: 70vw;
+}
+.f-head select option {
+  background: var(--panel);
+}
+.f-or {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.f-head select[hidden],
 .f-head button[hidden] {
   display: none;
 }
