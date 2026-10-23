@@ -55,6 +55,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # les polices des runners Ubuntu, que l'image n'a pas : les tests de mise en page en dépendent
+      - name: Polices DejaVu
+        run: sh scripts/polices-dejavu.sh
       - name: Couverture
         run: npm run coverage && cat coverage/coverage-summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Tests de mutation

@@ -122,3 +122,29 @@ test(
     assert.match(tous.publication ?? "", /^ {4}needs: tests$/m);
   },
 );
+
+// L'image de Playwright n'a pas les polices DejaVu des runners Ubuntu de GitHub : la police large des tests de mise en
+// page (« DejaVu Sans ») y retombait sur une autre, et deux tests de formation.spec.js débordaient d'un pixel sur WebKit
+// (#131). Elles viennent du paquet npm dejavu-fonts-ttf, à la version d'Ubuntu 24.04, sans apt-get.
+test(
+  "chaque job dans l'image Playwright installe les polices DejaVu, venues de npm",
+  { skip },
+  () => {
+    const pkg = JSON.parse(
+      fs.readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
+    );
+    assert.match(pkg.devDependencies["dejavu-fonts-ttf"], /^\d+\.\d+\.\d+$/);
+    const sans = files.flatMap((f) =>
+      Object.entries(jobs(lire(f)))
+        .filter(
+          ([, bloc]) =>
+            /image: mcr\.microsoft\.com\/playwright/.test(bloc) &&
+            !/npm ci\n(?:.*\n)*? {8}run: sh scripts\/polices-dejavu\.sh\n/.test(
+              bloc,
+            ),
+        )
+        .map(([nom]) => `${f} : ${nom}`),
+    );
+    assert.deepEqual(sans, [], "après npm ci : sh scripts/polices-dejavu.sh");
+  },
+);
