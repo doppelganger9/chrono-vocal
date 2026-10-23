@@ -4,6 +4,11 @@ Les versions suivent [SemVer](https://semver.org/lang/fr/) : **mineure** (1.**1*
 
 Ces notes s'affichent dans l'app : « Quoi de neuf » sur l'écran titre, à la première ouverture d'une nouvelle version, et toutes dans « À propos ». Les lignes sont écrites pour l'arbitre ; les numéros d'issue et la mise en forme ne s'affichent pas. Après chaque modification, `npm run notes` les recopie dans `js/notes.js`.
 
+## [1.8.0] · 2026-10-23
+
+- Mode formation : pendant un arrêt, une liste propose le cas (observation, demande d'avertissement, décision des juges, carton, problème d'équipement, sortie d'aire, lâcher de canne, blessure, disqualification) et affiche son script, avec le geste ; puis « En garde, allez » (#106).
+- Mode formation, phrases revues avec un juge-arbitre : « Tireurs, au centre, pour la présentation » ; « Tireurs, équipez-vous sur l'aire » ou « Tireurs, dans vos zones, équipez-vous », avec le geste du casque ; « Première reprise » après l'annonce du format ; au début du repos, « Fin de la première reprise » et « Tireurs, dans vos zones », avant les annonces de 30, 15 et 5 secondes (#106).
+
 ## [1.7.0] · 2026-10-23
 
 - Mode formation, à activer dans les réglages : un aide-mémoire du protocole de l'arbitre s'affiche sous le chrono, avec la phrase à dire maintenant et la suivante. Avant l'assaut (de l'appel à « En garde, allez ») et pour les résultats, les flèches ‹ et › passent d'une étape à l'autre ; pendant l'assaut et la minute de repos, il suit le chrono. Les phrases d'usage, pratiquées sur le terrain sans être écrites dans le cahier, sont marquées « usage ». Rien n'est imposé : les commandes marchent comme d'habitude (#106).

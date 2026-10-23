@@ -2,6 +2,19 @@
 /** @type {import('./types.js').Release[]} */
 export const NOTES = [
   {
+    version: "1.8.0",
+    date: "2026-10-23",
+    sections: [
+      {
+        title: "",
+        items: [
+          "Mode formation : pendant un arrêt, une liste propose le cas (observation, demande d'avertissement, décision des juges, carton, problème d'équipement, sortie d'aire, lâcher de canne, blessure, disqualification) et affiche son script, avec le geste ; puis « En garde, allez ».",
+          "Mode formation, phrases revues avec un juge-arbitre : « Tireurs, au centre, pour la présentation » ; « Tireurs, équipez-vous sur l'aire » ou « Tireurs, dans vos zones, équipez-vous », avec le geste du casque ; « Première reprise » après l'annonce du format ; au début du repos, « Fin de la première reprise » et « Tireurs, dans vos zones », avant les annonces de 30, 15 et 5 secondes.",
+        ],
+      },
+    ],
+  },
+  {
     version: "1.7.0",
     date: "2026-10-23",
     sections: [
