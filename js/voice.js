@@ -53,6 +53,9 @@ export function createVoice({
   let lastEnGarde = 0;
   /** @type {Set<number>} */
   let firedFor = new Set();
+  /** Résultats provisoires qui n'ont fait qu'un « stop » : la suite peut encore être « … fin de la reprise » (#109)
+   * @type {Set<number>} */
+  let stopOnly = new Set();
   /** @type {string[]} */
   let unheard = [];
   /** « Chrono, prêt ? » entendu dans un résultat provisoire : la réponse attend la fin de la phrase (#30) */
@@ -217,9 +220,17 @@ export function createVoice({
     return p.words.every((w, i) => w === words[i]) ? p : null;
   }
 
+  /** Le résultat termine-t-il la reprise ou l'assaut ? @param {string[]} alts */
+  function endsReprise(alts) {
+    const m = classify(alts[0], getCfg().learned, getCfg().colors);
+    return m.kind === "command" && m.end !== null;
+  }
+
   /** Un résultat de la reconnaissance @param {string[]} alts @param {boolean} isFinal @param {number} index sa position dans la session d'écoute */
   function onResult(alts, isFinal, index) {
-    if (firedFor.has(index)) return;
+    if (firedFor.has(index) && !(stopOnly.has(index) && endsReprise(alts)))
+      return;
+    stopOnly.delete(index);
     const words = phonWords(alts[0]);
     prev = isFinal ? suiteOf(words) : null;
     cur = { did: "", ev: null };
@@ -310,6 +321,7 @@ export function createVoice({
     }
     if (heard === true) {
       firedFor.add(index);
+      if (!isFinal && cur.did === "STOP") stopOnly.add(index);
       note();
       return;
     }
@@ -333,6 +345,7 @@ export function createVoice({
     // nouvelle écoute : une question « Chrono, prêt ? » restée sans résultat final reçoit sa réponse
     onRestart() {
       firedFor = new Set();
+      stopOnly = new Set();
       prevFinal = null;
       if (readyPending >= 0) answerReady();
     },

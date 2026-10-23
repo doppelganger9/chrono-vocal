@@ -297,3 +297,41 @@ test("« Fin de l'assaut » termine l'assaut à tout moment : en reprise, au rep
   w.hear("Stop, fin de l'assaut"); // 1re reprise sur 3
   assert.equal(w.h.st.phase, "done");
 });
+
+test("« stop » en résultat provisoire, puis « … fin de la deuxième reprise » dans le même résultat : la reprise se termine (#109)", () => {
+  const v = voiceSetup();
+  v.hear("Allez");
+  v.h.advance(61_000); // temps dépassé
+  v.hearSame(
+    ["Stop", "Stop temps", "Stop, temps, fin de la deuxième reprise"],
+    [false, false, true],
+  );
+  assert.equal(v.h.st.phase, "rest");
+  assert.deepEqual(v.done.slice(-2), ["STOP", "FIN DE REPRISE"]);
+  assert.equal(v.journal.at(-1).action, "FIN DE REPRISE");
+
+  // un « stop » provisoire suivi d'autre chose ne refait rien
+  const w = voiceSetup();
+  w.hear("Allez");
+  w.hearSame(["Stop", "Stop, observation tireur rouge"], [false, true]);
+  assert.equal(w.h.st.phase, "round");
+  assert.deepEqual(w.done, ["ALLEZ", "STOP"]);
+  // un « allez » provisoire ne laisse pas passer une fin de reprise dans le même résultat
+  const x = voiceSetup();
+  x.hearSame(["Allez", "Allez, fin de la reprise"], [false, true]);
+  assert.equal(x.h.st.phase, "round");
+  // un « stop » déjà final ne se prolonge plus par le même index
+  const y = voiceSetup();
+  y.hear("Allez");
+  y.voice.onResult(["Stop"], true, 50);
+  y.voice.onResult(["Stop, fin de la reprise"], true, 50);
+  assert.equal(y.h.st.phase, "round");
+  // une nouvelle écoute oublie les « stop » provisoires
+  const z = voiceSetup();
+  z.hear("Allez");
+  z.voice.onResult(["Stop"], false, 0);
+  z.voice.onRestart();
+  z.voice.onResult(["Allez"], true, 0);
+  z.voice.onResult(["Stop, fin de la reprise"], true, 0);
+  assert.equal(z.h.st.phase, "round");
+});

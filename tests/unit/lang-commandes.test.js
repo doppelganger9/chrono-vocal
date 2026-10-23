@@ -151,8 +151,7 @@ test("« en garde » : variantes relevées en recette, sans faux positifs (#47)"
     "deux mots seulement",
   );
   for (const t of [
-    "On regarde",
-    "Regarde",
+    "Regard",
     "Garderie",
     "Tireur",
     "Tireur bleu",
@@ -252,4 +251,159 @@ test("préambule du protocole avant « en garde » ignoré ; « hangar » = « e
     "Changar, allez",
   ])
     assert.equal(p(t), null, t);
+});
+
+test("« fin de la deuxième reprise » : le rang de la reprise est accepté, quel qu'il soit (#109)", () => {
+  const fin = { enGarde: false, cmd: "STOP", end: "reprise" };
+  for (const t of [
+    "Stop, fin de la deuxième reprise",
+    "Stop, fin de la 2e reprise",
+    "Stop, fin de la 2ème reprise",
+    "fin de la deuxième reprise",
+    "Fin de la première reprise",
+    "fin de la 1re reprise",
+    "fin de la 1ère reprise",
+    "fin de la seconde reprise",
+    "fin de la troisième reprise",
+    "fin de la quatrième reprise",
+    "fin de la dernière reprise",
+    "fin de la reprise supplémentaire",
+    "fin de la 3 reprise",
+  ])
+    assert.deepEqual(L.parseCommand(t), fin, t);
+  assert.deepEqual(
+    L.parseCommand("Stop, fin de la deuxième reprise et de l'assaut"),
+    {
+      ...fin,
+      end: "assaut",
+    },
+  );
+  // seulement un rang : un autre mot entre « la » et « reprise » n'est pas la fin protocolaire
+  for (const t of [
+    "fin de la belle reprise",
+    "fin de la deuxième belle reprise",
+    "fin de la 2x reprise",
+  ])
+    assert.equal(L.parseCommand(t), null, t);
+});
+
+test("« Stop, temps » : « temps » après « stop » ne change rien au commandement (#109)", () => {
+  assert.deepEqual(L.parseCommand("Stop, temps"), {
+    enGarde: false,
+    cmd: "STOP",
+    end: null,
+  });
+  assert.deepEqual(L.parseCommand("Stop, temps, fin de la deuxième reprise"), {
+    enGarde: false,
+    cmd: "STOP",
+    end: "reprise",
+  });
+  assert.deepEqual(L.parseCommand("stop temps fin de l'assaut"), {
+    enGarde: false,
+    cmd: "STOP",
+    end: "assaut",
+  });
+  // « temps » seul est l'annonce du chronométreur, pas un commandement
+  assert.equal(L.parseCommand("Temps"), null);
+  assert.equal(L.parseCommand("Allez temps"), null);
+  assert.equal(L.parseCommand("Stop, contretemps"), null);
+});
+
+test("fin de la reprise suivie de l'envoi des tireurs dans leurs zones (#109)", () => {
+  const fin = { enGarde: false, cmd: "STOP", end: "reprise" };
+  for (const t of [
+    "Fin de la deuxième reprise tireur dans vos zones",
+    "Stop, temps, fin de la première reprise, tireurs, dans vos zones",
+    "Fin de la reprise, tireurs, en zone neutre",
+    "fin de la reprise dans vos zones",
+  ])
+    assert.deepEqual(L.parseCommand(t), fin, t);
+  assert.deepEqual(
+    L.parseCommand("Stop, fin de l'assaut, tireurs dans vos zones"),
+    { ...fin, end: "assaut" },
+  );
+  // la suite ne peut être que l'envoi en zone : une autre phrase n'est pas la fin protocolaire
+  assert.equal(L.parseCommand("la fin de la reprise approche, tireurs"), null);
+  assert.equal(L.parseCommand("fin de la reprise, tireurs, au centre"), null);
+  // sans « fin de la reprise », l'envoi en zone ne fait rien
+  for (const t of [
+    "Tireurs, dans vos zones",
+    "Tireurs, dans vos zones, équipez-vous",
+    "Tireurs, en zone neutre",
+  ])
+    assert.equal(L.parseCommand(t), null, t);
+});
+
+test("« Tireurs, en garde » mal entendu : « regarde », « erreur », « Thierry », « tu iras »… (#111)", () => {
+  const eg = { enGarde: true, cmd: null, end: null };
+  for (const t of [
+    "Regarde",
+    "On regarde",
+    "erreur en garde",
+    "terreur en garde",
+    "tu iras en garde",
+    "Thierry en garde",
+    "tirant en garde",
+    "tiroir en garde",
+    "erreur regarde",
+  ])
+    assert.deepEqual(L.parseCommand(t), eg, t);
+  for (const t of ["regarde aller", "Regarde allez", "erreur en garde allez"])
+    assert.deepEqual(L.parseCommand(t), { ...eg, cmd: "ALLEZ" }, t);
+  // seuls, ces mots ne font rien ; ni devant un autre commandement
+  for (const t of [
+    "erreur",
+    "Thierry",
+    "tu iras",
+    "erreur allez",
+    "Thierry stop",
+    "Thierry en zone neutre",
+    "terreur équipez-vous",
+    "erreur dans vos zones",
+    "regarde le tireur bleu",
+  ])
+    assert.equal(L.parseCommand(t), null, t);
+});
+
+test("phrases du protocole affichées par le mode formation : rien d'autre que ce qui est prévu (#109)", () => {
+  const c = ["rouge", "bleu"];
+  for (const t of [
+    "Tireurs, au centre, pour la présentation",
+    "Tireurs, dans vos zones, équipez-vous",
+    "Tireur, équipez-vous sur l'aire",
+    "Première reprise",
+    "Début de la première reprise",
+    "Début de la deuxième reprise",
+    "Tireurs, dans vos zones",
+    "Juges, prêts ?",
+    "Juges ensemble",
+    "Tireurs au centre",
+    "Second, venez aider votre tireur",
+  ])
+    assert.equal(L.classify(t, {}, c).kind, "none", t);
+  assert.deepEqual(L.classify("Stop, temps", {}, c), {
+    kind: "command",
+    cmd: "STOP",
+    enGarde: false,
+    end: null,
+  });
+  assert.equal(L.classify("Fin de la deuxième reprise", {}, c).end, "reprise");
+});
+
+test("une phrase qui finit par « chrono » vaut l'appel « Chrono » (#109)", () => {
+  assert.equal(
+    L.isChronoCall(
+      "Pour la deuxième reprise tireur en garde juge un prêt juge deux prêt juge trois après chrono",
+    ),
+    true,
+  );
+  assert.equal(L.isChronoCall("juge 3, chrono ?"), true);
+  assert.equal(L.isChronoCall("chrono chrono"), true);
+  assert.equal(L.isChronoCall("le chrono tourne"), false);
+  assert.equal(L.isChronoCall("chronométreur"), false);
+  assert.equal(L.isChronoCall(""), false);
+  assert.equal(
+    L.classify("juge un prêt juge deux prêt juge trois après chrono").kind,
+    "chrono",
+  );
 });

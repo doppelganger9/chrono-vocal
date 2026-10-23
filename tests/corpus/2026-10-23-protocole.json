@@ -1,0 +1,185 @@
+{
+  "source": "Phrases du protocole mal comprises, relevées sur le Galaxy S7 (Chrome Android, 20 et 23 octobre 2026) et sur Safari macOS (21 octobre), plus les phrases d'usage affichées par le mode formation (#109, #111). Seulement des phrases d'arbitrage.",
+  "colors": ["rouge", "bleu"],
+  "phrases": [
+    {
+      "text": "fin de la deuxième reprise",
+      "expect": {
+        "kind": "command",
+        "cmd": "STOP",
+        "end": "reprise"
+      }
+    },
+    {
+      "text": "Fin de la deuxième reprise tireur dans vos zones",
+      "expect": {
+        "kind": "command",
+        "cmd": "STOP",
+        "end": "reprise"
+      }
+    },
+    {
+      "text": "Stop, fin de la 2e reprise",
+      "expect": {
+        "kind": "command",
+        "cmd": "STOP",
+        "end": "reprise"
+      }
+    },
+    {
+      "text": "Stop, temps",
+      "expect": {
+        "kind": "command",
+        "cmd": "STOP",
+        "end": null
+      }
+    },
+    {
+      "text": "Stop, temps, fin de la deuxième reprise",
+      "expect": {
+        "kind": "command",
+        "cmd": "STOP",
+        "end": "reprise"
+      }
+    },
+    {
+      "text": "juge pas d'observation des juge",
+      "expect": {
+        "kind": "none"
+      }
+    },
+    {
+      "text": "Tireur au centre observations des juges tireurs bleu tireur rouge défaut de priorité",
+      "expect": {
+        "kind": "none"
+      }
+    },
+    {
+      "text": "Après décompte des points et des pénalités, victoire du tireur rouge",
+      "expect": {
+        "kind": "none"
+      }
+    },
+    {
+      "text": "Pour la deuxième reprise tireur en garde juge un prêt juge deux prêt juge trois après chrono",
+      "expect": {
+        "kind": "chrono"
+      }
+    },
+    {
+      "text": "Prêt",
+      "expect": {
+        "kind": "pret"
+      }
+    },
+    {
+      "text": "juge ensemble",
+      "expect": {
+        "kind": "none"
+      }
+    },
+    {
+      "text": "tireur au centre",
+      "expect": {
+        "kind": "none"
+      }
+    },
+    {
+      "text": "Avertissement prononcé",
+      "expect": {
+        "kind": "motif",
+        "type": "avertissement"
+      }
+    },
+    {
+      "text": "demande d'avertissement pour défaut d'armée tireur bleu",
+      "expect": {
+        "kind": "motif",
+        "type": "demande-avert",
+        "color": "bleu"
+      }
+    },
+    {
+      "text": "erreur en garde",
+      "expect": {
+        "kind": "engarde"
+      }
+    },
+    {
+      "text": "tu iras en garde",
+      "expect": {
+        "kind": "engarde"
+      }
+    },
+    {
+      "text": "regarde",
+      "expect": {
+        "kind": "engarde"
+      }
+    },
+    {
+      "text": "regarde aller",
+      "expect": {
+        "kind": "command",
+        "cmd": "ALLEZ",
+        "enGarde": true
+      }
+    },
+    {
+      "text": "Thierry en zone neutre",
+      "expect": {
+        "kind": "none"
+      }
+    },
+    {
+      "text": "terreur équipez-vous",
+      "expect": {
+        "kind": "none"
+      }
+    },
+    {
+      "text": "erreur dans vos zones",
+      "expect": {
+        "kind": "none"
+      }
+    },
+    {
+      "text": "erreur",
+      "expect": {
+        "kind": "none"
+      }
+    },
+    {
+      "text": "erreur en zone neutre demande d'avertissement contre tiroir rouge",
+      "expect": {
+        "kind": "motif",
+        "type": "demande-avert",
+        "color": "rouge"
+      }
+    },
+    {
+      "text": "Tireurs, au centre, pour la présentation",
+      "expect": {
+        "kind": "none"
+      }
+    },
+    {
+      "text": "Tireurs, dans vos zones, équipez-vous",
+      "expect": {
+        "kind": "none"
+      }
+    },
+    {
+      "text": "Début de la première reprise",
+      "expect": {
+        "kind": "none"
+      }
+    },
+    {
+      "text": "Tireurs, dans vos zones",
+      "expect": {
+        "kind": "none"
+      }
+    }
+  ]
+}
